@@ -1,0 +1,818 @@
+package br.com.sankhya.apesp;
+
+import br.com.sankhya.extensions.actionbutton.AcaoRotinaJava;
+import br.com.sankhya.extensions.actionbutton.ContextoAcao;
+import br.com.sankhya.extensions.actionbutton.Registro;
+import br.com.sankhya.jape.EntityFacade;
+import br.com.sankhya.jape.core.JapeSession;
+import br.com.sankhya.jape.dao.JdbcWrapper;
+import br.com.sankhya.jape.sql.NativeSql;
+import br.com.sankhya.jape.vo.DynamicVO;
+import br.com.sankhya.jape.wrapper.JapeFactory;
+import br.com.sankhya.jape.wrapper.JapeWrapper;
+import br.com.sankhya.jape.wrapper.fluid.FluidCreateVO;
+import br.com.sankhya.modelcore.auth.AuthenticationInfo;
+import br.com.sankhya.modelcore.util.EntityFacadeFactory;
+import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * RECEBIMENTO PARCIAL DE PROMISSÓRIAS - SANKHYA ERP
+ * ═══════════════════════════════════════════════════════════════════════════════
+ *
+ * TIPO DE ROTINA: N → M + Sobra
+ * - Recebe N títulos originais (promissórias)
+ * - Consolida em M títulos novos (até 3 tipos de venda)
+ * - Cria título de SOBRA se soma informada < soma dos originais
+ *
+ * FUNCIONALIDADES:
+ * 1. Consolida MÚLTIPLOS títulos selecionados (N → M)
+ * 2. Até 3 tipos de venda (apenas o primeiro é obrigatório)
+ * 3. Título de SOBRA automático quando valor informado < soma original
+ * 4. Validação de consistência: mesmo CODPARC, CODEMP, RECDESP
+ * 5. Todos os títulos novos recebem o mesmo NURENEG
+ *
+ * REGRAS DE NEGÓCIO:
+ * - Soma dos valores informados NÃO PODE ser MAIOR que soma dos originais
+ * - Soma dos valores informados PODE ser MENOR (gera sobra)
+ * - Todos os títulos originais devem ser do mesmo parceiro
+ * - Todos os títulos originais devem ser da mesma empresa
+ * - Todos os títulos originais devem ter o mesmo RECDESP
+ * - Vencimento da sobra = maior vencimento entre os originais
+ *
+ * CORREÇÕES v3.0:
+ * - Suporte a múltiplos tipos de venda (até 3)
+ * - Busca dinâmica do DHALTER para CODTIPOPER (resolve erro PK TGFTOP)
+ * - Sequência correta considerando N títulos + sobra
+ *
+ * @author Marcel
+ * @version 3.0
+ * @date 29/12/2024
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
+public class RecebeParcialPromissoria implements AcaoRotinaJava {
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CONSTANTES PARA O TÍTULO DE SOBRA (valores fixos da regra de negócio)
+    // ═══════════════════════════════════════════════════════════════════════════
+    private static final BigDecimal SOBRA_CODTIPTIT = new BigDecimal(7);
+    private static final BigDecimal SOBRA_CODBCO = new BigDecimal(123);
+    private static final BigDecimal SOBRA_CODCTABCOINT = new BigDecimal(6);
+    private static final BigDecimal SOBRA_CODTIPOPER = new BigDecimal(2000);
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CLASSES AUXILIARES
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /*
+     * Armazena o PAR (TipoVenda + Valor) informado pelo usuário no popup.
+     * Responsabilidade: Dados de ENTRADA do usuário
+     */
+    private static class TipoVendaValor {
+        BigDecimal codTipVenda; // Código do tipo de venda (ex: 1=PIX, 2=Boleto)
+        BigDecimal valor; // Valor que será gerado neste tipo
+        int indice; // Índice para identificação (1, 2 ou 3)
+
+        TipoVendaValor(BigDecimal codTipVenda, BigDecimal valor, int indice) {
+            this.codTipVenda = codTipVenda;
+            this.valor = valor;
+            this.indice = indice;
+        }
+    }
+
+    /*
+     * Armazena a CONFIGURAÇÃO do tipo de venda (vinda do banco TGFPPG).
+     * Responsabilidade: Dados de CONFIGURAÇÃO do sistema
+     */
+    private static class ConfigPPG {
+        BigDecimal codCtaBcoInt; // Conta bancária interna
+        BigDecimal codBcoPad; // Banco padrão
+        BigDecimal codTipTitPad; // Tipo de título padrão (Boleto, PIX, etc)
+        BigDecimal prazo; // Dias para vencimento
+        BigDecimal cartaoDesc; // Se tem desconto em cartão
+        BigDecimal codTipVenda; // Referência ao tipo de venda
+    }
+
+    /*
+     * Armazena dados coletados de cada título original.
+     * Responsabilidade: Dados para processamento em lote
+     */
+    private static class DadosTituloOriginal {
+        BigDecimal nufin;
+        BigDecimal vlrdesdob;
+        Timestamp dtvenc;
+        DynamicVO vo;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // MÉTODO PRINCIPAL
+    // ═══════════════════════════════════════════════════════════════════════════
+    @Override
+    public void doAction(ContextoAcao contexto) throws Exception {
+        JapeSession.SessionHandle hnd = null;
+        JdbcWrapper jdbc = null;
+
+        try {
+            // ══════════════════════════════════════════════════════════════
+            // ETAPA 1: VALIDAR CONTEXTO
+            // ══════════════════════════════════════════════════════════════
+            Registro[] linhas = contexto.getLinhas();
+            if (linhas == null || linhas.length == 0) {
+                contexto.setMensagemRetorno("ERRO: Nenhum titulo selecionado!");
+                return;
+            }
+
+            // ══════════════════════════════════════════════════════════════
+            // ETAPA 2: OBTER USUÁRIO LOGADO
+            // ══════════════════════════════════════════════════════════════
+            BigDecimal codUsuLogado = obterUsuarioLogado();
+
+            // ══════════════════════════════════════════════════════════════
+            // ETAPA 3: CAPTURAR PARÂMETROS DO POPUP (ATÉ 3 PARES)
+            // Padrão: CODTIPVENDAX + VALORX onde X = 1, 2 ou 3
+            // Apenas o PAR 1 é obrigatório
+            // ══════════════════════════════════════════════════════════════
+            List<TipoVendaValor> tiposVenda = new ArrayList<TipoVendaValor>();
+
+            // ────────────────────────────────────────────────────────────────
+            // PAR 1 - OBRIGATÓRIO
+            // ────────────────────────────────────────────────────────────────
+            Object paramTipVenda1 = contexto.getParam("CODTIPVENDA1");
+            Object paramValor1 = contexto.getParam("VALOR1");
+
+            if (paramTipVenda1 == null) {
+                throw new Exception("Informe o Tipo de Venda 1!");
+            }
+            if (paramValor1 == null) {
+                throw new Exception("Informe o Valor 1!");
+            }
+
+            BigDecimal codTipVenda1 = converterParaBigDecimal(paramTipVenda1);
+            BigDecimal valor1 = converterParaBigDecimal(paramValor1);
+
+            if (valor1.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new Exception("Valor 1 deve ser maior que zero!");
+            }
+            tiposVenda.add(new TipoVendaValor(codTipVenda1, valor1, 1));
+
+            // ────────────────────────────────────────────────────────────────
+            // PAR 2 - OPCIONAL (só adiciona se preenchido com valor > 0)
+            // ────────────────────────────────────────────────────────────────
+            Object paramTipVenda2 = contexto.getParam("CODTIPVENDA2");
+            Object paramValor2 = contexto.getParam("VALOR2");
+
+            if (paramTipVenda2 != null && paramValor2 != null) {
+                BigDecimal codTipVenda2 = converterParaBigDecimal(paramTipVenda2);
+                BigDecimal valor2 = converterParaBigDecimal(paramValor2);
+                if (valor2.compareTo(BigDecimal.ZERO) > 0) {
+                    tiposVenda.add(new TipoVendaValor(codTipVenda2, valor2, 2));
+                }
+            }
+
+            // ────────────────────────────────────────────────────────────────
+            // PAR 3 - OPCIONAL (mesma lógica do par 2)
+            // ────────────────────────────────────────────────────────────────
+            Object paramTipVenda3 = contexto.getParam("CODTIPVENDA3");
+            Object paramValor3 = contexto.getParam("VALOR3");
+
+            if (paramTipVenda3 != null && paramValor3 != null) {
+                BigDecimal codTipVenda3 = converterParaBigDecimal(paramTipVenda3);
+                BigDecimal valor3 = converterParaBigDecimal(paramValor3);
+                if (valor3.compareTo(BigDecimal.ZERO) > 0) {
+                    tiposVenda.add(new TipoVendaValor(codTipVenda3, valor3, 3));
+                }
+            }
+
+            // ────────────────────────────────────────────────────────────────
+            // CALCULAR SOMA DOS VALORES INFORMADOS
+            // ────────────────────────────────────────────────────────────────
+            BigDecimal somaValoresInformados = BigDecimal.ZERO;
+            for (TipoVendaValor tv : tiposVenda) {
+                somaValoresInformados = somaValoresInformados.add(tv.valor);
+            }
+
+            // ══════════════════════════════════════════════════════════════
+            // ETAPA 4: ABRIR RECURSOS
+            // ══════════════════════════════════════════════════════════════
+            hnd = JapeSession.open();
+            EntityFacade dwfFacade = EntityFacadeFactory.getDWFFacade();
+            jdbc = dwfFacade.getJdbcWrapper();
+            jdbc.openSession();
+
+            JapeWrapper finDAO = JapeFactory.dao("Financeiro");
+            JapeWrapper renDAO = JapeFactory.dao("Renegociacao");
+
+            // ══════════════════════════════════════════════════════════════
+            // ETAPA 5: BUSCAR CONFIGURAÇÕES DE TODOS OS TIPOS DE VENDA
+            // Busca ANTES de processar para falhar cedo se config não existir
+            // ══════════════════════════════════════════════════════════════
+            List<ConfigPPG> configsPPG = new ArrayList<ConfigPPG>();
+            for (TipoVendaValor tv : tiposVenda) {
+                ConfigPPG config = buscarConfigPPG(jdbc, tv.codTipVenda);
+                config.codTipVenda = tv.codTipVenda;
+                configsPPG.add(config);
+            }
+
+            // ══════════════════════════════════════════════════════════════
+            // ETAPA 6: GERAR NURENEG ÚNICO PARA TODO O LOTE
+            // ══════════════════════════════════════════════════════════════
+            BigDecimal nureneg = obterProximoNureneg(jdbc);
+
+            // ══════════════════════════════════════════════════════════════
+            // ETAPA 7A: COLETAR E VALIDAR TODOS OS TÍTULOS (FASE 1 - COLETA)
+            // ══════════════════════════════════════════════════════════════
+            List<DadosTituloOriginal> titulosOriginais = new ArrayList<DadosTituloOriginal>();
+            BigDecimal somaTotal = BigDecimal.ZERO;
+            Timestamp maiorVencimento = null;
+
+            // Variáveis de consistência (base = primeiro título)
+            BigDecimal codparcBase = null;
+            BigDecimal codempBase = null;
+            BigDecimal recDespBase = null;
+
+            // Dados do primeiro título (serão usados nos títulos novos)
+            DynamicVO primeiroTitulo = null;
+            StringBuilder nufinsOriginaisStr = new StringBuilder();
+
+            for (Registro linha : linhas) {
+                BigDecimal nufinOriginal = (BigDecimal) linha.getCampo("NUFIN");
+
+                // Buscar título
+                DynamicVO tituloOriginal = finDAO.findByPK(nufinOriginal);
+
+                if (tituloOriginal == null) {
+                    throw new Exception("NUFIN " + nufinOriginal + " nao encontrado!");
+                }
+
+                // Validação: Título já baixado?
+                Timestamp dhbaixa = tituloOriginal.asTimestamp("DHBAIXA");
+                if (dhbaixa != null) {
+                    throw new Exception("NUFIN " + nufinOriginal + " ja baixado em: " + dhbaixa);
+                }
+
+                // Validação: RECDESP válido (bloqueia títulos "mortos" com RECDESP = 0)
+                BigDecimal recDespOriginal = tituloOriginal.asBigDecimal("RECDESP");
+                if (recDespOriginal == null || recDespOriginal.compareTo(BigDecimal.ZERO) == 0) {
+                    throw new Exception("NUFIN " + nufinOriginal + " ja foi renegociado anteriormente (RECDESP = 0)!");
+                }
+
+                // Validação: VLRDESDOB válido?
+                BigDecimal vlrdesdobOriginal = tituloOriginal.asBigDecimal("VLRDESDOB");
+                if (vlrdesdobOriginal == null || vlrdesdobOriginal.compareTo(BigDecimal.ZERO) <= 0) {
+                    throw new Exception("NUFIN " + nufinOriginal + " com VLRDESDOB invalido: " + vlrdesdobOriginal);
+                }
+
+                // Obter campos para validação de consistência
+                BigDecimal codparc = tituloOriginal.asBigDecimal("CODPARC");
+                BigDecimal codemp = tituloOriginal.asBigDecimal("CODEMP");
+                Timestamp dtvenc = tituloOriginal.asTimestamp("DTVENC");
+
+                // Primeiro título: define a base de comparação
+                if (primeiroTitulo == null) {
+                    primeiroTitulo = tituloOriginal;
+                    codparcBase = codparc;
+                    codempBase = codemp;
+                    recDespBase = recDespOriginal;
+                } else {
+                    // Validação de consistência: mesmo CODPARC
+                    if (codparc == null || codparc.compareTo(codparcBase) != 0) {
+                        throw new Exception("Todos os titulos devem ser do mesmo parceiro! " +
+                                "NUFIN " + nufinOriginal + " tem CODPARC " + codparc + ", esperado " + codparcBase);
+                    }
+                    // Validação de consistência: mesmo CODEMP
+                    if (codemp == null || codemp.compareTo(codempBase) != 0) {
+                        throw new Exception("Todos os titulos devem ser da mesma empresa! " +
+                                "NUFIN " + nufinOriginal + " tem CODEMP " + codemp + ", esperado " + codempBase);
+                    }
+                    // Validação de consistência: mesmo RECDESP
+                    if (recDespOriginal.compareTo(recDespBase) != 0) {
+                        throw new Exception("Todos os titulos devem ter o mesmo tipo (Receita/Despesa)! " +
+                                "NUFIN " + nufinOriginal + " tem RECDESP " + recDespOriginal + ", esperado " + recDespBase);
+                    }
+                }
+
+                // Acumular soma total
+                somaTotal = somaTotal.add(vlrdesdobOriginal);
+
+                // Encontrar maior vencimento
+                if (dtvenc != null) {
+                    if (maiorVencimento == null || dtvenc.after(maiorVencimento)) {
+                        maiorVencimento = dtvenc;
+                    }
+                }
+
+                // Armazenar dados do título
+                DadosTituloOriginal dados = new DadosTituloOriginal();
+                dados.nufin = nufinOriginal;
+                dados.vlrdesdob = vlrdesdobOriginal;
+                dados.dtvenc = dtvenc;
+                dados.vo = tituloOriginal;
+                titulosOriginais.add(dados);
+
+                // Montar string de NUFINs para histórico
+                if (nufinsOriginaisStr.length() > 0) {
+                    nufinsOriginaisStr.append(", ");
+                }
+                nufinsOriginaisStr.append(nufinOriginal);
+            }
+
+            // ══════════════════════════════════════════════════════════════
+            // ETAPA 7B: VALIDAR SOMA INFORMADA VS SOMA TOTAL
+            // ══════════════════════════════════════════════════════════════
+            BigDecimal valorRestante = somaTotal.subtract(somaValoresInformados);
+            boolean baixaCompleta = (valorRestante.compareTo(BigDecimal.ZERO) == 0);
+
+            // Validar: soma informada NÃO pode ser MAIOR que a soma dos títulos
+            if (valorRestante.compareTo(BigDecimal.ZERO) < 0) {
+                throw new Exception("Soma dos valores informados (R$ " + somaValoresInformados + ") maior que a soma dos titulos (R$ " + somaTotal + ")!");
+            }
+
+            // ══════════════════════════════════════════════════════════════
+            // ETAPA 7C: EXTRAIR DADOS DO PRIMEIRO TÍTULO (BASE PARA NOVOS)
+            // ══════════════════════════════════════════════════════════════
+            Timestamp dataHoraAtual = new Timestamp(System.currentTimeMillis());
+            Timestamp dataHoje = new Timestamp(System.currentTimeMillis());
+
+            // Campos NUMBER obrigatórios do primeiro título
+            BigDecimal codemp = primeiroTitulo.asBigDecimal("CODEMP");
+            BigDecimal numnota = primeiroTitulo.asBigDecimal("NUMNOTA");
+            BigDecimal codparc = primeiroTitulo.asBigDecimal("CODPARC");
+            BigDecimal codtipoper = primeiroTitulo.asBigDecimal("CODTIPOPER");
+            BigDecimal codnat = primeiroTitulo.asBigDecimal("CODNAT");
+            BigDecimal codcencus = primeiroTitulo.asBigDecimal("CODCENCUS");
+            BigDecimal codvend = primeiroTitulo.asBigDecimal("CODVEND");
+            BigDecimal codmoeda = primeiroTitulo.asBigDecimal("CODMOEDA");
+
+            // Campos NUMBER opcionais
+            BigDecimal codproj = primeiroTitulo.asBigDecimal("CODPROJ");
+            BigDecimal cartaoDescOriginal = primeiroTitulo.asBigDecimal("CARTAODESC");
+
+            // Campos FLOAT
+            BigDecimal vlrjuronegoc = primeiroTitulo.asBigDecimal("VLRJURONEGOC");
+            BigDecimal vlrmultanegoc = primeiroTitulo.asBigDecimal("VLRMULTANEGOC");
+            BigDecimal vlrvendor = primeiroTitulo.asBigDecimal("VLRVENDOR");
+
+            // Campos VARCHAR2
+            String serienota = primeiroTitulo.asString("SERIENOTA");
+            String tipjuro = primeiroTitulo.asString("TIPJURO");
+            String tipmulta = primeiroTitulo.asString("TIPMULTA");
+
+            // Campos DATE
+            Timestamp dtneg = primeiroTitulo.asTimestamp("DTNEG");
+
+            // DHTIPOPER dinâmico para o CODTIPOPER do título original
+            Timestamp dhtipoper = obterDhAlterTipOperacao(jdbc, codtipoper);
+            if (dhtipoper == null) {
+                dhtipoper = primeiroTitulo.asTimestamp("DHTIPOPER");
+            }
+
+            // ══════════════════════════════════════════════════════════════
+            // ETAPA 7D: CALCULAR TOTAL DE TÍTULOS NOVOS (para sequência)
+            // ══════════════════════════════════════════════════════════════
+            // Total = tipos de venda + sobra (se houver)
+            int totalTitulosNovos = tiposVenda.size() + (baixaCompleta ? 0 : 1);
+
+            // ══════════════════════════════════════════════════════════════
+            // ETAPA 8: CRIAR TÍTULOS PARA CADA TIPO DE VENDA (LOOP)
+            // ══════════════════════════════════════════════════════════════
+            int sequencia = 0;
+            List<BigDecimal> nufinsNovos = new ArrayList<BigDecimal>();
+
+            for (int i = 0; i < tiposVenda.size(); i++) {
+                TipoVendaValor tv = tiposVenda.get(i);
+                ConfigPPG config = configsPPG.get(i);
+                sequencia++;
+
+                // Calcular vencimento: SYSDATE + PRAZO da config
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(dataHoje);
+                cal.add(Calendar.DAY_OF_MONTH, config.prazo.intValue());
+                Timestamp dtVenc = new Timestamp(cal.getTimeInMillis());
+
+                // Montar histórico
+                String historico;
+                if (titulosOriginais.size() <= 5) {
+                    historico = "Reneg. Agrup. " + sequencia + "/" + totalTitulosNovos + " - NURENEG: " + nureneg + " - Orig: " + nufinsOriginaisStr.toString();
+                } else {
+                    historico = "Reneg. Agrup. " + sequencia + "/" + totalTitulosNovos + " - NURENEG: " + nureneg + " - " + titulosOriginais.size() + " titulos";
+                }
+
+                // Criar título
+                FluidCreateVO novoTitulo = finDAO.create();
+                novoTitulo
+                    // ══════════════════════════════════════════════════════
+                    // DADOS DO TÍTULO ORIGINAL (herdados)
+                    // ══════════════════════════════════════════════════════
+                    .set("CODEMP", codemp)
+                    .set("NUMNOTA", numnota)
+                    .set("CODPARC", codparc)
+                    .set("CODTIPOPER", codtipoper)
+                    .set("CODNAT", codnat)
+                    .set("CODCENCUS", codcencus)
+                    .set("CODPROJ", codproj)
+                    .set("CODVEND", codvend)
+                    .set("CODMOEDA", codmoeda)
+                    // ══════════════════════════════════════════════════════
+                    // DADOS DA CONFIGURAÇÃO DO TIPO DE VENDA (específicos)
+                    // ══════════════════════════════════════════════════════
+                    .set("CODBCO", config.codBcoPad)
+                    .set("CODCTABCOINT", config.codCtaBcoInt)
+                    .set("CODTIPTIT", config.codTipTitPad)
+                    .set("CARTAODESC", config.cartaoDesc)
+                    // ══════════════════════════════════════════════════════
+                    // DADOS ESPECÍFICOS DESTE TÍTULO NA SEQUÊNCIA
+                    // ══════════════════════════════════════════════════════
+                    .set("VLRDESDOB", tv.valor)
+                    .set("DTVENCINIC", dtVenc)
+                    .set("DTVENC", dtVenc)
+                    .set("DESDOBRAMENTO", String.valueOf(sequencia))
+                    .set("PARCRENEG", sequencia + "/" + totalTitulosNovos)
+                    .set("HISTORICO", historico)
+                    .set("SEQUENCIA", BigDecimal.valueOf(sequencia))
+                    // ══════════════════════════════════════════════════════
+                    // CAMPOS FIXOS
+                    // ══════════════════════════════════════════════════════
+                    .set("NURENEG", nureneg)
+                    .set("RECDESP", recDespBase)
+                    .set("CODUSU", codUsuLogado)
+                    .set("ORIGEM", "F")
+                    .set("AUTORIZADO", "N")
+                    .set("PROVISAO", "N")
+                    .set("SERIENOTA", serienota)
+                    .set("TIPJURO", tipjuro != null ? tipjuro : "I")
+                    .set("TIPMULTA", tipmulta != null ? tipmulta : "1")
+                    // ══════════════════════════════════════════════════════
+                    // DATAS
+                    // ══════════════════════════════════════════════════════
+                    .set("DTNEG", dtneg)
+                    .set("DHMOV", dataHoje)
+                    .set("DHTIPOPER", dhtipoper)
+                    .set("DTALTER", dataHoraAtual)
+                    // ══════════════════════════════════════════════════════
+                    // VALORES FLOAT
+                    // ══════════════════════════════════════════════════════
+                    .set("VLRJURONEGOC", vlrjuronegoc != null ? vlrjuronegoc : BigDecimal.ZERO)
+                    .set("VLRMULTANEGOC", vlrmultanegoc != null ? vlrmultanegoc : BigDecimal.ZERO)
+                    .set("VLRVENDOR", vlrvendor != null ? vlrvendor : BigDecimal.ZERO)
+                    .save();
+
+                // Buscar NUFIN recém-criado
+                BigDecimal nufinNovo = obterUltimoNufinPorNureneg(jdbc, nureneg);
+                nufinsNovos.add(nufinNovo);
+            }
+
+            // Guardar o primeiro NUFIN criado para referência no histórico dos originais
+            BigDecimal nufinPrincipal = nufinsNovos.isEmpty() ? null : nufinsNovos.get(0);
+
+            // ══════════════════════════════════════════════════════════════
+            // ETAPA 9: CRIAR TÍTULO DE SOBRA (SE NÃO FOR BAIXA COMPLETA)
+            // ══════════════════════════════════════════════════════════════
+            BigDecimal nufinSobra = null;
+            Timestamp dtVencSobra = null;
+
+            if (!baixaCompleta) {
+                sequencia++; // Continua a sequência
+
+                // Vencimento da sobra = maior vencimento entre os originais
+                if (maiorVencimento != null) {
+                    dtVencSobra = maiorVencimento;
+                } else {
+                    Calendar calSobra = Calendar.getInstance();
+                    calSobra.setTime(dataHoje);
+                    calSobra.add(Calendar.DAY_OF_MONTH, 28);
+                    dtVencSobra = new Timestamp(calSobra.getTimeInMillis());
+                }
+
+                // DHTIPOPER dinâmico para o CODTIPOPER da sobra (2000)
+                Timestamp dhtipoperSobra = obterDhAlterTipOperacao(jdbc, SOBRA_CODTIPOPER);
+                if (dhtipoperSobra == null) {
+                    throw new Exception("DHALTER nao encontrado para CODTIPOPER " + SOBRA_CODTIPOPER + ". Verifique se o tipo de operacao existe na TGFTOP.");
+                }
+
+                String historicoSobra = "Reneg. Agrup. " + sequencia + "/" + totalTitulosNovos + " (SOBRA) - NURENEG: " + nureneg + " - " + titulosOriginais.size() + " titulos";
+
+                FluidCreateVO tituloSobra = finDAO.create();
+                tituloSobra
+                    // DADOS DO TÍTULO ORIGINAL (herdados)
+                    .set("CODEMP", codemp)
+                    .set("NUMNOTA", numnota)
+                    .set("CODPARC", codparc)
+                    .set("CODNAT", codnat)
+                    .set("CODCENCUS", codcencus)
+                    .set("CODPROJ", codproj)
+                    .set("CODVEND", codvend)
+                    .set("CODMOEDA", codmoeda)
+                    // DADOS FIXOS DA SOBRA
+                    .set("CODTIPOPER", SOBRA_CODTIPOPER)
+                    .set("CODBCO", SOBRA_CODBCO)
+                    .set("CODCTABCOINT", SOBRA_CODCTABCOINT)
+                    .set("CODTIPTIT", SOBRA_CODTIPTIT)
+                    .set("CARTAODESC", cartaoDescOriginal)
+                    // DADOS ESPECÍFICOS DA SOBRA
+                    .set("VLRDESDOB", valorRestante)
+                    .set("DTVENCINIC", dtVencSobra)
+                    .set("DTVENC", dtVencSobra)
+                    .set("DESDOBRAMENTO", String.valueOf(sequencia))
+                    .set("PARCRENEG", sequencia + "/" + totalTitulosNovos)
+                    .set("HISTORICO", historicoSobra)
+                    .set("SEQUENCIA", BigDecimal.valueOf(sequencia))
+                    // CAMPOS FIXOS
+                    .set("NURENEG", nureneg)
+                    .set("RECDESP", recDespBase)
+                    .set("CODUSU", codUsuLogado)
+                    .set("ORIGEM", "F")
+                    .set("AUTORIZADO", "N")
+                    .set("PROVISAO", "N")
+                    .set("SERIENOTA", serienota)
+                    .set("TIPJURO", tipjuro != null ? tipjuro : "I")
+                    .set("TIPMULTA", tipmulta != null ? tipmulta : "1")
+                    // DATAS
+                    .set("DTNEG", dataHoje)
+                    .set("DHMOV", dataHoje)
+                    .set("DHTIPOPER", dhtipoperSobra)
+                    .set("DTALTER", dataHoraAtual)
+                    // VALORES FLOAT
+                    .set("VLRJURONEGOC", vlrjuronegoc != null ? vlrjuronegoc : BigDecimal.ZERO)
+                    .set("VLRMULTANEGOC", vlrmultanegoc != null ? vlrmultanegoc : BigDecimal.ZERO)
+                    .set("VLRVENDOR", vlrvendor != null ? vlrvendor : BigDecimal.ZERO)
+                    .save();
+
+                nufinSobra = obterUltimoNufinPorNureneg(jdbc, nureneg);
+            }
+
+            // ══════════════════════════════════════════════════════════════
+            // ETAPA 10: UPDATE EM TODOS OS TÍTULOS ORIGINAIS
+            // ══════════════════════════════════════════════════════════════
+            String sqlUpdate = "UPDATE TGFFIN SET DTALTER = ?, NURENEG = ?, RECDESP = ?, HISTORICO = ? WHERE NUFIN = ?";
+            for (DadosTituloOriginal dadosTitulo : titulosOriginais) {
+                String historicoOriginal = "Reneg. p/ NURENEG: " + nureneg + " - " + tiposVenda.size() + " tipo(s)" + (baixaCompleta ? "" : " + Sobra");
+
+                java.sql.PreparedStatement pstmt = null;
+                try {
+                    pstmt = jdbc.getPreparedStatement(sqlUpdate);
+                    pstmt.setTimestamp(1, dataHoraAtual);
+                    pstmt.setBigDecimal(2, nureneg);
+                    pstmt.setBigDecimal(3, BigDecimal.ZERO);
+                    pstmt.setString(4, historicoOriginal);
+                    pstmt.setBigDecimal(5, dadosTitulo.nufin);
+
+                    int linhasAfetadas = pstmt.executeUpdate();
+                    if (linhasAfetadas == 0) {
+                        throw new Exception("UPDATE nao afetou NUFIN " + dadosTitulo.nufin + "!");
+                    }
+                } finally {
+                    if (pstmt != null) {
+                        try {
+                            pstmt.close();
+                        } catch (Exception e) {}
+                    }
+                }
+            }
+
+            // ══════════════════════════════════════════════════════════════
+            // ETAPA 11: INSERT NA TGFREN PARA CADA TÍTULO ORIGINAL
+            // ══════════════════════════════════════════════════════════════
+            for (DadosTituloOriginal dadosTitulo : titulosOriginais) {
+                FluidCreateVO novaReneg = renDAO.create();
+                novaReneg
+                    .set("NURENEG", nureneg)
+                    .set("NUFIN", dadosTitulo.nufin)
+                    .set("NURENEGORIG", BigDecimal.ZERO)
+                    .set("CODUSU", codUsuLogado)
+                    .set("DHALTER", dataHoraAtual)
+                    .save();
+            }
+
+            // ══════════════════════════════════════════════════════════════
+            // ETAPA 12: MONTAR MENSAGEM DE RETORNO
+            // ══════════════════════════════════════════════════════════════
+            StringBuilder mensagemFinal = new StringBuilder();
+            mensagemFinal.append("═══════════════════════════════════════\n");
+            mensagemFinal.append("RENEGOCIAÇÃO AGRUPADA CONCLUÍDA (v3.0)\n");
+            mensagemFinal.append("═══════════════════════════════════════\n\n");
+            mensagemFinal.append("NURENEG: " + nureneg + "\n");
+            mensagemFinal.append("Títulos Originais: " + titulosOriginais.size() + "\n");
+            mensagemFinal.append("Soma Original: R$ " + somaTotal + "\n\n");
+
+            mensagemFinal.append("--- Tipos de Venda Informados ---\n");
+            for (TipoVendaValor tv : tiposVenda) {
+                mensagemFinal.append(" Tipo " + tv.indice + ": CODTIPVENDA " + tv.codTipVenda + " = R$ " + tv.valor + "\n");
+            }
+            mensagemFinal.append(" Soma Informada: R$ " + somaValoresInformados + "\n");
+
+            if (!baixaCompleta) {
+                mensagemFinal.append(" SOBRA: R$ " + valorRestante + "\n");
+            }
+
+            mensagemFinal.append("\n--- Títulos Originais (Renegociados) ---\n");
+            for (DadosTituloOriginal dadosTitulo : titulosOriginais) {
+                mensagemFinal.append(" NUFIN " + dadosTitulo.nufin + " (R$ " + dadosTitulo.vlrdesdob + ") -> RECDESP = 0\n");
+            }
+
+            mensagemFinal.append("\n--- Títulos Criados ---\n");
+            for (int i = 0; i < tiposVenda.size(); i++) {
+                TipoVendaValor tv = tiposVenda.get(i);
+                BigDecimal nufin = nufinsNovos.get(i);
+                mensagemFinal.append(" " + (i + 1) + "/" + totalTitulosNovos + ": NUFIN " + nufin + " - TipVenda " + tv.codTipVenda + " - R$ " + tv.valor + "\n");
+            }
+
+            if (!baixaCompleta) {
+                mensagemFinal.append(" " + totalTitulosNovos + "/" + totalTitulosNovos + ": NUFIN " + nufinSobra + " - SOBRA - R$ " + valorRestante + " - Venc: " + dtVencSobra + "\n");
+            }
+
+            mensagemFinal.append("\n═══════════════════════════════════════\n");
+            mensagemFinal.append("Tipo: " + (baixaCompleta ? "BAIXA COMPLETA" : "BAIXA PARCIAL (com sobra)") + "\n");
+            mensagemFinal.append("Processamento concluído com sucesso!\n");
+            mensagemFinal.append("═══════════════════════════════════════");
+
+            contexto.setMensagemRetorno(mensagemFinal.toString());
+
+        } catch (Exception e) {
+            contexto.setMensagemRetorno("ERRO CRÍTICO: " + e.getMessage());
+            throw e;
+        } finally {
+            if (jdbc != null) {
+                try {
+                    JdbcWrapper.closeSession(jdbc);
+                } catch (Exception e) {}
+            }
+            if (hnd != null) {
+                try {
+                    JapeSession.close(hnd);
+                } catch (Exception e) {}
+            }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // MÉTODOS AUXILIARES
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /*
+     * Converte Object para BigDecimal de forma segura.
+     */
+    private BigDecimal converterParaBigDecimal(Object valor) {
+        if (valor == null) {
+            return null;
+        }
+        if (valor instanceof BigDecimal) {
+            return (BigDecimal) valor;
+        }
+        return new BigDecimal(valor.toString());
+    }
+
+    /*
+     * Busca configuração do tipo de venda na TGFPPG via JOIN.
+     */
+    private ConfigPPG buscarConfigPPG(JdbcWrapper jdbc, BigDecimal codTipVenda) throws Exception {
+        ConfigPPG config = new ConfigPPG();
+        int countRegistros = 0;
+
+        NativeSql sqlConfig = new NativeSql(jdbc);
+        sqlConfig.appendSql("SELECT ");
+        sqlConfig.appendSql("PPG.CODCTABCOINT, ");
+        sqlConfig.appendSql("PPG.CODBCOPAD, ");
+        sqlConfig.appendSql("PPG.CODTIPTITPAD, ");
+        sqlConfig.appendSql("PPG.PRAZO, ");
+        sqlConfig.appendSql("TIT.CARTAODESC ");
+        sqlConfig.appendSql("FROM AD_TPVTIPTIT TIP ");
+        sqlConfig.appendSql("LEFT JOIN TGFPPG PPG ON TIP.CODTIPVENDA = PPG.CODTIPVENDA ");
+        sqlConfig.appendSql("LEFT JOIN TGFTIT TIT ON PPG.CODTIPTITPAD = TIT.CODTIPTIT ");
+        sqlConfig.appendSql("WHERE PPG.CODEMP = 1 AND TIP.CODTIPVENDA = " + codTipVenda);
+
+        ResultSet rsConfig = sqlConfig.executeQuery();
+
+        try {
+            while (rsConfig.next()) {
+                countRegistros++;
+                if (countRegistros > 1) {
+                    rsConfig.close();
+                    throw new Exception("Tipo de venda " + codTipVenda + " com multiplas parcelas nao permitido.");
+                }
+                config.codCtaBcoInt = rsConfig.getBigDecimal("CODCTABCOINT");
+                config.codBcoPad = rsConfig.getBigDecimal("CODBCOPAD");
+                config.codTipTitPad = rsConfig.getBigDecimal("CODTIPTITPAD");
+                config.prazo = rsConfig.getBigDecimal("PRAZO");
+                config.cartaoDesc = rsConfig.getBigDecimal("CARTAODESC");
+            }
+        } finally {
+            if (rsConfig != null) {
+                try {
+                    rsConfig.close();
+                } catch (Exception e) {}
+            }
+        }
+
+        if (countRegistros == 0) {
+            throw new Exception("Configuracao nao encontrada para CODTIPVENDA = " + codTipVenda);
+        }
+        if (config.codCtaBcoInt == null) {
+            throw new Exception("CODCTABCOINT nao configurado para CODTIPVENDA = " + codTipVenda);
+        }
+        if (config.codBcoPad == null) {
+            throw new Exception("CODBCOPAD nao configurado para CODTIPVENDA = " + codTipVenda);
+        }
+        if (config.codTipTitPad == null) {
+            throw new Exception("CODTIPTITPAD nao configurado para CODTIPVENDA = " + codTipVenda);
+        }
+        if (config.prazo == null) {
+            throw new Exception("PRAZO nao configurado para CODTIPVENDA = " + codTipVenda);
+        }
+
+        return config;
+    }
+
+    /*
+     * Obtém o código do usuário logado.
+     */
+    private BigDecimal obterUsuarioLogado() {
+        try {
+            AuthenticationInfo authInfo = AuthenticationInfo.getCurrent();
+            if (authInfo != null) {
+                return authInfo.getUserID();
+            }
+            return BigDecimal.ONE;
+        } catch (Exception e) {
+            return BigDecimal.ONE;
+        }
+    }
+
+    /*
+     * Obtém o próximo NURENEG disponível.
+     */
+    private BigDecimal obterProximoNureneg(JdbcWrapper jdbc) throws Exception {
+        NativeSql sql = new NativeSql(jdbc);
+        sql.appendSql("SELECT NVL(MAX(NURENEG), 0) + 1 AS PROXIMO FROM TGFFIN");
+        ResultSet rs = sql.executeQuery();
+        try {
+            if (rs.next()) {
+                BigDecimal proximo = rs.getBigDecimal("PROXIMO");
+                if (proximo == null) {
+                    throw new Exception("Query retornou NULL para NURENEG!");
+                }
+                return proximo;
+            } else {
+                throw new Exception("Query nao retornou nenhum resultado!");
+            }
+        } finally {
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (Exception e) {}
+            }
+        }
+    }
+
+    /*
+     * Obtém o último NUFIN criado com determinado NURENEG.
+     */
+    private BigDecimal obterUltimoNufinPorNureneg(JdbcWrapper jdbc, BigDecimal nureneg) throws Exception {
+        NativeSql sql = new NativeSql(jdbc);
+        sql.appendSql("SELECT MAX(NUFIN) AS NUFIN FROM TGFFIN WHERE NURENEG = " + nureneg);
+        ResultSet rs = sql.executeQuery();
+        try {
+            if (rs.next()) {
+                return rs.getBigDecimal("NUFIN");
+            }
+            return null;
+        } finally {
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (Exception e) {}
+            }
+        }
+    }
+
+    /*
+     * Obtém o DHALTER (data de versão) mais recente para um CODTIPOPER específico.
+     *
+     * A tabela TGFTOP tem chave primária composta (CODTIPOPER, DHALTER).
+     * Esta query busca a versão mais recente do tipo de operação.
+     */
+    private Timestamp obterDhAlterTipOperacao(JdbcWrapper jdbc, BigDecimal codTipOper) throws Exception {
+        if (codTipOper == null) {
+            return null;
+        }
+        NativeSql sql = new NativeSql(jdbc);
+        sql.appendSql("SELECT MAX(DHALTER) AS DHALTER FROM TGFTOP WHERE CODTIPOPER = " + codTipOper);
+        ResultSet rs = sql.executeQuery();
+        try {
+            if (rs.next()) {
+                return rs.getTimestamp("DHALTER");
+            }
+            return null;
+        } finally {
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (Exception e) {}
+            }
+        }
+    }
+}

@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analise de Compras</title>
+    <script src="https://cdn.jsdelivr.net/gh/wansleynery/SankhyaJX@main/jx.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; font-size: 11px; background: #f5f5f5; }
+        .container { padding: 10px; }
+
+        /* Header */
+        .header { background: #2563eb; color: #fff; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 14px; font-weight: bold; }
+        .header-info { font-size: 10px; opacity: 0.8; }
+        .header-actions { display: flex; gap: 8px; }
+        .btn-header { background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 6px 12px; cursor: pointer; border-radius: 4px; font-size: 11px; display: flex; align-items: center; gap: 5px; transition: background 0.2s; }
+        .btn-header:hover { background: rgba(255,255,255,0.3); }
+
+        /* Indicadores (movidos para footer) */
+        .indicadores-footer { display: flex; gap: 15px; }
+        .indicador-footer { background: #e5e7eb; padding: 4px 10px; border-radius: 4px; font-size: 10px; }
+        .indicador-footer-valor { font-weight: bold; font-size: 11px; color: #1f2937; }
+
+        /* Filtros */
+        .filtros { background: #fff; padding: 10px; margin-bottom: 10px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #ddd; }
+        .filtros label { font-weight: bold; color: #333; }
+        .filtros select, .filtros input { padding: 5px 8px; border: 1px solid #ccc; font-size: 11px; border-radius: 3px; }
+        .filtros input[type="text"] { width: 180px; }
+        .btn-filtrar { background: #2563eb; color: #fff; border: none; padding: 6px 12px; cursor: pointer; border-radius: 3px; font-size: 11px; }
+        .btn-filtrar:hover { background: #1d4ed8; }
+        .btn-limpar { background: #6b7280; color: #fff; border: none; padding: 6px 12px; cursor: pointer; border-radius: 3px; font-size: 11px; }
+        .btn-novo-produto { background: #16a34a; color: #fff; border: none; padding: 6px 14px; cursor: pointer; border-radius: 3px; font-size: 11px; font-weight: bold; margin-left: 10px; }
+        .btn-novo-produto:hover { background: #15803d; }
+
+        /* Tabela */
+        .table-container { background: #fff; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        th { background: #333; color: #fff; padding: 8px 4px; text-align: center; font-size: 10px; cursor: pointer; user-select: none; white-space: nowrap; position: sticky; top: 0; z-index: 10; }
+        th:hover { background: #444; }
+        th .sort-icon { margin-left: 3px; font-size: 8px; }
+        th.sorted-asc, th.sorted-desc { background: #1d4ed8; }
+        td { border: 1px solid #e0e0e0; padding: 5px 4px; text-align: center; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        tr:hover { background: #e8f4ff; }
+        .col-desc { text-align: left !important; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .col-num { text-align: right !important; padding-right: 8px !important; }
+
+        /* Badges */
+        .badge { padding: 2px 6px; border-radius: 3px; font-size: 9px; font-weight: bold; display: inline-block; }
+        .badge-a { background: #dbeafe; color: #1d4ed8; font-weight: bold; }
+        .badge-b { background: #e0e7ff; color: #4338ca; }
+        .badge-c { background: #f3f4f6; color: #6b7280; }
+        .estoque-negativo { color: #dc2626; font-weight: bold; }
+        .estoque-positivo { color: #16a34a; font-weight: bold; }
+
+        /* Tooltip */
+        .tooltip-container { position: relative; }
+        .tooltip-trigger { cursor: help; border-bottom: 1px dotted #999; }
+        .tooltip-content { display: none; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #1f2937; color: #fff; padding: 10px 12px; border-radius: 6px; font-size: 10px; white-space: nowrap; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); min-width: 220px; }
+        .tooltip-content::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: #1f2937; }
+        .tooltip-container:hover .tooltip-content { display: block; }
+        .tooltip-row { display: flex; justify-content: space-between; gap: 15px; padding: 2px 0; }
+        .tooltip-label { color: #9ca3af; }
+        .tooltip-value { font-weight: bold; color: #fff; }
+        .tooltip-divider { border-top: 1px solid #374151; margin: 5px 0; }
+        .tooltip-title { font-weight: bold; color: #60a5fa; margin-bottom: 5px; font-size: 11px; }
+
+        /* Loading */
+        .loading { text-align: center; padding: 40px; color: #666; }
+        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #2563eb; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Footer */
+        .footer { background: #fff; padding: 10px; border-top: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
+        .footer-info { color: #666; font-size: 10px; }
+
+        /* Botoes de Acao */
+        .col-acoes { white-space: nowrap; }
+        .btn-acao { background: none; border: none; cursor: pointer; font-size: 12px; padding: 2px 4px; border-radius: 3px; opacity: 0.6; transition: all 0.2s; }
+        .btn-acao:hover { transform: scale(1.2); opacity: 1; background: #f3f4f6; }
+        .btn-acao.disabled { opacity: 0.3; cursor: default; }
+        .btn-acao.disabled:hover { transform: none; background: none; }
+
+        /* Modal Fornecedores */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: #fff; border-radius: 8px; width: 90%; max-width: 800px; max-height: 85vh; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+        .modal-header { background: #2563eb; color: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h2 { font-size: 14px; font-weight: bold; }
+        .modal-close { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; opacity: 0.8; }
+        .modal-close:hover { opacity: 1; }
+        .modal-indicadores { display: flex; gap: 15px; background: #f8fafc; padding: 15px 20px; border-bottom: 1px solid #e2e8f0; }
+        .modal-indicador { background: #fff; padding: 12px 16px; border-radius: 6px; border: 1px solid #e2e8f0; flex: 1; text-align: center; }
+        .modal-indicador-label { font-size: 10px; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
+        .modal-indicador-valor { font-size: 18px; font-weight: bold; color: #1e293b; }
+        .modal-indicador-valor.destaque { color: #2563eb; }
+        .modal-indicador-sub { font-size: 9px; color: #94a3b8; margin-top: 2px; }
+        .modal-body { padding: 15px 20px; overflow-y: auto; max-height: calc(85vh - 200px); }
+        .modal-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        .modal-table th { background: #f1f5f9; color: #334155; padding: 10px 8px; text-align: left; font-size: 10px; font-weight: 600; border-bottom: 2px solid #e2e8f0; }
+        .modal-table td { padding: 10px 8px; border-bottom: 1px solid #e2e8f0; }
+        .modal-table tr:hover { background: #f8fafc; }
+        .modal-table .col-rank { text-align: center; font-weight: bold; }
+        .modal-table .col-perc { text-align: right; }
+        .rank-badge { display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 50%; font-size: 11px; font-weight: bold; }
+        .rank-1 { background: #fef3c7; color: #d97706; }
+        .rank-2 { background: #e0e7ff; color: #4f46e5; }
+        .rank-3 { background: #f3e8ff; color: #9333ea; }
+        .rank-other { background: #f1f5f9; color: #64748b; }
+        .perc-bar { display: flex; align-items: center; gap: 8px; }
+        .perc-bar-fill { height: 6px; background: #2563eb; border-radius: 3px; }
+        .perc-bar-bg { flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+        .modal-loading { text-align: center; padding: 40px; color: #64748b; }
+        .modal-empty { text-align: center; padding: 40px; color: #94a3b8; }
+
+        /* Logos de Marcas */
+        .marca-logo { width: 18px; height: 18px; vertical-align: middle; margin-right: 4px; border-radius: 2px; object-fit: contain; }
+        .marca-cell { display: flex; align-items: center; gap: 4px; }
+
+        /* DEBUG LOG PANEL */
+        .debug-panel { position: fixed; bottom: 0; left: 0; right: 0; background: #1e1e1e; color: #d4d4d4; font-family: 'Consolas', 'Courier New', monospace; font-size: 11px; max-height: 200px; overflow: hidden; transition: max-height 0.3s; z-index: 999; }
+        .debug-panel.collapsed { max-height: 30px; }
+        .debug-header { background: #333; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-top: 2px solid #2563eb; }
+        .debug-header:hover { background: #444; }
+        .debug-title { font-weight: bold; color: #2563eb; }
+        .debug-controls { display: flex; gap: 10px; }
+        .debug-btn { background: #444; border: none; color: #fff; padding: 2px 8px; border-radius: 3px; cursor: pointer; font-size: 10px; }
+        .debug-btn:hover { background: #555; }
+        .debug-logs { padding: 8px 12px; overflow-y: auto; max-height: 160px; }
+        .log-entry { padding: 3px 0; border-bottom: 1px solid #333; display: flex; gap: 10px; }
+        .log-time { color: #6b7280; min-width: 80px; }
+        .log-type { min-width: 60px; font-weight: bold; }
+        .log-type.info { color: #3b82f6; }
+        .log-type.success { color: #22c55e; }
+        .log-type.error { color: #ef4444; }
+        .log-type.warn { color: #f59e0b; }
+        .log-type.sql { color: #a855f7; }
+        .log-msg { color: #e5e5e5; word-break: break-all; }
+        .log-duration { color: #14b8a6; margin-left: auto; min-width: 70px; text-align: right; }
+
+        /* ══════ POPUP NOVO PRODUTO ══════ */
+        .popup-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+        }
+        .popup-overlay.show { display: flex; }
+        .popup-produto {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            width: 650px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .popup-produto-header {
+            padding: 16px 20px;
+            background: #16a34a;
+            color: #fff;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .popup-produto-header h2 { font-size: 16px; font-weight: 600; }
+        .popup-produto-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            line-height: 1;
+            opacity: 0.8;
+        }
+        .popup-produto-close:hover { opacity: 1; }
+        .popup-produto-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .popup-produto-footer {
+            padding: 16px 20px;
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            border-radius: 0 0 8px 8px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Campos do Popup */
+        .campo-popup { margin-bottom: 16px; }
+        .campo-popup label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            color: #374151;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .campo-popup input, .campo-popup select, .campo-popup textarea {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 13px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            background: #fff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .campo-popup input:focus, .campo-popup select:focus, .campo-popup textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
+        .campo-popup input::placeholder { color: #9ca3af; }
+        .obrigatorio-popup::after { content: ' *'; color: #dc2626; }
+        .campo-row-popup { display: flex; gap: 12px; }
+        .campo-row-popup .campo-popup { flex: 1; }
+
+        /* Lookup do Popup */
+        .lookup-popup-wrap { display: flex; gap: 8px; position: relative; }
+        .lookup-popup-wrap .lookup-popup-input { width: 100%; }
+        .lookup-popup-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1px solid #2563eb;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10;
+            display: none;
+        }
+        .lookup-popup-list.show { display: block; }
+        .lookup-popup-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            display: flex;
+            gap: 12px;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 12px;
+        }
+        .lookup-popup-item:last-child { border-bottom: none; }
+        .lookup-popup-item:hover { background: #eff6ff; }
+        .lookup-popup-item.active { background: #eff6ff; outline: 1px solid #2563eb; }
+        .lookup-popup-item-cod { font-family: monospace; font-weight: 600; color: #2563eb; min-width: 80px; }
+        .lookup-popup-item-desc { color: #1f2937; }
+        .lookup-popup-loading { padding: 10px 12px; color: #6b7280; font-style: italic; font-size: 12px; }
+
+        /* Botões do Popup */
+        .btn-popup-cancelar {
+            background: #e5e7eb;
+            color: #374151;
+            border: none;
+            padding: 10px 20px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .btn-popup-cancelar:hover { background: #d1d5db; }
+        .btn-popup-salvar {
+            background: #16a34a;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .btn-popup-salvar:hover { background: #15803d; }
+
+        /* Popup Sucesso */
+        .popup-sucesso {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            width: 450px;
+            text-align: center;
+        }
+        .popup-sucesso .popup-produto-header { background: #16a34a; }
+        .popup-sucesso-code {
+            background: #1f2937;
+            color: #4ade80;
+            padding: 16px;
+            margin: 16px;
+            border-radius: 6px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 12px;
+            text-align: left;
+            white-space: pre;
+            line-height: 1.6;
+        }
+        .btn-popup-copiar {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            font-size: 11px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 16px;
+        }
+        .btn-popup-copiar:hover { background: #1d4ed8; }
+        .btn-popup-copiar.copiado { background: #16a34a; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <div style="display: flex; align-items: center;">
+        <h1>ANALISE DE COMPRAS</h1>
+    </div>
+    <div class="header-actions">
+        <button class="btn-header" onclick="exportarExcel()">Exportar Excel</button>
+        <span class="header-info" id="dtRef"></span>
+    </div>
+</div>
+
+<div class="filtros">
+    <label>ABC:</label>
+    <select id="filtroABC">
+        <option value="">Todos</option>
+        <option value="A">A</option>
+        <option value="B">B</option>
+        <option value="C">C</option>
+    </select>
+
+    <label>Marca:</label>
+    <select id="filtroMarca">
+        <option value="">Todas</option>
+    </select>
+
+    <label>Grupo:</label>
+    <select id="filtroGrupo">
+        <option value="">Todos</option>
+    </select>
+
+    <label>Buscar:</label>
+    <input type="text" id="filtroBusca" placeholder="Codigo, ref ou descricao...">
+
+    <button class="btn-filtrar" onclick="aplicarFiltros()">Filtrar</button>
+    <button class="btn-limpar" onclick="limparFiltros()">Limpar</button>
+    <button class="btn-novo-produto" onclick="abrirPopupNovoProduto()">+ NOVO PRODUTO</button>
+</div>
+
+<div class="container">
+    <div class="table-container" style="max-height: calc(100vh - 280px); overflow-y: auto;">
+        <table id="tabela">
+            <thead>
+                <tr>
+                    <th style="width:80px;">ACOES</th>
+                    <th data-col="CODPROD" onclick="ordenar('CODPROD')">COD <span class="sort-icon"></span></th>
+                    <th data-col="REFFORN" onclick="ordenar('REFFORN')">CODORIG <span class="sort-icon"></span></th>
+                    <th data-col="DESCRPROD" onclick="ordenar('DESCRPROD')">DESCRICAO <span class="sort-icon"></span></th>
+                    <th data-col="MARCA" onclick="ordenar('MARCA')">MARCA <span class="sort-icon"></span></th>
+                    <th data-col="ORG_ABC" onclick="ordenar('ORG_ABC')">ABC <span class="sort-icon"></span></th>
+                    <th data-col="RANKI" onclick="ordenar('RANKI')">RANK <span class="sort-icon"></span></th>
+                    <th data-col="ORG_ETQAT" onclick="ordenar('ORG_ETQAT')">ETQ <span class="sort-icon"></span></th>
+                    <th data-col="SIM_ETQAT" onclick="ordenar('SIM_ETQAT')">SIM <span class="sort-icon"></span></th>
+                    <th data-col="ORG_ETQMIN" onclick="ordenar('ORG_ETQMIN')">MIN <span class="sort-icon"></span></th>
+                    <th data-col="ORG_ETQMED" onclick="ordenar('ORG_ETQMED')">MED <span class="sort-icon"></span></th>
+                    <th data-col="ORG_MEDMES" onclick="ordenar('ORG_MEDMES')">M/MES <span class="sort-icon"></span></th>
+                </tr>
+            </thead>
+            <tbody id="tbody">
+                <tr><td colspan="12" class="loading"><div class="loading-spinner"></div>Carregando dados...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="footer">
+    <span class="footer-info" id="totalRegistros">0 registros</span>
+    <span class="footer-info" id="totalFiltrados"></span>
+</div>
+
+<!-- MODAL FORNECEDORES -->
+<div class="modal-overlay" id="modalFornecedores">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalFornTitulo">FORNECEDORES DO PRODUTO</h2>
+            <button class="modal-close" onclick="fecharModalFornecedores()">&times;</button>
+        </div>
+        <div class="modal-indicadores">
+            <div class="modal-indicador">
+                <div class="modal-indicador-label">Qtd Total Comprada</div>
+                <div class="modal-indicador-valor" id="indQtdTotal">0</div>
+                <div class="modal-indicador-sub">unidades</div>
+            </div>
+            <div class="modal-indicador">
+                <div class="modal-indicador-label">Fornecedores</div>
+                <div class="modal-indicador-valor" id="indQtdForn">0</div>
+                <div class="modal-indicador-sub">participantes</div>
+            </div>
+            <div class="modal-indicador">
+                <div class="modal-indicador-label">Fornecedor Sugerido</div>
+                <div class="modal-indicador-valor destaque" id="indFornSugerido">-</div>
+                <div class="modal-indicador-sub" id="indFornSugeridoCod">Ranking #1</div>
+            </div>
+        </div>
+        <div class="modal-body" id="modalFornBody">
+            <div class="modal-loading">Carregando fornecedores...</div>
+        </div>
+    </div>
+</div>
+
+<!-- POPUP NOVO PRODUTO -->
+<div class="popup-overlay" id="popupNovoProduto">
+    <div class="popup-produto">
+        <div class="popup-produto-header">
+            <h2>NOVO PRODUTO</h2>
+            <button class="popup-produto-close" onclick="fecharPopupNovoProduto()">&times;</button>
+        </div>
+        <div class="popup-produto-body">
+            <!-- Nome do Produto -->
+            <div class="campo-popup">
+                <label class="obrigatorio-popup">Nome do Produto</label>
+                <input type="text" id="np_descrprod" placeholder="Digite o nome do produto" maxlength="200">
+            </div>
+
+            <!-- Marca - Lookup -->
+            <div class="campo-popup">
+                <label class="obrigatorio-popup">Marca</label>
+                <div class="lookup-popup-wrap">
+                    <input type="hidden" id="np_codmarca">
+                    <input type="hidden" id="np_nomemarca">
+                    <input type="text" class="lookup-popup-input" id="np_marca_input" placeholder="Digite código ou nome da marca..." oninput="buscarMarcaPopup(this.value)" onfocus="mostrarListaMarcaPopup()" onkeydown="navegarListaMarcaPopup(event)">
+                    <div class="lookup-popup-list" id="np_lista_marca"></div>
+                </div>
+            </div>
+
+            <!-- Grupo - Lookup -->
+            <div class="campo-popup">
+                <label class="obrigatorio-popup">Grupo de Produtos</label>
+                <div class="lookup-popup-wrap">
+                    <input type="hidden" id="np_codgrupoprod">
+                    <input type="text" class="lookup-popup-input" id="np_grupo_input" placeholder="Digite código ou nome do grupo..." oninput="buscarGrupoPopup(this.value)" onfocus="mostrarListaGrupoPopup()" onkeydown="navegarListaGrupoPopup(event)">
+                    <div class="lookup-popup-list" id="np_lista_grupo"></div>
+                </div>
+            </div>
+
+            <!-- Código Similar e Referência Fornecedor -->
+            <div class="campo-row-popup">
+                <div class="campo-popup">
+                    <label>Código Similar</label>
+                    <input type="text" id="np_compldesc" placeholder="Código similar (opcional)" maxlength="100">
+                </div>
+                <div class="campo-popup">
+                    <label>Referência Fornecedor</label>
+                    <input type="text" id="np_refforn" placeholder="Código do fornecedor" maxlength="50">
+                </div>
+            </div>
+        </div>
+        <div class="popup-produto-footer">
+            <button class="btn-popup-cancelar" onclick="fecharPopupNovoProduto()">Cancelar</button>
+            <button class="btn-popup-salvar" onclick="salvarNovoProduto()">Salvar Produto</button>
+        </div>
+    </div>
+</div>
+
+<!-- POPUP SUCESSO -->
+<div class="popup-overlay" id="popupSucessoProduto">
+    <div class="popup-produto popup-sucesso">
+        <div class="popup-produto-header">
+            <h2>PRODUTO INSERIDO!</h2>
+            <button class="popup-produto-close" onclick="fecharPopupSucesso()">&times;</button>
+        </div>
+        <div class="popup-sucesso-code" id="np_sucesso_code"></div>
+        <button class="btn-popup-copiar" onclick="copiarDadosProduto()">Copiar</button>
+    </div>
+</div>
+
+<!-- DEBUG PANEL -->
+<div class="debug-panel" id="debugPanel">
+    <div class="debug-header" onclick="toggleDebug()">
+        <span class="debug-title">MONITOR DE CONSULTAS</span>
+        <div class="debug-controls">
+            <span id="debugCount">0 logs</span>
+            <button class="debug-btn" onclick="event.stopPropagation();limparLogs()">Limpar</button>
+            <button class="debug-btn" onclick="event.stopPropagation();exportarLogs()">Exportar</button>
+        </div>
+    </div>
+    <div class="debug-logs" id="debugLogs"></div>
+</div>
+
+<script>
+// ============================================================
+// DEBUG LOGGER
+// ============================================================
+var DEBUG = {
+    logs: [],
+    maxLogs: 100,
+
+    log: function(type, msg, duration) {
+        var entry = { time: new Date(), type: type, msg: msg, duration: duration || null };
+        this.logs.push(entry);
+        if (this.logs.length > this.maxLogs) this.logs.shift();
+        this.render();
+    },
+
+    info: function(msg) { this.log('info', msg); },
+    success: function(msg, duration) { this.log('success', msg, duration); },
+    error: function(msg) { this.log('error', msg); },
+    warn: function(msg) { this.log('warn', msg); },
+    sql: function(msg, duration) { this.log('sql', msg, duration); },
+
+    render: function() {
+        var container = document.getElementById('debugLogs');
+        var html = '';
+        for (var i = this.logs.length - 1; i >= 0; i--) {
+            var l = this.logs[i];
+            var time = l.time.toLocaleTimeString('pt-BR');
+            var dur = l.duration ? l.duration + 'ms' : '';
+            html += '<div class="log-entry">' +
+                '<span class="log-time">' + time + '</span>' +
+                '<span class="log-type ' + l.type + '">[' + l.type.toUpperCase() + ']</span>' +
+                '<span class="log-msg">' + l.msg + '</span>' +
+                (dur ? '<span class="log-duration">' + dur + '</span>' : '') +
+                '</div>';
+        }
+        container.innerHTML = html;
+        document.getElementById('debugCount').textContent = this.logs.length + ' logs';
+    },
+
+    clear: function() { this.logs = []; this.render(); },
+
+    export: function() {
+        var txt = this.logs.map(function(l) {
+            return l.time.toISOString() + ' [' + l.type + '] ' + l.msg + (l.duration ? ' (' + l.duration + 'ms)' : '');
+        }).join('\n');
+        var blob = new Blob([txt], {type:'text/plain'});
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'debug_log_' + new Date().toISOString().slice(0,10) + '.txt';
+        a.click();
+    }
+};
+
+function toggleDebug() { document.getElementById('debugPanel').classList.toggle('collapsed'); }
+function limparLogs() { DEBUG.clear(); }
+function exportarLogs() { DEBUG.export(); }
+
+// ============================================================
+// VARIAVEIS GLOBAIS
+// ============================================================
+var dadosOriginais = [];
+var dadosFiltrados = [];
+var colunaOrdenada = 'RANKI';
+var ordemAsc = true;
+
+// Dados para popup Novo Produto
+var MARCAS_POPUP = [];
+var GRUPOS_POPUP = [];
+var marcaIndexPopup = -1;
+var grupoIndexPopup = -1;
+var ultimoProdutoInserido = {};
+
+// ============================================================
+// LOGOS DAS MARCAS
+// ============================================================
+var LOGOS_MARCAS = {
+    'COFAP': 'https://s6.imgcdn.dev/Ya5W5V.webp',
+    'SAMPEL': 'https://s6.imgcdn.dev/Ya5eSn.webp',
+    'FRAS-LE': 'https://s6.imgcdn.dev/Ya5bQO.webp',
+    'DRIVEWAY': 'https://s6.imgcdn.dev/Ya53go.webp',
+    'CORVEN': 'https://s6.imgcdn.dev/Ya5dOK.webp',
+    'TECFIL': 'https://i.ibb.co/WNqZbXzQ/images-q-tbn-ANd9-Gc-TZFqn-RUEe-CTka-T0-Udy5jw-N4-L0-VHLl-Gkx-Ess-A-s.png',
+    'VONIXX': 'https://i.ibb.co/MyxFbNYf/vonixx-1.png',
+    'PETRONAS': 'https://i.ibb.co/PsQ7jXNF/500px-PETRONAS-Logo-for-solid-white-background.png',
+    'VINTEX': 'https://i.ibb.co/RG3yGvjG/D-NQ-NP-657091-MLB49210994690-022022-O-cheirinho-liquido-sanitizante-aroma-bom-ar-vintex-15l.webp',
+    'MANN': 'https://i.ibb.co/pBLdgYpn/Mann-Filter-500x500.png',
+    'WEGA': 'https://i.ibb.co/BxX1pqW/filtro-oleo-toyota-hilux-3-0-05-jfo-211-26478-1-c8aa148dd7f918404118c7ff36bc9bd7.png'
+};
+
+function getLogoMarca(marca) {
+    if (!marca) return '';
+    var marcaUpper = marca.toUpperCase().trim();
+    var logo = LOGOS_MARCAS[marcaUpper];
+    if (logo) {
+        return '<img src="' + logo + '" class="marca-logo" alt="' + marca + '" onerror="this.style.display=\'none\'">';
+    }
+    return '';
+}
+
+// ============================================================
+// VER FORNECEDORES
+// ============================================================
+function verFornecedores(codprod) {
+    DEBUG.info('Abrindo fornecedores do CODPROD: ' + codprod);
+    var inicio = Date.now();
+
+    // Buscar nome do produto
+    var produto = dadosOriginais.find(function(r) { return r.CODPROD == codprod; });
+    var nomeProduto = produto ? (produto.DESCRPROD || 'Produto ' + codprod) : 'Produto ' + codprod;
+    document.getElementById('modalFornTitulo').textContent = 'FORNECEDORES - ' + nomeProduto;
+
+    // Resetar indicadores
+    document.getElementById('indQtdTotal').textContent = '0';
+    document.getElementById('indQtdForn').textContent = '0';
+    document.getElementById('indFornSugerido').textContent = '-';
+    document.getElementById('indFornSugeridoCod').textContent = 'Ranking #1';
+    document.getElementById('modalFornBody').innerHTML = '<div class="modal-loading">Carregando fornecedores...</div>';
+
+    // Abrir modal
+    document.getElementById('modalFornecedores').classList.add('active');
+
+    // Consulta SQL usando a view EA_NV2COMPFORNRANK_TT
+    var sql = "SELECT " +
+        "SIT_CODEMP, " +
+        "SIT_DTATUAL, " +
+        "CAB_CODPARC, " +
+        "PAR_NOMEPARC, " +
+        "SIT_CODPROD, " +
+        "ROUND(NVL(SIT_ENTRADACOMICMS, 0), 2) AS CUSTO, " +
+        "ROUND(NVL(SIT_QTDNEG, 0), 0) AS QTDNEG, " +
+        "ROUND(NVL(ORIG_QTDCOMTT, 0), 0) AS QTDCOMTT, " +
+        "ROUND(NVL(ORIG_QTDCOMPFORN, 0), 0) AS QTDCOMPFORN, " +
+        "ROUND(NVL(ORIG_PERCFORNCOMP, 0), 2) AS PERCFORNCOMP, " +
+        "NVL(RANKFORN, 999) AS RANKFORN, " +
+        "ROUND(NVL(ORIG_QNTFORN, 0), 0) AS QNTFORN " +
+        "FROM EA_NV2COMPFORNRANK_TT " +
+        "WHERE SIT_CODPROD = " + codprod + " " +
+        "ORDER BY RANKFORN";
+
+    DEBUG.sql('SQL: ' + sql);
+    console.log('=== SQL FORNECEDORES ===\n' + sql);
+    DEBUG.sql('Consultando fornecedores para CODPROD: ' + codprod);
+
+    JX.consultar(sql).then(function(resultado) {
+        var duracao = Date.now() - inicio;
+        var dados = resultado || [];
+        DEBUG.success('Fornecedores carregados: ' + dados.length + ' registros', duracao);
+
+        if (dados.length === 0) {
+            document.getElementById('modalFornBody').innerHTML = '<div class="modal-empty">Nenhum fornecedor encontrado para este produto.</div>';
+            return;
+        }
+
+        // Calcular indicadores
+        var qtdTotal = dados[0].QTDCOMTT || 0;
+        var qtdForn = dados[0].QNTFORN || dados.length;
+        var fornSugerido = dados.find(function(r) { return r.RANKFORN == 1; });
+
+        document.getElementById('indQtdTotal').textContent = formatarNumero(qtdTotal);
+        document.getElementById('indQtdForn').textContent = qtdForn;
+
+        // Calcular total para percentual do sugerido
+        var totalParaPerc = 0;
+        for (var j = 0; j < dados.length; j++) {
+            totalParaPerc += Number(dados[j].QTDCOMPFORN) || 0;
+        }
+
+        if (fornSugerido) {
+            var nomeFornSugerido = fornSugerido.PAR_NOMEPARC || '-';
+            // Truncar nome se muito longo
+            if (nomeFornSugerido.length > 25) nomeFornSugerido = nomeFornSugerido.substring(0, 22) + '...';
+            document.getElementById('indFornSugerido').textContent = nomeFornSugerido;
+            var percSugerido = totalParaPerc > 0 ? ((Number(fornSugerido.QTDCOMPFORN) || 0) / totalParaPerc) * 100 : 0;
+            document.getElementById('indFornSugeridoCod').textContent = 'Cod: ' + fornSugerido.CAB_CODPARC + ' | ' + formatarDecimal(percSugerido) + '%';
+        }
+
+        // Renderizar tabela
+        var html = '<table class="modal-table">' +
+            '<thead><tr>' +
+            '<th style="width:50px;">RANK</th>' +
+            '<th style="width:60px;">CODIGO</th>' +
+            '<th>FORNECEDOR</th>' +
+            '<th style="width:90px;">ULT. COMPRA</th>' +
+            '<th style="width:80px;">QTD</th>' +
+            '<th style="width:150px;">PARTICIPACAO</th>' +
+            '</tr></thead><tbody>';
+
+        // Calcular participacao baseada na quantidade de cada fornecedor
+        var totalQtdForn = 0;
+        for (var i = 0; i < dados.length; i++) {
+            totalQtdForn += Number(dados[i].QTDCOMPFORN) || 0;
+        }
+
+        for (var i = 0; i < dados.length; i++) {
+            var f = dados[i];
+            var rankClass = f.RANKFORN == 1 ? 'rank-1' : f.RANKFORN == 2 ? 'rank-2' : f.RANKFORN == 3 ? 'rank-3' : 'rank-other';
+
+            // Calcular percentual baseado na quantidade do fornecedor / total
+            var qtdFornecedor = Number(f.QTDCOMPFORN) || 0;
+            var perc = totalQtdForn > 0 ? (qtdFornecedor / totalQtdForn) * 100 : 0;
+
+            html += '<tr>';
+            html += '<td class="col-rank"><span class="rank-badge ' + rankClass + '">' + f.RANKFORN + '</span></td>';
+            html += '<td>' + (f.CAB_CODPARC || '-') + '</td>';
+            html += '<td title="' + (f.PAR_NOMEPARC || '') + '">' + (f.PAR_NOMEPARC || '-') + '</td>';
+            html += '<td>' + formatarData(f.SIT_DTATUAL) + '</td>';
+            html += '<td style="text-align:right;">' + formatarNumero(f.QTDCOMPFORN) + '</td>';
+            html += '<td class="col-perc">' +
+                '<div class="perc-bar">' +
+                '<div class="perc-bar-bg"><div class="perc-bar-fill" style="width:' + perc + '%;"></div></div>' +
+                '<span style="min-width:45px;text-align:right;">' + formatarDecimal(perc) + '%</span>' +
+                '</div></td>';
+            html += '</tr>';
+        }
+
+        html += '</tbody></table>';
+        document.getElementById('modalFornBody').innerHTML = html;
+
+    }).catch(function(erro) {
+        DEBUG.error('Erro ao carregar fornecedores: ' + erro);
+        document.getElementById('modalFornBody').innerHTML = '<div class="modal-empty" style="color:#ef4444;">Erro: ' + erro + '</div>';
+    });
+}
+
+function fecharModalFornecedores() {
+    document.getElementById('modalFornecedores').classList.remove('active');
+    DEBUG.info('Modal fornecedores fechado');
+}
+
+// ============================================================
+// ACOES PLACEHOLDER (FUTURAS IMPLEMENTACOES)
+// ============================================================
+function acaoPlaceholder2(codprod) {
+    // TODO: Implementar acao 2
+    DEBUG.warn('Acao 2 ainda nao implementada - CODPROD: ' + codprod);
+}
+
+function acaoPlaceholder3(codprod) {
+    // TODO: Implementar acao 3
+    DEBUG.warn('Acao 3 ainda nao implementada - CODPROD: ' + codprod);
+}
+
+function acaoPlaceholder4(codprod) {
+    // TODO: Implementar acao 4
+    DEBUG.warn('Acao 4 ainda nao implementada - CODPROD: ' + codprod);
+}
+
+// ============================================================
+// POPUP NOVO PRODUTO - FUNÇÕES
+// ============================================================
+
+// Carregar Marcas e Grupos para o popup
+async function carregarDadosPopup() {
+    DEBUG.info('Carregando marcas e grupos para popup...');
+    try {
+        var r1 = await JX.consultar("SELECT CODIGO, DESCRICAO FROM TGFMAR ORDER BY DESCRICAO");
+        MARCAS_POPUP = r1 || [];
+        DEBUG.success('Marcas carregadas: ' + MARCAS_POPUP.length);
+    } catch (e) {
+        DEBUG.error('Erro ao carregar marcas: ' + e.message);
+    }
+    try {
+        var r2 = await JX.consultar("SELECT CODGRUPOPROD, DESCRGRUPOPROD FROM TGFGRU WHERE ATIVO = 'S' ORDER BY DESCRGRUPOPROD");
+        GRUPOS_POPUP = r2 || [];
+        DEBUG.success('Grupos carregados: ' + GRUPOS_POPUP.length);
+    } catch (e) {
+        DEBUG.error('Erro ao carregar grupos: ' + e.message);
+    }
+}
+
+// Abrir popup
+function abrirPopupNovoProduto() {
+    DEBUG.info('Abrindo popup Novo Produto');
+    document.getElementById('popupNovoProduto').classList.add('show');
+    document.getElementById('np_descrprod').focus();
+}
+
+// Fechar popup
+function fecharPopupNovoProduto() {
+    document.getElementById('popupNovoProduto').classList.remove('show');
+    // Limpa campos
+    document.getElementById('np_descrprod').value = '';
+    document.getElementById('np_codmarca').value = '';
+    document.getElementById('np_nomemarca').value = '';
+    document.getElementById('np_marca_input').value = '';
+    document.getElementById('np_codgrupoprod').value = '';
+    document.getElementById('np_grupo_input').value = '';
+    document.getElementById('np_compldesc').value = '';
+    document.getElementById('np_refforn').value = '';
+    document.getElementById('np_lista_marca').classList.remove('show');
+    document.getElementById('np_lista_grupo').classList.remove('show');
+    DEBUG.info('Popup Novo Produto fechado');
+}
+
+// ══════ LOOKUP MARCA ══════
+function mostrarListaMarcaPopup() {
+    marcaIndexPopup = -1;
+    var lista = document.getElementById('np_lista_marca');
+    if (!MARCAS_POPUP.length) {
+        lista.innerHTML = '<div class="lookup-popup-loading">Carregando marcas...</div>';
+        lista.classList.add('show');
+        return;
+    }
+    renderizarListaMarcaPopup(MARCAS_POPUP.slice(0, 50));
+}
+
+function buscarMarcaPopup(termo) {
+    marcaIndexPopup = -1;
+    if (!termo) { mostrarListaMarcaPopup(); return; }
+    var filtrados = MARCAS_POPUP.filter(function(m) {
+        return m.CODIGO.toString().includes(termo) ||
+               m.DESCRICAO.toLowerCase().includes(termo.toLowerCase());
+    });
+    renderizarListaMarcaPopup(filtrados);
+}
+
+function renderizarListaMarcaPopup(filtrados) {
+    var lista = document.getElementById('np_lista_marca');
+    if (!filtrados.length) {
+        lista.innerHTML = '<div class="lookup-popup-item" style="color:#999">Nenhuma marca encontrada</div>';
+    } else {
+        var html = '';
+        for (var i = 0; i < Math.min(filtrados.length, 50); i++) {
+            var m = filtrados[i];
+            html += '<div class="lookup-popup-item" data-index="' + i + '" onclick="selecionarMarcaPopup(' + m.CODIGO + ', \'' + m.DESCRICAO.replace(/'/g, "\\'") + '\')">' +
+                '<span class="lookup-popup-item-cod">' + m.CODIGO + '</span>' +
+                '<span class="lookup-popup-item-desc">' + m.DESCRICAO + '</span>' +
+                '</div>';
+        }
+        lista.innerHTML = html;
+    }
+    lista.classList.add('show');
+}
+
+function navegarListaMarcaPopup(e) {
+    var lista = document.getElementById('np_lista_marca');
+    var items = lista.querySelectorAll('.lookup-popup-item[data-index]');
+    if (!items.length) return;
+
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        marcaIndexPopup = Math.min(marcaIndexPopup + 1, items.length - 1);
+        atualizarMarcaAtivaPopup(items);
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        marcaIndexPopup = Math.max(marcaIndexPopup - 1, 0);
+        atualizarMarcaAtivaPopup(items);
+    } else if (e.key === 'Enter' && marcaIndexPopup >= 0) {
+        e.preventDefault();
+        items[marcaIndexPopup].click();
+    }
+}
+
+function atualizarMarcaAtivaPopup(items) {
+    for (var i = 0; i < items.length; i++) items[i].classList.remove('active');
+    if (marcaIndexPopup >= 0 && items[marcaIndexPopup]) {
+        items[marcaIndexPopup].classList.add('active');
+        items[marcaIndexPopup].scrollIntoView({ block: 'nearest' });
+    }
+}
+
+function selecionarMarcaPopup(cod, desc) {
+    document.getElementById('np_codmarca').value = cod;
+    document.getElementById('np_nomemarca').value = desc;
+    document.getElementById('np_marca_input').value = cod + ' - ' + desc;
+    document.getElementById('np_lista_marca').classList.remove('show');
+    DEBUG.info('Marca selecionada: ' + cod + ' - ' + desc);
+}
+
+// ══════ LOOKUP GRUPO ══════
+function mostrarListaGrupoPopup() {
+    grupoIndexPopup = -1;
+    var lista = document.getElementById('np_lista_grupo');
+    if (!GRUPOS_POPUP.length) {
+        lista.innerHTML = '<div class="lookup-popup-loading">Carregando grupos...</div>';
+        lista.classList.add('show');
+        return;
+    }
+    renderizarListaGrupoPopup(GRUPOS_POPUP.slice(0, 50));
+}
+
+function buscarGrupoPopup(termo) {
+    grupoIndexPopup = -1;
+    if (!termo) { mostrarListaGrupoPopup(); return; }
+    var filtrados = GRUPOS_POPUP.filter(function(g) {
+        return g.CODGRUPOPROD.toString().includes(termo) ||
+               g.DESCRGRUPOPROD.toLowerCase().includes(termo.toLowerCase());
+    });
+    renderizarListaGrupoPopup(filtrados);
+}
+
+function renderizarListaGrupoPopup(filtrados) {
+    var lista = document.getElementById('np_lista_grupo');
+    if (!filtrados.length) {
+        lista.innerHTML = '<div class="lookup-popup-item" style="color:#999">Nenhum grupo encontrado</div>';
+    } else {
+        var html = '';
+        for (var i = 0; i < Math.min(filtrados.length, 50); i++) {
+            var g = filtrados[i];
+            html += '<div class="lookup-popup-item" data-index="' + i + '" onclick="selecionarGrupoPopup(' + g.CODGRUPOPROD + ', \'' + g.DESCRGRUPOPROD.replace(/'/g, "\\'") + '\')">' +
+                '<span class="lookup-popup-item-cod">' + g.CODGRUPOPROD + '</span>' +
+                '<span class="lookup-popup-item-desc">' + g.DESCRGRUPOPROD + '</span>' +
+                '</div>';
+        }
+        lista.innerHTML = html;
+    }
+    lista.classList.add('show');
+}
+
+function navegarListaGrupoPopup(e) {
+    var lista = document.getElementById('np_lista_grupo');
+    var items = lista.querySelectorAll('.lookup-popup-item[data-index]');
+    if (!items.length) return;
+
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        grupoIndexPopup = Math.min(grupoIndexPopup + 1, items.length - 1);
+        atualizarGrupoAtivoPopup(items);
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        grupoIndexPopup = Math.max(grupoIndexPopup - 1, 0);
+        atualizarGrupoAtivoPopup(items);
+    } else if (e.key === 'Enter' && grupoIndexPopup >= 0) {
+        e.preventDefault();
+        items[grupoIndexPopup].click();
+    }
+}
+
+function atualizarGrupoAtivoPopup(items) {
+    for (var i = 0; i < items.length; i++) items[i].classList.remove('active');
+    if (grupoIndexPopup >= 0 && items[grupoIndexPopup]) {
+        items[grupoIndexPopup].classList.add('active');
+        items[grupoIndexPopup].scrollIntoView({ block: 'nearest' });
+    }
+}
+
+function selecionarGrupoPopup(cod, desc) {
+    document.getElementById('np_codgrupoprod').value = cod;
+    document.getElementById('np_grupo_input').value = cod + ' - ' + desc;
+    document.getElementById('np_lista_grupo').classList.remove('show');
+    DEBUG.info('Grupo selecionado: ' + cod + ' - ' + desc);
+}
+
+// Fechar listas ao clicar fora
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.lookup-popup-wrap')) {
+        var listaMarca = document.getElementById('np_lista_marca');
+        var listaGrupo = document.getElementById('np_lista_grupo');
+        if (listaMarca) listaMarca.classList.remove('show');
+        if (listaGrupo) listaGrupo.classList.remove('show');
+    }
+});
+
+// ══════ SALVAR PRODUTO ══════
+async function salvarNovoProduto() {
+    DEBUG.info('Iniciando salvamento de novo produto...');
+    var inicio = Date.now();
+
+    // Data atual
+    var agora = new Date();
+    var dtalter = ('0' + agora.getDate()).slice(-2) + '/' +
+                  ('0' + (agora.getMonth() + 1)).slice(-2) + '/' +
+                  agora.getFullYear() + ' ' +
+                  ('0' + agora.getHours()).slice(-2) + ':' +
+                  ('0' + agora.getMinutes()).slice(-2) + ':' +
+                  ('0' + agora.getSeconds()).slice(-2);
+
+    var dados = {
+        DESCRPROD: document.getElementById('np_descrprod').value.trim(),
+        MARCA: document.getElementById('np_nomemarca').value.trim() || null,
+        CODGRUPOPROD: parseInt(document.getElementById('np_codgrupoprod').value) || null,
+        COMPLDESC: document.getElementById('np_compldesc').value.trim() || null,
+        REFFORN: document.getElementById('np_refforn').value.trim() || null,
+        // Valores fixos
+        CODVOL: 'UN',
+        CODVOLCOMPRA: 'UN',
+        CSTIPIENT: 49,
+        CSTIPISAI: 99,
+        DTALTER: dtalter,
+        GRUPOICMS: 60,
+        USALOCAL: 'S',
+        USOPROD: 'R',
+        TIPSUBST: 'A',
+        DESCMAX: 99,
+        DECQTD: 2,
+        CODIPI: 5,
+        CLASSUBTRIB: 14,
+        CODFORMPREC: 3,
+        NCM: '84879000',
+        CODLOCALPADRAO: 101,
+        CALCDIFAL: 'S'
+    };
+
+    // Validação
+    var erros = [];
+    if (!dados.DESCRPROD) erros.push('Nome do Produto é obrigatório');
+    if (!dados.MARCA) erros.push('Marca é obrigatória');
+    if (!dados.CODGRUPOPROD) erros.push('Grupo de Produtos é obrigatório');
+
+    if (erros.length) {
+        DEBUG.error('Validação falhou: ' + erros.join(', '));
+        alert('Campos obrigatórios:\n\n' + erros.join('\n'));
+        return;
+    }
+
+    // Remove campos nulos
+    for (var k in dados) {
+        if (dados[k] === null) delete dados[k];
+    }
+
+    DEBUG.sql('Dados para INSERT: ' + JSON.stringify(dados));
+
+    try {
+        var r = await JX.salvar(dados, 'Produto', [{}]);
+        var duracao = Date.now() - inicio;
+        DEBUG.success('Produto inserido com sucesso!', duracao);
+        DEBUG.info('Retorno: ' + JSON.stringify(r));
+
+        // Extrair CODPROD
+        var codprod = null;
+        if (r && r[0] && r[0].responseBody && r[0].responseBody.entities && r[0].responseBody.entities.entity) {
+            codprod = r[0].responseBody.entities.entity.CODPROD && r[0].responseBody.entities.entity.CODPROD.$;
+        }
+        if (!codprod && r && r.pk) codprod = r.pk.CODPROD;
+        if (!codprod && r && r.CODPROD) codprod = r.CODPROD;
+        if (!codprod && r && r[0] && r[0].CODPROD) codprod = r[0].CODPROD;
+
+        // Fallback: buscar no banco
+        if (!codprod) {
+            var ultimo = await JX.consultar("SELECT TOP 1 CODPROD FROM TGFPRO WHERE DESCRPROD = '" + dados.DESCRPROD.replace(/'/g, "''") + "' ORDER BY CODPROD DESC");
+            codprod = (ultimo && ultimo[0]) ? ultimo[0].CODPROD : 'N/A';
+        }
+
+        ultimoProdutoInserido = {
+            CODPROD: codprod,
+            NOME: dados.DESCRPROD,
+            REFFORN: dados.REFFORN || '-'
+        };
+
+        mostrarPopupSucessoProduto();
+        fecharPopupNovoProduto();
+        carregarDados(); // Recarrega grid
+
+    } catch (e) {
+        DEBUG.error('Erro ao inserir: ' + e.message);
+        alert('Erro ao inserir produto:\n\n' + e.message);
+    }
+}
+
+// ══════ POPUP SUCESSO ══════
+function mostrarPopupSucessoProduto() {
+    var texto = 'CODPROD:  ' + ultimoProdutoInserido.CODPROD + '\n' +
+                'NOME:     ' + ultimoProdutoInserido.NOME + '\n' +
+                'REFFORN:  ' + ultimoProdutoInserido.REFFORN;
+    document.getElementById('np_sucesso_code').textContent = texto;
+    document.getElementById('popupSucessoProduto').classList.add('show');
+}
+
+function fecharPopupSucesso() {
+    document.getElementById('popupSucessoProduto').classList.remove('show');
+}
+
+function copiarDadosProduto() {
+    var texto = 'CODPROD: ' + ultimoProdutoInserido.CODPROD + ' | NOME: ' + ultimoProdutoInserido.NOME + ' | REFFORN: ' + ultimoProdutoInserido.REFFORN;
+    navigator.clipboard.writeText(texto).then(function() {
+        var btn = document.querySelector('.btn-popup-copiar');
+        btn.textContent = 'Copiado!';
+        btn.classList.add('copiado');
+        DEBUG.success('Dados copiados para área de transferência');
+        setTimeout(function() {
+            btn.textContent = 'Copiar';
+            btn.classList.remove('copiado');
+        }, 2000);
+    }).catch(function(err) {
+        DEBUG.error('Erro ao copiar: ' + err);
+    });
+}
+
+// ============================================================
+// CARREGAR DADOS
+// ============================================================
+function carregarDados() {
+    DEBUG.info('Iniciando carregamento de dados...');
+    var inicio = Date.now();
+
+    var sql = "WITH CTE1 AS ( " +
+        "SELECT " +
+        "ITE.CODPROD, PRO.REFFORN, PRO.CODIGO, PRO.MARCA, PRO.DESCRPROD, PRO.COMPLDESC, " +
+        "PRO.CODGRUPOPROD, PRO.DESCRGRUPOPROD, " +
+        "ROUND(NVL(ABC.RANKING_QTDPED, 0), 0) AS RANKI, " +
+        "ROUND(NVL(ABC.QTDPEDVENLIQ_12M, 0), 0) AS ORG_PED12M, " +
+        "ABC.ABC_PED AS ORG_ABC, " +
+        "ROUND(NVL(MED.ITEVENLIQ_12M, 0), 0) AS ORG_ITE12M, " +
+        "NVL(MED.MEDMES, 0) AS ORG_MEDMES, " +
+        "ROUND(NVL(EST.ESTOQUE, 0), 0) AS ORG_ETQAT, " +
+        "ROUND(NVL(MED.ETQMIN, 0), 0) AS ORG_ETQMIN, " +
+        "ROUND(NVL(MED.ETQMED, 0), 0) AS ORG_ETQMED, " +
+        "ROUND(NVL(MED.ETQMAX, 0), 0) AS ORG_ETQMAX, " +
+        "ROUND(NVL(MEDSIM.SIM_PEDLIQ, 0), 0) AS SIM_PED12M, " +
+        "NVL(MEDSIM.SIM_MEDMES, 0) AS SIM_MEDMES, " +
+        "ROUND(NVL(ESTSIM.SUM_ESTOQUE, 0), 0) AS SIM_ETQAT, " +
+        "ROUND(NVL(ESTSIM.QTD_MARCAEST, 0), 0) AS SIM_MARCAETQ, " +
+        "ROUND(NVL(MEDSIM.SIM_ETQMIN, 0), 0) AS SIM_ETQMIN, " +
+        "ROUND(NVL(MEDSIM.SIM_ETQMED, 0), 0) AS SIM_ETQMED, " +
+        "ROUND(NVL(MEDSIM.SIM_ETQMAX, 0), 0) AS SIM_ETQMAX, " +
+        "PRO.AD_COTADMF, PRO.AD_CATCOMPRA, PRO.AD_STATUSREP " +
+        "FROM AE1_2509_ITEMOVENTINICIAL ITE " +
+        "LEFT JOIN AE0_2508_PRODUTOCOMPLETO PRO ON PRO.CODPROD = ITE.CODPROD " +
+        "LEFT JOIN AE1_2509_ITEABC ABC ON ABC.CODPROD = ITE.CODPROD " +
+        "LEFT JOIN AE1_2509_MEDMES MED ON MED.CODPROD = ITE.CODPROD " +
+        "LEFT JOIN AE1_2508_TGFEST EST ON EST.CODPROD = ITE.CODPROD " +
+        "LEFT JOIN AE1_2509_MEDMES_SIM MEDSIM ON MEDSIM.COMPLDESC = PRO.COMPLDESC " +
+        "LEFT JOIN AE1_2509_ESTSIM ESTSIM ON ESTSIM.COMPLDESC = PRO.COMPLDESC) " +
+        "SELECT SYSDATE AS DTREF, CTE1.* FROM CTE1 " +
+        "ORDER BY NULLIF(CTE1.RANKI, 0) NULLS LAST, CTE1.COMPLDESC";
+
+    DEBUG.sql('Executando consulta principal...');
+
+    JX.consultar(sql).then(function(resultado) {
+        var duracao = Date.now() - inicio;
+        dadosOriginais = resultado || [];
+        DEBUG.success('Dados carregados: ' + dadosOriginais.length + ' registros', duracao);
+
+        if (dadosOriginais.length > 0 && dadosOriginais[0].DTREF) {
+            document.getElementById('dtRef').textContent = 'Ref: ' + formatarData(dadosOriginais[0].DTREF);
+        }
+
+        popularFiltrosDinamicos();
+        aplicarFiltros();
+        atualizarIndicadores();
+    }).catch(function(erro) {
+        DEBUG.error('Erro ao carregar: ' + erro);
+        document.getElementById('tbody').innerHTML = '<tr><td colspan="12" style="color:red;padding:20px;">Erro: ' + erro + '</td></tr>';
+    });
+}
+
+// ============================================================
+// POPULAR FILTROS DINAMICOS
+// ============================================================
+function popularFiltrosDinamicos() {
+    DEBUG.info('Populando filtros dinamicos...');
+
+    var marcas = {}, grupos = {};
+    for (var i = 0; i < dadosOriginais.length; i++) {
+        var r = dadosOriginais[i];
+        if (r.MARCA) marcas[r.MARCA] = true;
+        if (r.DESCRGRUPOPROD) grupos[r.DESCRGRUPOPROD] = true;
+    }
+
+    var selMarca = document.getElementById('filtroMarca');
+    var marcasArr = Object.keys(marcas).sort();
+    for (var i = 0; i < marcasArr.length; i++) {
+        var opt = document.createElement('option');
+        opt.value = marcasArr[i];
+        opt.textContent = marcasArr[i];
+        selMarca.appendChild(opt);
+    }
+
+    var selGrupo = document.getElementById('filtroGrupo');
+    var gruposArr = Object.keys(grupos).sort();
+    for (var i = 0; i < gruposArr.length; i++) {
+        var opt = document.createElement('option');
+        opt.value = gruposArr[i];
+        opt.textContent = gruposArr[i];
+        selGrupo.appendChild(opt);
+    }
+
+    DEBUG.success('Filtros populados: ' + marcasArr.length + ' marcas, ' + gruposArr.length + ' grupos');
+}
+
+// ============================================================
+// RENDERIZAR TABELA
+// ============================================================
+function renderizarTabela() {
+    DEBUG.info('Renderizando tabela: ' + dadosFiltrados.length + ' itens');
+    var inicio = Date.now();
+    var tbody = document.getElementById('tbody');
+
+    if (dadosFiltrados.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="12" style="padding:20px;color:#666;">Nenhum registro encontrado</td></tr>';
+        return;
+    }
+
+    var html = '';
+    for (var i = 0; i < dadosFiltrados.length; i++) {
+        var row = dadosFiltrados[i];
+        var etqAtual = Number(row.ORG_ETQAT) || 0;
+        var simEtqAt = Number(row.SIM_ETQAT) || 0;
+
+        html += '<tr>';
+
+        // Coluna de acoes
+        html += '<td class="col-acoes">';
+        html += '<button class="btn-acao" onclick="verFornecedores(' + row.CODPROD + ')" title="Ver Fornecedores">🏭</button>';
+        html += '<button class="btn-acao disabled" onclick="acaoPlaceholder2(' + row.CODPROD + ')" title="Acao 2 (em breve)">📊</button>';
+        html += '<button class="btn-acao disabled" onclick="acaoPlaceholder3(' + row.CODPROD + ')" title="Acao 3 (em breve)">🔔</button>';
+        html += '<button class="btn-acao disabled" onclick="acaoPlaceholder4(' + row.CODPROD + ')" title="Acao 4 (em breve)">⚙️</button>';
+        html += '</td>';
+
+        html += '<td class="tooltip-container"><span class="tooltip-trigger">' + row.CODPROD + '</span>' + renderTooltip(row) + '</td>';
+        html += '<td>' + (row.REFFORN || '') + '</td>';
+        html += '<td class="col-desc" title="' + (row.DESCRPROD || '') + '">' + (row.DESCRPROD || '') + '</td>';
+        html += '<td>' + getLogoMarca(row.MARCA) + (row.MARCA || '') + '</td>';
+        html += '<td>' + getBadgeABC(row.ORG_ABC) + '</td>';
+        html += '<td class="col-num">' + formatarNumero(row.RANKI) + '</td>';
+        html += '<td class="col-num' + (etqAtual < 0 ? ' estoque-negativo' : '') + '">' + formatarNumero(row.ORG_ETQAT) + '</td>';
+        html += '<td class="col-num' + (simEtqAt > 0 ? ' estoque-positivo' : (simEtqAt < 0 ? ' estoque-negativo' : '')) + '">' + formatarNumero(row.SIM_ETQAT) + '</td>';
+        html += '<td class="col-num">' + formatarNumero(row.ORG_ETQMIN) + '</td>';
+        html += '<td class="col-num">' + formatarNumero(row.ORG_ETQMED) + '</td>';
+        html += '<td class="col-num">' + formatarDecimal(row.ORG_MEDMES) + '</td>';
+        html += '</tr>';
+    }
+
+    tbody.innerHTML = html;
+    DEBUG.success('Tabela renderizada', Date.now() - inicio);
+}
+
+// ============================================================
+// TOOLTIP
+// ============================================================
+function renderTooltip(row) {
+    return '<div class="tooltip-content">' +
+        '<div class="tooltip-title">INFORMACOES DO PRODUTO</div>' +
+        '<div class="tooltip-row"><span class="tooltip-label">Grupo:</span><span class="tooltip-value">' + (row.DESCRGRUPOPROD || '-') + '</span></div>' +
+        '<div class="tooltip-row"><span class="tooltip-label">Complemento:</span><span class="tooltip-value">' + (row.COMPLDESC || '-') + '</span></div>' +
+        '<div class="tooltip-row"><span class="tooltip-label">Codigo Alt:</span><span class="tooltip-value">' + (row.CODIGO || '-') + '</span></div>' +
+        '<div class="tooltip-divider"></div>' +
+        '<div class="tooltip-title">METRICAS ORIGINAIS (12M)</div>' +
+        '<div class="tooltip-row"><span class="tooltip-label">Pedidos:</span><span class="tooltip-value">' + formatarNumero(row.ORG_PED12M) + '</span></div>' +
+        '<div class="tooltip-row"><span class="tooltip-label">Itens Vendidos:</span><span class="tooltip-value">' + formatarNumero(row.ORG_ITE12M) + '</span></div>' +
+        '<div class="tooltip-row"><span class="tooltip-label">Media/Mes:</span><span class="tooltip-value">' + formatarDecimal(row.ORG_MEDMES) + '</span></div>' +
+        '<div class="tooltip-row"><span class="tooltip-label">Etq Min/Med/Max:</span><span class="tooltip-value">' + formatarNumero(row.ORG_ETQMIN) + ' / ' + formatarNumero(row.ORG_ETQMED) + ' / ' + formatarNumero(row.ORG_ETQMAX) + '</span></div>' +
+        '<div class="tooltip-divider"></div>' +
+        '<div class="tooltip-title">METRICAS SIMILARES</div>' +
+        '<div class="tooltip-row"><span class="tooltip-label">Pedidos Sim:</span><span class="tooltip-value">' + formatarNumero(row.SIM_PED12M) + '</span></div>' +
+        '<div class="tooltip-row"><span class="tooltip-label">Media/Mes Sim:</span><span class="tooltip-value">' + formatarDecimal(row.SIM_MEDMES) + '</span></div>' +
+        '<div class="tooltip-row"><span class="tooltip-label">Etq Sim Min/Med/Max:</span><span class="tooltip-value">' + formatarNumero(row.SIM_ETQMIN) + ' / ' + formatarNumero(row.SIM_ETQMED) + ' / ' + formatarNumero(row.SIM_ETQMAX) + '</span></div>' +
+        '<div class="tooltip-row"><span class="tooltip-label">Marcas c/ Estoque:</span><span class="tooltip-value">' + formatarNumero(row.SIM_MARCAETQ) + '</span></div>' +
+        '<div class="tooltip-divider"></div>' +
+        '<div class="tooltip-title">CONTROLES</div>' +
+        '<div class="tooltip-row"><span class="tooltip-label">Cota DMF:</span><span class="tooltip-value">' + (row.AD_COTADMF || '-') + '</span></div>' +
+        '<div class="tooltip-row"><span class="tooltip-label">Cat Compra:</span><span class="tooltip-value">' + (row.AD_CATCOMPRA || '-') + '</span></div>' +
+        '<div class="tooltip-row"><span class="tooltip-label">Status Rep:</span><span class="tooltip-value">' + (row.AD_STATUSREP || '-') + '</span></div>' +
+        '</div>';
+}
+
+// ============================================================
+// BADGES
+// ============================================================
+function getBadgeABC(v) {
+    if (!v) return '-';
+    var c = v === 'A' ? 'badge-a' : v === 'B' ? 'badge-b' : 'badge-c';
+    return '<span class="badge ' + c + '">' + v + '</span>';
+}
+
+// ============================================================
+// FORMATADORES
+// ============================================================
+function formatarNumero(v) { return v == null ? '0' : Math.round(Number(v)).toLocaleString('pt-BR'); }
+function formatarDecimal(v) { return v == null ? '0,00' : Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
+function formatarMoeda(v) { return v == null ? 'R$ 0,00' : Number(v).toLocaleString('pt-BR', {style:'currency',currency:'BRL'}); }
+function formatarData(v) { return v ? new Date(v).toLocaleDateString('pt-BR') : ''; }
+
+// ============================================================
+// ORDENACAO
+// ============================================================
+function ordenar(col) {
+    DEBUG.info('Ordenando por: ' + col);
+    if (colunaOrdenada === col) ordemAsc = !ordemAsc;
+    else { colunaOrdenada = col; ordemAsc = true; }
+
+    dadosFiltrados.sort(function(a, b) {
+        var vA = a[col], vB = b[col];
+        if (vA == null) vA = '';
+        if (vB == null) vB = '';
+        var r = typeof vA === 'number' && typeof vB === 'number' ? vA - vB : String(vA).localeCompare(String(vB), 'pt-BR');
+        return ordemAsc ? r : -r;
+    });
+
+    var ths = document.querySelectorAll('th');
+    for (var i = 0; i < ths.length; i++) {
+        ths[i].classList.remove('sorted-asc', 'sorted-desc');
+        var icon = ths[i].querySelector('.sort-icon');
+        if (icon) icon.textContent = '';
+    }
+    var th = document.querySelector('th[data-col="' + col + '"]');
+    if (th) {
+        th.classList.add(ordemAsc ? 'sorted-asc' : 'sorted-desc');
+        th.querySelector('.sort-icon').textContent = ordemAsc ? '▲' : '▼';
+    }
+    renderizarTabela();
+}
+
+// ============================================================
+// FILTROS
+// ============================================================
+function aplicarFiltros() {
+    DEBUG.info('Aplicando filtros...');
+    var abc = document.getElementById('filtroABC').value;
+    var marca = document.getElementById('filtroMarca').value;
+    var grupo = document.getElementById('filtroGrupo').value;
+    var busca = document.getElementById('filtroBusca').value.toUpperCase();
+
+    dadosFiltrados = [];
+    for (var i = 0; i < dadosOriginais.length; i++) {
+        var r = dadosOriginais[i];
+        if (abc && r.ORG_ABC !== abc) continue;
+        if (marca && r.MARCA !== marca) continue;
+        if (grupo && r.DESCRGRUPOPROD !== grupo) continue;
+        if (busca) {
+            var txt = ((r.CODPROD || '') + ' ' + (r.REFFORN || '') + ' ' + (r.DESCRPROD || '') + ' ' + (r.MARCA || '') + ' ' + (r.COMPLDESC || '')).toUpperCase();
+            if (txt.indexOf(busca) === -1) continue;
+        }
+        dadosFiltrados.push(r);
+    }
+
+    DEBUG.success('Filtros aplicados: ' + dadosFiltrados.length + ' de ' + dadosOriginais.length);
+    renderizarTabela();
+    atualizarContadores();
+}
+
+function limparFiltros() {
+    DEBUG.info('Limpando filtros');
+    document.getElementById('filtroABC').value = '';
+    document.getElementById('filtroMarca').value = '';
+    document.getElementById('filtroGrupo').value = '';
+    document.getElementById('filtroBusca').value = '';
+    dadosFiltrados = dadosOriginais.slice();
+    renderizarTabela();
+    atualizarContadores();
+}
+
+function atualizarContadores() {
+    document.getElementById('totalRegistros').textContent = dadosOriginais.length.toLocaleString('pt-BR') + ' registros';
+    document.getElementById('totalFiltrados').textContent = dadosFiltrados.length !== dadosOriginais.length ? 'Exibindo: ' + dadosFiltrados.length.toLocaleString('pt-BR') : '';
+}
+
+function atualizarIndicadores() {
+    // Indicadores removidos do header - função mantida para compatibilidade
+    DEBUG.info('Total: ' + dadosOriginais.length + ' registros');
+}
+
+// ============================================================
+// EXPORTAR EXCEL
+// ============================================================
+function exportarExcel() {
+    DEBUG.info('Exportando Excel: ' + dadosFiltrados.length + ' registros');
+    if (dadosFiltrados.length === 0) { alert('Nenhum dado!'); return; }
+
+    var headers = ['Codigo','Referencia','CodigoAlt','Marca','Descricao','Complemento','CodGrupo','Grupo',
+        'Ranking','ABC','Ped12M','Ite12M','MediaMes','EstoqueAtual','EtqMin','EtqMed','EtqMax',
+        'SimPed12M','SimMediaMes','SimEstoque','SimMarcasEtq','SimEtqMin','SimEtqMed','SimEtqMax',
+        'CotaDMF','CatCompra','StatusRep'];
+
+    var csv = headers.join(';') + '\n';
+    for (var i = 0; i < dadosFiltrados.length; i++) {
+        var r = dadosFiltrados[i];
+        var linha = [
+            r.CODPROD||'', r.REFFORN||'', r.CODIGO||'', r.MARCA||'',
+            '"'+(r.DESCRPROD||'').replace(/"/g,'""')+'"',
+            '"'+(r.COMPLDESC||'').replace(/"/g,'""')+'"',
+            r.CODGRUPOPROD||'',
+            '"'+(r.DESCRGRUPOPROD||'').replace(/"/g,'""')+'"',
+            r.RANKI||0, r.ORG_ABC||'', r.ORG_PED12M||0, r.ORG_ITE12M||0, r.ORG_MEDMES||0,
+            r.ORG_ETQAT||0, r.ORG_ETQMIN||0, r.ORG_ETQMED||0, r.ORG_ETQMAX||0,
+            r.SIM_PED12M||0, r.SIM_MEDMES||0, r.SIM_ETQAT||0, r.SIM_MARCAETQ||0,
+            r.SIM_ETQMIN||0, r.SIM_ETQMED||0, r.SIM_ETQMAX||0,
+            r.AD_COTADMF||'', r.AD_CATCOMPRA||'', r.AD_STATUSREP||''
+        ];
+        csv += linha.join(';') + '\n';
+    }
+
+    var blob = new Blob(['\ufeff' + csv], {type:'text/csv;charset=utf-8;'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'analise_compras_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+    DEBUG.success('Excel exportado');
+}
+
+// ============================================================
+// EVENTS
+// ============================================================
+document.getElementById('filtroBusca').onkeypress = function(e) { if (e.key === 'Enter') aplicarFiltros(); };
+document.onkeydown = function(e) {
+    if (e.key === 'Escape') {
+        // Fechar popup sucesso primeiro
+        var popupSucesso = document.getElementById('popupSucessoProduto');
+        if (popupSucesso && popupSucesso.classList.contains('show')) {
+            fecharPopupSucesso();
+            return;
+        }
+        // Fechar popup novo produto
+        var popupNovo = document.getElementById('popupNovoProduto');
+        if (popupNovo && popupNovo.classList.contains('show')) {
+            fecharPopupNovoProduto();
+            return;
+        }
+        // Fechar modal fornecedores
+        var modal = document.getElementById('modalFornecedores');
+        if (modal.classList.contains('active')) {
+            fecharModalFornecedores();
+        }
+    }
+};
+// Fechar modal ao clicar no overlay
+document.getElementById('modalFornecedores').onclick = function(e) {
+    if (e.target === this) fecharModalFornecedores();
+};
+// Fechar popup novo produto ao clicar no overlay
+document.getElementById('popupNovoProduto').onclick = function(e) {
+    if (e.target === this) fecharPopupNovoProduto();
+};
+// Fechar popup sucesso ao clicar no overlay
+document.getElementById('popupSucessoProduto').onclick = function(e) {
+    if (e.target === this) fecharPopupSucesso();
+};
+
+// ============================================================
+// INIT
+// ============================================================
+DEBUG.info('Dashboard inicializado');
+carregarDados();
+carregarDadosPopup(); // Carrega marcas e grupos para o popup
+</script>
+</body>
+</html>

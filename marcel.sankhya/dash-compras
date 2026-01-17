@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sugestão de Compra</title>
+    <!-- BIBLIOTECA SANKHYAJX - DEVE ESTAR NO HEAD -->
+    <script src="https://cdn.jsdelivr.net/gh/wansleynery/SankhyaJX@main/jx.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; font-size: 11px; background: #f5f5f5; }
+        
+        .container { padding: 10px; }
+        
+        /* Header */
+        .header { background: #2563eb; color: #fff; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 14px; font-weight: bold; }
+        .header-info { font-size: 10px; opacity: 0.8; }
+        .header-actions { display: flex; gap: 8px; }
+        .btn-header { background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 6px 12px; cursor: pointer; border-radius: 4px; font-size: 11px; display: flex; align-items: center; gap: 5px; transition: background 0.2s; }
+        .btn-header:hover { background: rgba(255,255,255,0.3); }
+        
+        /* Filtros */
+        .filtros { background: #fff; padding: 10px; margin-bottom: 10px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #ddd; }
+        .filtros label { font-weight: bold; color: #333; }
+        .filtros select, .filtros input { padding: 5px 8px; border: 1px solid #ccc; font-size: 11px; border-radius: 3px; }
+        .filtros input[type="text"] { width: 180px; }
+        .btn-filtrar { background: #2563eb; color: #fff; border: none; padding: 6px 12px; cursor: pointer; border-radius: 3px; font-size: 11px; }
+        .btn-filtrar:hover { background: #1d4ed8; }
+        .btn-limpar { background: #6b7280; color: #fff; border: none; padding: 6px 12px; cursor: pointer; border-radius: 3px; font-size: 11px; }
+        
+        /* Filtros linha 2 */
+        .filtros-linha2 { background: #f8fafc; padding: 8px 10px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #e2e8f0; }
+        .filtro-check { display: flex; align-items: center; gap: 5px; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: background 0.2s; }
+        .filtro-check:hover { background: #e2e8f0; }
+        .filtro-check input { cursor: pointer; }
+        .filtro-check.ativo { background: #dbeafe; color: #1d4ed8; }
+        .separador-filtro { width: 1px; height: 20px; background: #d1d5db; }
+        
+        /* Tabela */
+        .table-container { background: #fff; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        th { background: #333; color: #fff; padding: 8px 4px; text-align: center; font-size: 10px; cursor: pointer; user-select: none; white-space: nowrap; position: sticky; top: 0; z-index: 10; }
+        th:hover { background: #444; }
+        th .sort-icon { margin-left: 3px; font-size: 8px; }
+        th.sorted-asc { background: #1d4ed8; }
+        th.sorted-desc { background: #1d4ed8; }
+        td { border: 1px solid #e0e0e0; padding: 5px 4px; text-align: center; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        tr:hover { background: #e8f4ff; }
+        tr.ignorado { opacity: 0.5; background: #f3f4f6 !important; }
+        tr.favorito { background: #fefce8 !important; }
+        tr.favorito:hover { background: #fef9c3 !important; }
+        .col-desc { text-align: left !important; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .col-num { text-align: right !important; padding-right: 8px !important; }
+        .col-acoes { white-space: nowrap; }
+        
+        /* Botões de ação na linha */
+        .btn-acao { background: none; border: none; cursor: pointer; font-size: 14px; padding: 2px 4px; border-radius: 3px; transition: transform 0.15s, background 0.15s; opacity: 0.7; }
+        .btn-acao:hover { transform: scale(1.2); opacity: 1; background: #f3f4f6; }
+        .btn-acao.ativo { opacity: 1; }
+        .btn-acao.favorito-ativo { color: #eab308; }
+        .btn-acao.ignorado-ativo { color: #ef4444; }
+        .btn-acao.nota-ativo { color: #2563eb; }
+        
+        /* Badges */
+        .badge { padding: 2px 6px; border-radius: 3px; font-size: 9px; font-weight: bold; display: inline-block; }
+        .badge-alta { background: #fee2e2; color: #dc2626; }
+        .badge-normal { background: #e0e7ff; color: #4338ca; }
+        .badge-nulo { background: #f3f4f6; color: #9ca3af; }
+        .badge-a { background: #dbeafe; color: #1d4ed8; font-weight: bold; }
+        .badge-b { background: #e0e7ff; color: #4338ca; }
+        .badge-c { background: #f3f4f6; color: #6b7280; }
+        .badge-elegivel { background: #dcfce7; color: #166534; }
+        .badge-inelegivel { background: #fee2e2; color: #dc2626; }
+        
+        /* Estoque negativo em vermelho */
+        .estoque-negativo { color: #dc2626; font-weight: bold; }
+        
+        /* Destaque coluna SUGESTÃO (11ª coluna) */
+        td:nth-child(11) { background: #eff6ff !important; }
+        tr:hover td:nth-child(11) { background: #dbeafe !important; }
+        
+        /* Loading */
+        .loading { text-align: center; padding: 40px; color: #666; }
+        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #2563eb; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Footer */
+        .footer { background: #fff; padding: 10px; border-top: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
+        .footer-info { color: #666; font-size: 10px; }
+        
+        /* Destaque sugestão */
+        .sugestao-valor { font-weight: bold; color: #2563eb; }
+        
+        /* Estoque similar com emoji */
+        .etq-similar-container { display: inline-flex; align-items: center; gap: 4px; }
+        .btn-similar { cursor: pointer; font-size: 14px; border: none; background: none; padding: 0; transition: transform 0.2s; }
+        .btn-similar:hover { transform: scale(1.3); }
+        
+        /* Tooltip customizado */
+        .tooltip-container { position: relative; }
+        .tooltip-trigger { cursor: help; border-bottom: 1px dotted #999; }
+        .tooltip-content { 
+            display: none; 
+            position: absolute; 
+            bottom: 100%; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            background: #1f2937; 
+            color: #fff; 
+            padding: 10px 12px; 
+            border-radius: 6px; 
+            font-size: 10px; 
+            white-space: nowrap; 
+            z-index: 1000; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            min-width: 200px;
+        }
+        .tooltip-content::after { 
+            content: ''; 
+            position: absolute; 
+            top: 100%; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            border: 6px solid transparent; 
+            border-top-color: #1f2937; 
+        }
+        .tooltip-container:hover .tooltip-content { display: block; }
+        .tooltip-row { display: flex; justify-content: space-between; gap: 15px; padding: 2px 0; }
+        .tooltip-label { color: #9ca3af; }
+        .tooltip-value { font-weight: bold; color: #fff; }
+        .tooltip-divider { border-top: 1px solid #374151; margin: 5px 0; }
+        
+        /* Modal Genérico */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: #fff; border-radius: 8px; max-width: 900px; width: 95%; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+        .modal-header { background: #2563eb; color: #fff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0; }
+        .modal-header h2 { font-size: 14px; margin: 0; display: flex; align-items: center; gap: 8px; }
+        .modal-close { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; padding: 0 4px; }
+        .modal-close:hover { opacity: 0.8; }
+        .modal-body { padding: 16px; overflow-y: auto; flex: 1; }
+        .modal-info { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px; padding: 12px; margin-bottom: 16px; font-size: 11px; }
+        .modal-info-row { display: flex; gap: 20px; flex-wrap: wrap; }
+        .modal-info-item { display: flex; gap: 6px; }
+        .modal-info-label { font-weight: bold; color: #0369a1; }
+        .modal-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        .modal-table th { background: #f1f5f9; color: #334155; padding: 10px 8px; text-align: left; border-bottom: 2px solid #e2e8f0; font-size: 10px; text-transform: uppercase; }
+        .modal-table td { padding: 10px 8px; border-bottom: 1px solid #e2e8f0; }
+        .modal-table tr:hover { background: #f8fafc; }
+        .modal-table .col-num { text-align: right; font-family: 'Courier New', monospace; }
+        .modal-table .col-desc { max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .modal-footer { background: #f8fafc; padding: 12px 16px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; border-radius: 0 0 8px 8px; }
+        .modal-footer-info { font-size: 11px; color: #64748b; }
+        .modal-footer-total { font-size: 12px; font-weight: bold; color: #2563eb; }
+        .loading-modal { text-align: center; padding: 40px; color: #666; }
+        .empty-message { text-align: center; padding: 30px; color: #94a3b8; font-style: italic; }
+        .badge-estoque { background: #dcfce7; color: #166534; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+        
+        /* Modal de Notas */
+        .modal-notas .modal-content { max-width: 500px; }
+        .modal-notas .modal-header { background: #7c3aed; }
+        .textarea-nota { width: 100%; min-height: 150px; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-family: Arial, sans-serif; font-size: 12px; resize: vertical; }
+        .textarea-nota:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1); }
+        .btn-salvar-nota { background: #7c3aed; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .btn-salvar-nota:hover { background: #6d28d9; }
+        .btn-limpar-nota { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-right: 10px; }
+        .nota-info { font-size: 10px; color: #6b7280; margin-top: 8px; }
+        
+        /* Modal Histórico */
+        .modal-historico .modal-header { background: #059669; }
+        
+        /* Indicadores no cabeçalho */
+        .indicadores { display: flex; gap: 15px; margin-left: 20px; }
+        .indicador { background: rgba(255,255,255,0.15); padding: 4px 10px; border-radius: 4px; font-size: 10px; }
+        .indicador-valor { font-weight: bold; font-size: 12px; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <div style="display: flex; align-items: center;">
+        <h1>📦 SUGESTÃO DE COMPRA</h1>
+        <div class="indicadores">
+            <div class="indicador">
+                <span class="indicador-valor" id="indPedir">0</span> PEDIR
+            </div>
+            <div class="indicador">
+                <span class="indicador-valor" id="indUrgente">0</span> URGENTES
+            </div>
+            <div class="indicador">
+                <span class="indicador-valor" id="indFavoritos">0</span> ⭐
+            </div>
+        </div>
+    </div>
+    <div class="header-actions">
+        <button class="btn-header" onclick="exportarExcel()">
+            📊 Exportar Excel
+        </button>
+        <button class="btn-header" onclick="exportarPedido()">
+            📋 Exportar Pedido
+        </button>
+        <span class="header-info" id="dtRef"></span>
+    </div>
+</div>
+<div class="filtros">
+    <label>Decisão:</label>
+    <select id="filtroDecisao">
+        <option value="">Todos</option>
+        <option value="PEDIR">PEDIR</option>
+        <option value="ANALISAR">ANALISAR</option>
+        <option value="NAO PEDIR">NÃO PEDIR</option>
+    </select>
+    
+    <label>ABC:</label>
+    <select id="filtroABC">
+        <option value="">Todos</option>
+        <option value="A">A</option>
+        <option value="B">B</option>
+        <option value="C">C</option>
+    </select>
+    
+    <label>Urgência:</label>
+    <select id="filtroUrgencia">
+        <option value="">Todos</option>
+        <option value="ALTA">ALTA</option>
+        <option value="NORMAL">NORMAL</option>
+    </select>
+    
+    <label>Elegibilidade:</label>
+    <select id="filtroElegibilidade">
+        <option value="">Todos</option>
+        <option value="ELEGIVEL" selected>Elegível</option>
+        <option value="INELEGIVEL">Inelegível</option>
+    </select>
+    
+    <label>Sugestão:</label>
+    <select id="filtroSugestao">
+        <option value="">Qualquer</option>
+        <option value="1-10">1 a 10</option>
+        <option value="11-50">11 a 50</option>
+        <option value="51-100">51 a 100</option>
+        <option value="101+">Mais de 100</option>
+    </select>
+    
+    <label>Buscar:</label>
+    <input type="text" id="filtroBusca" placeholder="Código, ref ou descrição...">
+    
+    <button class="btn-filtrar" onclick="aplicarFiltros()">Filtrar</button>
+    <button class="btn-limpar" onclick="limparFiltros()">Limpar</button>
+</div>
+<div class="filtros-linha2">
+    <label class="filtro-check" id="checkFavoritos">
+        <input type="checkbox" id="filtroFavoritos" onchange="aplicarFiltros()">
+        ⭐ Apenas Favoritos
+    </label>
+    
+    <label class="filtro-check" id="checkComNotas">
+        <input type="checkbox" id="filtroComNotas" onchange="aplicarFiltros()">
+        📝 Com Notas
+    </label>
+    
+    <div class="separador-filtro"></div>
+    
+    <label class="filtro-check" id="checkIgnorados">
+        <input type="checkbox" id="filtroMostrarIgnorados" onchange="aplicarFiltros()">
+        👁️ Mostrar Ignorados
+    </label>
+    
+    <div style="margin-left: auto; display: flex; gap: 10px; align-items: center;">
+        <span style="color: #6b7280; font-size: 10px;">
+            <span id="qtdIgnorados">0</span> ignorado(s) | 
+            <span id="qtdFavoritos">0</span> favorito(s) | 
+            <span id="qtdNotas">0</span> com nota(s)
+        </span>
+    </div>
+</div>
+<div class="container">
+    <div class="table-container" style="max-height: calc(100vh - 250px); overflow-y: auto;">
+        <table id="tabela">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">AÇÕES</th>
+                    <th data-col="CODPROD" onclick="ordenar('CODPROD')">CÓD <span class="sort-icon"></span></th>
+                    <th data-col="REFFORN" onclick="ordenar('REFFORN')">REF <span class="sort-icon"></span></th>
+                    <th data-col="DESCRPROD" onclick="ordenar('DESCRPROD')">DESCRIÇÃO <span class="sort-icon"></span></th>
+                    <th data-col="MARCA" onclick="ordenar('MARCA')">MARCA <span class="sort-icon"></span></th>
+                    <th data-col="ORG_ABC" onclick="ordenar('ORG_ABC')">ABC <span class="sort-icon"></span></th>
+                    <th data-col="ORG_ETQAT" onclick="ordenar('ORG_ETQAT')">ETQ <span class="sort-icon"></span></th>
+                    <th data-col="SIM_ETQAT" onclick="ordenar('SIM_ETQAT')">SIM <span class="sort-icon"></span></th>
+                    <th data-col="ORG_ETQMIN" onclick="ordenar('ORG_ETQMIN')">MÍN <span class="sort-icon"></span></th>
+                    <th data-col="ORG_ETQMED" onclick="ordenar('ORG_ETQMED')">MÉD <span class="sort-icon"></span></th>
+                    <th data-col="SUGESTAO" onclick="ordenar('SUGESTAO')">SUG <span class="sort-icon"></span></th>
+                    <th data-col="DECISAO" onclick="ordenar('DECISAO')">DECISÃO <span class="sort-icon"></span></th>
+                    <th data-col="URGENCIA" onclick="ordenar('URGENCIA')">URG <span class="sort-icon"></span></th>
+                </tr>
+            </thead>
+            <tbody id="tbody">
+                <tr>
+                    <td colspan="13" class="loading">
+                        <div class="loading-spinner"></div>
+                        Carregando dados...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="footer">
+    <span class="footer-info" id="totalRegistros">0 registros</span>
+    <span class="footer-info" id="totalFiltrados"></span>
+</div>
+
+<!-- Modal de Produtos Similares -->
+<div class="modal-overlay" id="modalSimilares" onclick="fecharModal('modalSimilares', event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2>🔗 Produtos Similares</h2>
+            <button class="modal-close" onclick="fecharModal('modalSimilares')">&times;</button>
+        </div>
+        <div class="modal-body" id="modalSimilaresBody">
+            <div class="loading-modal">
+                <div class="loading-spinner"></div>
+                Carregando produtos similares...
+            </div>
+        </div>
+        <div class="modal-footer">
+            <span class="modal-footer-info" id="modalSimilaresInfo"></span>
+            <span class="modal-footer-total" id="modalSimilaresTotal"></span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Histórico de Compras -->
+<div class="modal-overlay modal-historico" id="modalHistorico" onclick="fecharModal('modalHistorico', event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2>📜 Histórico de Compras</h2>
+            <button class="modal-close" onclick="fecharModal('modalHistorico')">&times;</button>
+        </div>
+        <div class="modal-body" id="modalHistoricoBody">
+            <div class="loading-modal">
+                <div class="loading-spinner"></div>
+                Carregando histórico...
+            </div>
+        </div>
+        <div class="modal-footer">
+            <span class="modal-footer-info" id="modalHistoricoInfo"></span>
+            <span class="modal-footer-total" id="modalHistoricoTotal"></span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Notas -->
+<div class="modal-overlay modal-notas" id="modalNotas" onclick="fecharModal('modalNotas', event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2>📝 Notas e Observações</h2>
+            <button class="modal-close" onclick="fecharModal('modalNotas')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-info" id="modalNotasInfo"></div>
+            <textarea class="textarea-nota" id="textareaNota" placeholder="Digite suas observações sobre este produto..."></textarea>
+            <div class="nota-info" id="notaInfoSalva"></div>
+        </div>
+        <div class="modal-footer">
+            <div>
+                <button class="btn-limpar-nota" onclick="limparNota()">Limpar Nota</button>
+                <button class="btn-salvar-nota" onclick="salvarNota()">💾 Salvar Nota</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================================
+// COMPATIBILIDADE SANKHYA
+// ============================================================
+var VSS = null;
+
+// ============================================================
+// VARIÁVEIS GLOBAIS
+// ============================================================
+var dadosOriginais = [];
+var dadosFiltrados = [];
+var colunaOrdenada = 'RANKI';
+var ordemAsc = true;
+
+// LocalStorage keys
+var LS_IGNORADOS = 'dashcompras_ignorados';
+var LS_FAVORITOS = 'dashcompras_favoritos';
+var LS_NOTAS = 'dashcompras_notas';
+
+// Estado atual do modal de notas
+var codprodNotaAtual = null;
+
+// ============================================================
+// FUNÇÕES DE LOCALSTORAGE
+// ============================================================
+function getIgnorados() {
+    try {
+        return JSON.parse(localStorage.getItem(LS_IGNORADOS)) || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function setIgnorados(lista) {
+    localStorage.setItem(LS_IGNORADOS, JSON.stringify(lista));
+}
+
+function getFavoritos() {
+    try {
+        return JSON.parse(localStorage.getItem(LS_FAVORITOS)) || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function setFavoritos(lista) {
+    localStorage.setItem(LS_FAVORITOS, JSON.stringify(lista));
+}
+
+function getNotas() {
+    try {
+        return JSON.parse(localStorage.getItem(LS_NOTAS)) || {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function setNotas(obj) {
+    localStorage.setItem(LS_NOTAS, JSON.stringify(obj));
+}
+
+function getNota(codprod) {
+    var notas = getNotas();
+    return notas[codprod] || null;
+}
+
+function setNota(codprod, texto) {
+    var notas = getNotas();
+    if (texto && texto.trim()) {
+        notas[codprod] = {
+            texto: texto.trim(),
+            data: new Date().toISOString()
+        };
+    } else {
+        delete notas[codprod];
+    }
+    setNotas(notas);
+}
+
+// ============================================================
+// FUNÇÕES DE TOGGLE (IGNORAR/FAVORITO)
+// ============================================================
+function toggleIgnorado(codprod) {
+    var lista = getIgnorados();
+    var idx = lista.indexOf(codprod);
+    if (idx > -1) {
+        lista.splice(idx, 1);
+    } else {
+        lista.push(codprod);
+    }
+    setIgnorados(lista);
+    atualizarContadoresLocais();
+    renderizarTabela();
+}
+
+function toggleFavorito(codprod) {
+    var lista = getFavoritos();
+    var idx = lista.indexOf(codprod);
+    if (idx > -1) {
+        lista.splice(idx, 1);
+    } else {
+        lista.push(codprod);
+    }
+    setFavoritos(lista);
+    atualizarContadoresLocais();
+    renderizarTabela();
+}
+
+function isIgnorado(codprod) {
+    return getIgnorados().indexOf(codprod) > -1;
+}
+
+function isFavorito(codprod) {
+    return getFavoritos().indexOf(codprod) > -1;
+}
+
+function temNota(codprod) {
+    return getNota(codprod) !== null;
+}
+
+// ============================================================
+// CARREGAR DADOS - ESTRUTURA SIMPLIFICADA
+// ============================================================
+function carregarDados() {
+    var sql = "WITH CTE_BASE AS ( " +
+        "SELECT ITE.CODPROD, PRO.REFFORN, PRO.CODIGO, PRO.MARCA, PRO.QTDAGRUPAMENTOMTZ, PRO.DESCRPROD, PRO.COMPLDESC, PRO.CODGRUPOPROD, PRO.DESCRGRUPOPROD, PRO.AD_COTADMF, PRO.AD_CATCOMPRA, PRO.AD_STATUSREP, " +
+        "NVL(ABC.RANKING_QTDPED, 0) AS RANKI, NVL(ABC.QTDPEDVENLIQ_12M, 0) AS ORG_PED12M, ABC.ABC_PED AS ORG_ABC, " +
+        "NVL(MED.ITEVENLIQ_12M, 0) AS ORG_ITE12M, NVL(MED.MEDMES, 0) AS ORG_MEDMES, NVL(MED.ETQMIN, 0) AS ORG_ETQMIN, NVL(MED.ETQMED, 0) AS ORG_ETQMED, NVL(MED.ETQMAX, 0) AS ORG_ETQMAX, " +
+        "NVL(EST.ESTOQUE, 0) AS ORG_ETQAT, " +
+        "NVL(MEDSIM.SIM_PEDLIQ, 0) AS SIM_PED12M, NVL(MEDSIM.SIM_MEDMES, 0) AS SIM_MEDMES, NVL(MEDSIM.SIM_ETQMIN, 0) AS SIM_ETQMIN, NVL(MEDSIM.SIM_ETQMED, 0) AS SIM_ETQMED, NVL(MEDSIM.SIM_ETQMAX, 0) AS SIM_ETQMAX, " +
+        "NVL(ESTSIM.SUM_ESTOQUE, 0) AS SIM_ETQAT, NVL(ESTSIM.QTD_MARCAEST, 0) AS SIM_MARCAETQ " +
+        "FROM AE1_2509_ITEMOVENTINICIAL ITE " +
+        "INNER JOIN AE0_2508_PRODUTOCOMPLETO PRO ON PRO.CODPROD = ITE.CODPROD " +
+        "LEFT JOIN AE1_2509_ITEABC ABC ON ABC.CODPROD = ITE.CODPROD " +
+        "LEFT JOIN AE1_2509_MEDMES MED ON MED.CODPROD = ITE.CODPROD " +
+        "LEFT JOIN AE1_2508_TGFEST EST ON EST.CODPROD = ITE.CODPROD " +
+        "LEFT JOIN AE1_2509_MEDMES_SIM MEDSIM ON MEDSIM.COMPLDESC = PRO.COMPLDESC " +
+        "LEFT JOIN AE1_2509_ESTSIM ESTSIM ON ESTSIM.COMPLDESC = PRO.COMPLDESC) " +
+        "SELECT SYSDATE AS DTREF, B.CODPROD, B.REFFORN, B.CODIGO, B.MARCA, B.COMPLDESC, B.DESCRPROD, B.CODGRUPOPROD, B.DESCRGRUPOPROD, B.RANKI, B.ORG_PED12M, B.ORG_ABC, B.ORG_ITE12M, B.SIM_PED12M, B.ORG_MEDMES, B.SIM_MEDMES, B.ORG_ETQAT, B.SIM_ETQAT, B.SIM_MARCAETQ, B.ORG_ETQMIN, B.ORG_ETQMED, B.ORG_ETQMAX, B.SIM_ETQMIN, B.SIM_ETQMED, B.SIM_ETQMAX, B.AD_COTADMF, B.AD_CATCOMPRA, B.AD_STATUSREP, " +
+        "CASE WHEN NVL(B.AD_STATUSREP, 0) = 2 OR NVL(B.AD_CATCOMPRA, 0) IN (1, 3) THEN 'INELEGIVEL' ELSE 'ELEGIVEL' END AS SELECAO, " +
+        "CASE WHEN B.ORG_ETQAT >= B.ORG_ETQMIN OR B.ORG_ABC IS NULL THEN 'NAO PEDIR' WHEN B.ORG_ETQAT < B.ORG_ETQMIN THEN CASE B.ORG_ABC WHEN 'A' THEN 'PEDIR' WHEN 'B' THEN CASE WHEN B.SIM_ETQAT < B.SIM_ETQMIN THEN 'PEDIR' ELSE 'NAO PEDIR' END WHEN 'C' THEN CASE WHEN B.SIM_ETQAT < B.SIM_ETQMIN THEN 'ANALISAR' ELSE 'NAO PEDIR' END ELSE 'ANALISAR' END ELSE 'ANALISAR' END AS DECISAO, " +
+        "CASE WHEN NVL(B.AD_STATUSREP, 0) = 2 OR NVL(B.AD_CATCOMPRA, 0) IN (1, 3) THEN 'NULO' WHEN B.ORG_ETQAT > B.ORG_ETQMIN THEN 'NULO' WHEN B.ORG_ETQAT = 0 AND B.SIM_ETQAT = 0 THEN CASE WHEN NVL(B.ORG_ABC, 'Z') IN ('A', 'B') THEN 'ALTA' ELSE 'NORMAL' END WHEN B.ORG_ETQAT < B.ORG_ETQMIN AND B.ORG_ETQAT > 0 AND B.SIM_ETQAT < B.SIM_ETQMIN AND B.SIM_ETQAT > 0 THEN CASE WHEN NVL(B.ORG_ABC, 'Z') IN ('A', 'B') THEN 'ALTA' ELSE 'NORMAL' END ELSE 'NORMAL' END AS URGENCIA, " +
+        "CASE WHEN B.ORG_ETQAT >= B.ORG_ETQMIN OR B.ORG_ABC IS NULL THEN 0 WHEN B.ORG_ABC = 'A' THEN GREATEST(CEIL(CASE WHEN B.ORG_ETQMED > 0 THEN B.ORG_ETQMED ELSE B.ORG_MEDMES * 2 END - B.ORG_ETQAT), 0) WHEN B.ORG_ABC IN ('B', 'C') THEN GREATEST(CEIL(CASE WHEN B.ORG_ETQMIN > 0 THEN B.ORG_ETQMIN ELSE B.ORG_MEDMES END - B.ORG_ETQAT), 0) ELSE 0 END AS SUGESTAO, " +
+        "B.QTDAGRUPAMENTOMTZ FROM CTE_BASE B ORDER BY NULLIF(B.RANKI, 0) NULLS LAST, B.COMPLDESC";
+
+    JX.consultar(sql).then(function(resultado) {
+        dadosOriginais = resultado || [];
+        
+        // Aplicar filtro de elegibilidade padrão
+        aplicarFiltros();
+        
+        if (dadosOriginais.length > 0 && dadosOriginais[0].DTREF) {
+            document.getElementById('dtRef').textContent = 'Ref: ' + formatarData(dadosOriginais[0].DTREF);
+        }
+        
+        atualizarIndicadores();
+        atualizarContadoresLocais();
+    }).catch(function(erro) {
+        console.error('Erro ao carregar:', erro);
+        document.getElementById('tbody').innerHTML = '<tr><td colspan="13" style="color:red;padding:20px;">Erro ao carregar dados: ' + erro + '</td></tr>';
+    });
+}
+
+// ============================================================
+// RENDERIZAR TABELA
+// ============================================================
+function renderizarTabela() {
+    var tbody = document.getElementById('tbody');
+    var ignorados = getIgnorados();
+    var favoritos = getFavoritos();
+    var mostrarIgnorados = document.getElementById('filtroMostrarIgnorados').checked;
+    
+    // Filtrar ignorados se necessário
+    var dadosExibir = dadosFiltrados;
+    if (!mostrarIgnorados) {
+        dadosExibir = [];
+        for (var i = 0; i < dadosFiltrados.length; i++) {
+            if (ignorados.indexOf(dadosFiltrados[i].CODPROD) === -1) {
+                dadosExibir.push(dadosFiltrados[i]);
+            }
+        }
+    }
+    
+    if (dadosExibir.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="13" style="padding:20px;color:#666;">Nenhum registro encontrado</td></tr>';
+        return;
+    }
+    
+    var html = '';
+    for (var i = 0; i < dadosExibir.length; i++) {
+        var row = dadosExibir[i];
+        var codprod = row.CODPROD;
+        var isIgnoradoItem = ignorados.indexOf(codprod) > -1;
+        var isFav = favoritos.indexOf(codprod) > -1;
+        var temNotaProd = temNota(codprod);
+        
+        var classesLinha = '';
+        if (isIgnoradoItem) classesLinha += ' ignorado';
+        if (isFav && !isIgnoradoItem) classesLinha += ' favorito';
+        
+        html += '<tr class="' + classesLinha.trim() + '">';
+        
+        // Coluna de ações
+        html += '<td class="col-acoes">';
+        html += '<button class="btn-acao' + (isFav ? ' ativo favorito-ativo' : '') + '" onclick="toggleFavorito(' + codprod + ')" title="' + (isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos') + '">' + (isFav ? '⭐' : '☆') + '</button>';
+        html += '<button class="btn-acao' + (isIgnoradoItem ? ' ativo ignorado-ativo' : '') + '" onclick="toggleIgnorado(' + codprod + ')" title="' + (isIgnoradoItem ? 'Mostrar item' : 'Ignorar item') + '">' + (isIgnoradoItem ? '👁️' : '🚫') + '</button>';
+        html += '<button class="btn-acao' + (temNotaProd ? ' ativo nota-ativo' : '') + '" onclick="abrirModalNotas(' + codprod + ', \'' + escaparString(row.DESCRPROD) + '\')" title="' + (temNotaProd ? 'Editar nota' : 'Adicionar nota') + '">' + (temNotaProd ? '📝' : '📄') + '</button>';
+        html += '<button class="btn-acao" onclick="abrirModalHistorico(' + codprod + ', \'' + escaparString(row.DESCRPROD) + '\')" title="Ver histórico de compras">📜</button>';
+        html += '</td>';
+        
+        // Código com tooltip
+        html += '<td class="tooltip-container">';
+        html += '<span class="tooltip-trigger">' + (row.CODPROD || '') + '</span>';
+        html += renderTooltip(row);
+        html += '</td>';
+        
+        html += '<td>' + (row.REFFORN || '') + '</td>';
+        html += '<td class="col-desc" title="' + (row.DESCRPROD || '') + '">' + (row.DESCRPROD || '') + '</td>';
+        html += '<td>' + (row.MARCA || '') + '</td>';
+        html += '<td>' + getBadgeABC(row.ORG_ABC) + '</td>';
+        
+        // Coluna ORG_ETQAT (ETQ) - Estoque negativo em vermelho
+        var etqAtual = Number(row.ORG_ETQAT) || 0;
+        var classeEtqAtual = etqAtual < 0 ? ' estoque-negativo' : '';
+        html += '<td class="col-num' + classeEtqAtual + '">' + formatarNumero(row.ORG_ETQAT) + '</td>';
+        
+        // Coluna SIM_ETQAT (SIM) - Estoque negativo em vermelho
+        html += '<td class="col-num">' + renderEstoqueSimilar(row) + '</td>';
+        
+        html += '<td class="col-num">' + formatarNumero(row.ORG_ETQMIN) + '</td>';
+        html += '<td class="col-num">' + formatarNumero(row.ORG_ETQMED) + '</td>';
+        html += '<td class="col-num">' + (row.SUGESTAO > 0 ? '<span class="sugestao-valor">' + formatarNumero(row.SUGESTAO) + '</span>' : '0') + '</td>';
+        
+        // Coluna DECISÃO - Texto colorido sem badge
+        html += '<td>' + getBadgeDecisao(row.DECISAO) + '</td>';
+        
+        html += '<td>' + getBadgeUrgencia(row.URGENCIA) + '</td>';
+        html += '</tr>';
+    }
+    
+    tbody.innerHTML = html;
+}
+
+// ============================================================
+// TOOLTIP
+// ============================================================
+function renderTooltip(row) {
+    var html = '<div class="tooltip-content">';
+    
+    html += '<div class="tooltip-row"><span class="tooltip-label">Grupo:</span><span class="tooltip-value">' + (row.DESCRGRUPOPROD || '-') + '</span></div>';
+    html += '<div class="tooltip-row"><span class="tooltip-label">Complemento:</span><span class="tooltip-value">' + (row.COMPLDESC || '-') + '</span></div>';
+    
+    html += '<div class="tooltip-divider"></div>';
+    
+    html += '<div class="tooltip-row"><span class="tooltip-label">Vendas 12M:</span><span class="tooltip-value">' + formatarNumero(row.ORG_PED12M) + ' ped</span></div>';
+    html += '<div class="tooltip-row"><span class="tooltip-label">Itens 12M:</span><span class="tooltip-value">' + formatarNumero(row.ORG_ITE12M) + ' un</span></div>';
+    html += '<div class="tooltip-row"><span class="tooltip-label">Média/Mês:</span><span class="tooltip-value">' + formatarNumero(row.ORG_MEDMES) + ' un</span></div>';
+    
+    html += '<div class="tooltip-divider"></div>';
+    
+    html += '<div class="tooltip-row"><span class="tooltip-label">Etq Mínimo:</span><span class="tooltip-value">' + formatarNumero(row.ORG_ETQMIN) + '</span></div>';
+    html += '<div class="tooltip-row"><span class="tooltip-label">Etq Médio:</span><span class="tooltip-value">' + formatarNumero(row.ORG_ETQMED) + '</span></div>';
+    html += '<div class="tooltip-row"><span class="tooltip-label">Etq Máximo:</span><span class="tooltip-value">' + formatarNumero(row.ORG_ETQMAX) + '</span></div>';
+    
+    html += '<div class="tooltip-divider"></div>';
+    
+    html += '<div class="tooltip-row"><span class="tooltip-label">Elegibilidade:</span><span class="tooltip-value">' + (row.SELECAO || '-') + '</span></div>';
+    html += '<div class="tooltip-row"><span class="tooltip-label">Ranking:</span><span class="tooltip-value">#' + formatarNumero(row.RANKI) + '</span></div>';
+    html += '<div class="tooltip-row"><span class="tooltip-label">Qt Agrupamento:</span><span class="tooltip-value">' + formatarNumero(row.QTDAGRUPAMENTOMTZ) + '</span></div>';
+    
+    html += '</div>';
+    return html;
+}
+
+// ============================================================
+// BADGES
+// ============================================================
+function getBadgeABC(valor) {
+    if (!valor) return '-';
+    var classe = valor === 'A' ? 'badge-a' : valor === 'B' ? 'badge-b' : 'badge-c';
+    return '<span class="badge ' + classe + '">' + valor + '</span>';
+}
+
+function getBadgeDecisao(valor) {
+    if (!valor) return '-';
+    var cor = '#6b7280'; // cinza padrão (NÃO PEDIR)
+    if (valor === 'PEDIR') cor = '#16a34a'; // verde
+    else if (valor === 'ANALISAR') cor = '#ea580c'; // laranja
+    var texto = valor === 'NAO PEDIR' ? 'NÃO PEDIR' : valor;
+    return '<span style="color:' + cor + ';font-weight:bold;">' + texto + '</span>';
+}
+
+function getBadgeUrgencia(valor) {
+    if (!valor || valor === 'NULO') return '-';
+    var classe = valor === 'ALTA' ? 'badge-alta' : 'badge-normal';
+    return '<span class="badge ' + classe + '">' + valor + '</span>';
+}
+
+// ============================================================
+// ESTOQUE SIMILAR
+// ============================================================
+function renderEstoqueSimilar(row) {
+    var simEtqat = Number(row.SIM_ETQAT) || 0;
+    var valorFormatado = formatarNumero(simEtqat);
+    var classeSim = simEtqat < 0 ? 'estoque-negativo' : '';
+    
+    if (simEtqat > 0) {
+        var compldesc = escaparString(row.COMPLDESC || '');
+        var codprod = row.CODPROD || '';
+        var descrprod = escaparString(row.DESCRPROD || '');
+        
+        return '<span class="etq-similar-container">' +
+               '<span>' + valorFormatado + '</span>' +
+               '<button class="btn-similar" onclick="abrirModalSimilares(\'' + compldesc + '\', \'' + codprod + '\', \'' + descrprod + '\')" title="Ver produtos similares">' +
+               '🔍</button>' +
+               '</span>';
+    }
+    
+    if (classeSim) {
+        return '<span class="' + classeSim + '">' + valorFormatado + '</span>';
+    }
+    return valorFormatado;
+}
+
+// ============================================================
+// MODAL GENÉRICO
+// ============================================================
+function fecharModal(modalId, event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById(modalId).classList.remove('active');
+}
+
+// ============================================================
+// MODAL DE SIMILARES
+// ============================================================
+function abrirModalSimilares(compldesc, codprodAtual, descrprodAtual) {
+    var modal = document.getElementById('modalSimilares');
+    var modalBody = document.getElementById('modalSimilaresBody');
+    var modalInfo = document.getElementById('modalSimilaresInfo');
+    var modalTotal = document.getElementById('modalSimilaresTotal');
+    
+    modal.classList.add('active');
+    modalBody.innerHTML = '<div class="loading-modal"><div class="loading-spinner"></div>Carregando produtos similares...</div>';
+    modalInfo.textContent = '';
+    modalTotal.textContent = '';
+    
+    // Escape seguro para SQL Oracle
+    var compldescLimpo = compldesc || '';
+    compldescLimpo = compldescLimpo.replace(/\\'/g, "'");
+    var compldescSQL = compldescLimpo.replace(/'/g, "''");
+    
+    var sqlSimilares = "SELECT " +
+        "PRO.CODPROD, " +
+        "PRO.CODIGO, " +
+        "PRO.REFFORN, " +
+        "PRO.MARCA, " +
+        "PRO.DESCRPROD, " +
+        "PRO.COMPLDESC, " +
+        "NVL(EST.ESTOQUE, 0) AS ESTOQUE, " +
+        "NVL(ABC.ABC_PED, '-') AS ABC, " +
+        "NVL(MED.MEDMES, 0) AS MEDMES, " +
+        "NVL(MED.ETQMIN, 0) AS ETQMIN " +
+        "FROM AE0_2508_PRODUTOCOMPLETO PRO " +
+        "LEFT JOIN AE1_2508_TGFEST EST ON EST.CODPROD = PRO.CODPROD " +
+        "LEFT JOIN AE1_2509_ITEABC ABC ON ABC.CODPROD = PRO.CODPROD " +
+        "LEFT JOIN AE1_2509_MEDMES MED ON MED.CODPROD = PRO.CODPROD " +
+        "WHERE PRO.COMPLDESC = '" + compldescSQL + "' " +
+        "ORDER BY NVL(EST.ESTOQUE, 0) DESC, PRO.MARCA, PRO.CODPROD";
+    
+    JX.consultar(sqlSimilares).then(function(similares) {
+        similares = similares || [];
+        
+        if (similares.length === 0) {
+            modalBody.innerHTML = '<div class="empty-message">Nenhum produto similar encontrado.</div>';
+            return;
+        }
+        
+        var totalEstoque = 0;
+        for (var i = 0; i < similares.length; i++) {
+            totalEstoque += Number(similares[i].ESTOQUE) || 0;
+        }
+        
+        var html = '<div class="modal-info">';
+        html += '<div class="modal-info-row">';
+        html += '<div class="modal-info-item"><span class="modal-info-label">Produto consultado:</span> ' + codprodAtual + ' - ' + descrprodAtual + '</div>';
+        html += '</div>';
+        html += '<div class="modal-info-row" style="margin-top: 8px;">';
+        html += '<div class="modal-info-item"><span class="modal-info-label">Complemento Desc:</span> ' + compldesc + '</div>';
+        html += '</div>';
+        html += '</div>';
+        
+        html += '<table class="modal-table">';
+        html += '<thead><tr>';
+        html += '<th>Código</th>';
+        html += '<th>Referência</th>';
+        html += '<th>Descrição</th>';
+        html += '<th>Marca</th>';
+        html += '<th>ABC</th>';
+        html += '<th style="text-align:right;">Estoque</th>';
+        html += '<th style="text-align:right;">Méd/Mês</th>';
+        html += '<th style="text-align:right;">Mínimo</th>';
+        html += '</tr></thead>';
+        html += '<tbody>';
+        
+        for (var i = 0; i < similares.length; i++) {
+            var item = similares[i];
+            var isAtual = String(item.CODPROD) === String(codprodAtual);
+            var estoque = Number(item.ESTOQUE) || 0;
+            
+            html += '<tr' + (isAtual ? ' style="background: #fef9c3;"' : '') + '>';
+            html += '<td>' + (item.CODPROD || '') + (isAtual ? ' <small>(atual)</small>' : '') + '</td>';
+            html += '<td>' + (item.REFFORN || item.CODIGO || '') + '</td>';
+            html += '<td class="col-desc" title="' + (item.DESCRPROD || '') + '">' + (item.DESCRPROD || '') + '</td>';
+            html += '<td>' + (item.MARCA || '') + '</td>';
+            html += '<td>' + getBadgeABC(item.ABC) + '</td>';
+            html += '<td class="col-num">' + (estoque > 0 ? '<span class="badge-estoque">' + formatarNumero(estoque) + '</span>' : '0') + '</td>';
+            html += '<td class="col-num">' + formatarNumero(item.MEDMES) + '</td>';
+            html += '<td class="col-num">' + formatarNumero(item.ETQMIN) + '</td>';
+            html += '</tr>';
+        }
+        
+        html += '</tbody></table>';
+        
+        modalBody.innerHTML = html;
+        modalInfo.textContent = similares.length + ' produto(s) similar(es) encontrado(s)';
+        modalTotal.textContent = 'Estoque Total: ' + formatarNumero(totalEstoque);
+        
+    }).catch(function(erro) {
+        console.error('Erro ao buscar similares:', erro);
+        modalBody.innerHTML = '<div style="color:red;padding:20px;text-align:center;">Erro ao carregar similares: ' + erro + '</div>';
+    });
+}
+
+// ============================================================
+// MODAL DE HISTÓRICO DE COMPRAS
+// ============================================================
+function abrirModalHistorico(codprod, descrprod) {
+    var modal = document.getElementById('modalHistorico');
+    var modalBody = document.getElementById('modalHistoricoBody');
+    var modalInfo = document.getElementById('modalHistoricoInfo');
+    var modalTotal = document.getElementById('modalHistoricoTotal');
+    
+    modal.classList.add('active');
+    modalBody.innerHTML = '<div class="loading-modal"><div class="loading-spinner"></div>Carregando histórico...</div>';
+    modalInfo.textContent = '';
+    modalTotal.textContent = '';
+    
+    var sqlHistorico = "SELECT " +
+        "CAB.DTNEG, " +
+        "CAB.NUNOTA, " +
+        "PAR.NOMEPARC AS FORNECEDOR, " +
+        "ITE.QTDNEG, " +
+        "ITE.VLRUNIT, " +
+        "ITE.VLRTOT " +
+        "FROM TGFITE ITE " +
+        "INNER JOIN TGFCAB CAB ON CAB.NUNOTA = ITE.NUNOTA " +
+        "INNER JOIN TGFPAR PAR ON PAR.CODPARC = CAB.CODPARC " +
+        "WHERE ITE.CODPROD = " + codprod + " " +
+        "AND CAB.TIPMOV = 'C' " +
+        "AND CAB.STATUSNOTA = 'L' " +
+        "AND CAB.DTNEG >= ADD_MONTHS(SYSDATE, -12) " +
+        "ORDER BY CAB.DTNEG DESC " +
+        "FETCH FIRST 20 ROWS ONLY";
+    
+    JX.consultar(sqlHistorico).then(function(historico) {
+        historico = historico || [];
+        
+        if (historico.length === 0) {
+            modalBody.innerHTML = '<div class="empty-message">Nenhuma compra encontrada nos últimos 12 meses.</div>';
+            modalInfo.textContent = 'Produto: ' + codprod + ' - ' + descrprod;
+            return;
+        }
+        
+        var totalQtd = 0;
+        var totalValor = 0;
+        for (var i = 0; i < historico.length; i++) {
+            totalQtd += Number(historico[i].QTDNEG) || 0;
+            totalValor += Number(historico[i].VLRTOT) || 0;
+        }
+        
+        var html = '<div class="modal-info">';
+        html += '<div class="modal-info-row">';
+        html += '<div class="modal-info-item"><span class="modal-info-label">Produto:</span> ' + codprod + ' - ' + descrprod + '</div>';
+        html += '</div>';
+        html += '</div>';
+        
+        html += '<table class="modal-table">';
+        html += '<thead><tr>';
+        html += '<th>Data</th>';
+        html += '<th>Nota</th>';
+        html += '<th>Fornecedor</th>';
+        html += '<th style="text-align:right;">Qtd</th>';
+        html += '<th style="text-align:right;">Vlr Unit</th>';
+        html += '<th style="text-align:right;">Vlr Total</th>';
+        html += '</tr></thead>';
+        html += '<tbody>';
+        
+        for (var i = 0; i < historico.length; i++) {
+            var item = historico[i];
+            html += '<tr>';
+            html += '<td>' + formatarData(item.DTNEG) + '</td>';
+            html += '<td>' + (item.NUNOTA || '') + '</td>';
+            html += '<td class="col-desc" title="' + (item.FORNECEDOR || '') + '">' + (item.FORNECEDOR || '') + '</td>';
+            html += '<td class="col-num">' + formatarNumero(item.QTDNEG) + '</td>';
+            html += '<td class="col-num">' + formatarMoeda(item.VLRUNIT) + '</td>';
+            html += '<td class="col-num">' + formatarMoeda(item.VLRTOT) + '</td>';
+            html += '</tr>';
+        }
+        
+        html += '</tbody></table>';
+        
+        modalBody.innerHTML = html;
+        modalInfo.textContent = historico.length + ' compra(s) nos últimos 12 meses';
+        modalTotal.textContent = 'Total: ' + formatarNumero(totalQtd) + ' un | ' + formatarMoeda(totalValor);
+        
+    }).catch(function(erro) {
+        console.error('Erro ao buscar histórico:', erro);
+        modalBody.innerHTML = '<div style="color:red;padding:20px;text-align:center;">Erro ao carregar histórico: ' + erro + '</div>';
+    });
+}
+
+// ============================================================
+// MODAL DE NOTAS
+// ============================================================
+function abrirModalNotas(codprod, descrprod) {
+    var modal = document.getElementById('modalNotas');
+    var modalInfo = document.getElementById('modalNotasInfo');
+    var textarea = document.getElementById('textareaNota');
+    var notaInfo = document.getElementById('notaInfoSalva');
+    
+    codprodNotaAtual = codprod;
+    
+    modalInfo.innerHTML = '<div class="modal-info-row"><span class="modal-info-label">Produto:</span> ' + codprod + ' - ' + descrprod + '</div>';
+    
+    var notaExistente = getNota(codprod);
+    if (notaExistente) {
+        textarea.value = notaExistente.texto;
+        notaInfo.textContent = 'Última alteração: ' + formatarDataHora(notaExistente.data);
+    } else {
+        textarea.value = '';
+        notaInfo.textContent = '';
+    }
+    
+    modal.classList.add('active');
+    textarea.focus();
+}
+
+function salvarNota() {
+    if (!codprodNotaAtual) return;
+    
+    var textarea = document.getElementById('textareaNota');
+    var notaInfo = document.getElementById('notaInfoSalva');
+    
+    setNota(codprodNotaAtual, textarea.value);
+    notaInfo.textContent = 'Salvo em: ' + formatarDataHora(new Date().toISOString());
+    
+    atualizarContadoresLocais();
+    renderizarTabela();
+    
+    var btn = document.querySelector('.btn-salvar-nota');
+    btn.textContent = '✅ Salvo!';
+    setTimeout(function() {
+        btn.textContent = '💾 Salvar Nota';
+    }, 1500);
+}
+
+function limparNota() {
+    if (!codprodNotaAtual) return;
+    
+    if (confirm('Deseja realmente limpar esta nota?')) {
+        document.getElementById('textareaNota').value = '';
+        document.getElementById('notaInfoSalva').textContent = '';
+        setNota(codprodNotaAtual, '');
+        atualizarContadoresLocais();
+        renderizarTabela();
+    }
+}
+
+// ============================================================
+// FORMATADORES
+// ============================================================
+function formatarNumero(val) {
+    if (val === null || val === undefined) return '0';
+    return Math.round(Number(val)).toLocaleString('pt-BR');
+}
+
+function formatarMoeda(val) {
+    if (val === null || val === undefined) return 'R$ 0,00';
+    return Number(val).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function formatarData(val) {
+    if (!val) return '';
+    var d = new Date(val);
+    return d.toLocaleDateString('pt-BR');
+}
+
+function formatarDataHora(val) {
+    if (!val) return '';
+    var d = new Date(val);
+    return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
+function escaparString(str) {
+    if (!str) return '';
+    return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+// ============================================================
+// ORDENAÇÃO
+// ============================================================
+function ordenar(coluna) {
+    if (colunaOrdenada === coluna) {
+        ordemAsc = !ordemAsc;
+    } else {
+        colunaOrdenada = coluna;
+        ordemAsc = true;
+    }
+    
+    dadosFiltrados.sort(function(a, b) {
+        var valA = a[coluna];
+        var valB = b[coluna];
+        
+        if (valA === null || valA === undefined) valA = '';
+        if (valB === null || valB === undefined) valB = '';
+        
+        var resultado;
+        if (typeof valA === 'number' && typeof valB === 'number') {
+            resultado = valA - valB;
+        } else {
+            resultado = String(valA).localeCompare(String(valB), 'pt-BR');
+        }
+        
+        return ordemAsc ? resultado : -resultado;
+    });
+    
+    var ths = document.querySelectorAll('th');
+    for (var i = 0; i < ths.length; i++) {
+        ths[i].classList.remove('sorted-asc', 'sorted-desc');
+        var icon = ths[i].querySelector('.sort-icon');
+        if (icon) icon.textContent = '';
+    }
+    
+    var thAtivo = document.querySelector('th[data-col="' + coluna + '"]');
+    if (thAtivo) {
+        thAtivo.classList.add(ordemAsc ? 'sorted-asc' : 'sorted-desc');
+        thAtivo.querySelector('.sort-icon').textContent = ordemAsc ? '▲' : '▼';
+    }
+    
+    renderizarTabela();
+}
+
+// ============================================================
+// FILTROS
+// ============================================================
+function aplicarFiltros() {
+    var decisao = document.getElementById('filtroDecisao').value;
+    var abc = document.getElementById('filtroABC').value;
+    var urgencia = document.getElementById('filtroUrgencia').value;
+    var elegibilidade = document.getElementById('filtroElegibilidade').value;
+    var sugestaoFaixa = document.getElementById('filtroSugestao').value;
+    var busca = document.getElementById('filtroBusca').value.toUpperCase();
+    var apenasFavoritos = document.getElementById('filtroFavoritos').checked;
+    var apenasComNotas = document.getElementById('filtroComNotas').checked;
+    
+    var favoritos = getFavoritos();
+    
+    dadosFiltrados = [];
+    for (var i = 0; i < dadosOriginais.length; i++) {
+        var row = dadosOriginais[i];
+        
+        // Filtro decisão
+        if (decisao && row.DECISAO !== decisao) continue;
+        
+        // Filtro ABC
+        if (abc && row.ORG_ABC !== abc) continue;
+        
+        // Filtro urgência
+        if (urgencia && row.URGENCIA !== urgencia) continue;
+        
+        // Filtro elegibilidade
+        if (elegibilidade && row.SELECAO !== elegibilidade) continue;
+        
+        // Filtro faixa de sugestão
+        if (sugestaoFaixa) {
+            var sug = Number(row.SUGESTAO) || 0;
+            if (sugestaoFaixa === '1-10' && (sug < 1 || sug > 10)) continue;
+            if (sugestaoFaixa === '11-50' && (sug < 11 || sug > 50)) continue;
+            if (sugestaoFaixa === '51-100' && (sug < 51 || sug > 100)) continue;
+            if (sugestaoFaixa === '101+' && sug <= 100) continue;
+        }
+        
+        // Filtro busca
+        if (busca) {
+            var texto = ((row.CODPROD || '') + ' ' + (row.REFFORN || '') + ' ' + (row.DESCRPROD || '') + ' ' + (row.MARCA || '')).toUpperCase();
+            if (texto.indexOf(busca) === -1) continue;
+        }
+        
+        // Filtro apenas favoritos
+        if (apenasFavoritos && favoritos.indexOf(row.CODPROD) === -1) continue;
+        
+        // Filtro apenas com notas
+        if (apenasComNotas && !temNota(row.CODPROD)) continue;
+        
+        dadosFiltrados.push(row);
+    }
+    
+    // Atualizar estado visual dos checkboxes
+    document.getElementById('checkFavoritos').classList.toggle('ativo', apenasFavoritos);
+    document.getElementById('checkComNotas').classList.toggle('ativo', apenasComNotas);
+    document.getElementById('checkIgnorados').classList.toggle('ativo', document.getElementById('filtroMostrarIgnorados').checked);
+    
+    renderizarTabela();
+    atualizarContadores();
+}
+
+function limparFiltros() {
+    document.getElementById('filtroDecisao').value = '';
+    document.getElementById('filtroABC').value = '';
+    document.getElementById('filtroUrgencia').value = '';
+    document.getElementById('filtroElegibilidade').value = '';
+    document.getElementById('filtroSugestao').value = '';
+    document.getElementById('filtroBusca').value = '';
+    document.getElementById('filtroFavoritos').checked = false;
+    document.getElementById('filtroComNotas').checked = false;
+    document.getElementById('filtroMostrarIgnorados').checked = false;
+    
+    var filtroChecks = document.querySelectorAll('.filtro-check');
+    for (var i = 0; i < filtroChecks.length; i++) {
+        filtroChecks[i].classList.remove('ativo');
+    }
+    
+    dadosFiltrados = dadosOriginais.slice();
+    renderizarTabela();
+    atualizarContadores();
+}
+
+function atualizarContadores() {
+    var ignorados = getIgnorados();
+    var mostrarIgnorados = document.getElementById('filtroMostrarIgnorados').checked;
+    
+    var qtdExibida = dadosFiltrados.length;
+    if (!mostrarIgnorados) {
+        qtdExibida = 0;
+        for (var i = 0; i < dadosFiltrados.length; i++) {
+            if (ignorados.indexOf(dadosFiltrados[i].CODPROD) === -1) {
+                qtdExibida++;
+            }
+        }
+    }
+    
+    document.getElementById('totalRegistros').textContent = dadosOriginais.length.toLocaleString('pt-BR') + ' registros';
+    
+    if (qtdExibida !== dadosOriginais.length) {
+        document.getElementById('totalFiltrados').textContent = 'Exibindo: ' + qtdExibida.toLocaleString('pt-BR');
+    } else {
+        document.getElementById('totalFiltrados').textContent = '';
+    }
+}
+
+function atualizarContadoresLocais() {
+    var ignorados = getIgnorados();
+    var favoritos = getFavoritos();
+    var notas = getNotas();
+    
+    document.getElementById('qtdIgnorados').textContent = ignorados.length;
+    document.getElementById('qtdFavoritos').textContent = favoritos.length;
+    document.getElementById('qtdNotas').textContent = Object.keys(notas).length;
+}
+
+function atualizarIndicadores() {
+    var pedir = 0;
+    var urgentes = 0;
+    for (var i = 0; i < dadosOriginais.length; i++) {
+        var r = dadosOriginais[i];
+        if (r.DECISAO === 'PEDIR' && r.SELECAO === 'ELEGIVEL') pedir++;
+        if (r.URGENCIA === 'ALTA' && r.SELECAO === 'ELEGIVEL') urgentes++;
+    }
+    var favoritos = getFavoritos().length;
+    
+    document.getElementById('indPedir').textContent = pedir;
+    document.getElementById('indUrgente').textContent = urgentes;
+    document.getElementById('indFavoritos').textContent = favoritos;
+}
+
+// ============================================================
+// EXPORTAR EXCEL (CSV)
+// ============================================================
+function exportarExcel() {
+    var ignorados = getIgnorados();
+    var mostrarIgnorados = document.getElementById('filtroMostrarIgnorados').checked;
+    
+    var dadosExportar = [];
+    for (var i = 0; i < dadosFiltrados.length; i++) {
+        if (mostrarIgnorados || ignorados.indexOf(dadosFiltrados[i].CODPROD) === -1) {
+            dadosExportar.push(dadosFiltrados[i]);
+        }
+    }
+    
+    if (dadosExportar.length === 0) {
+        alert('Nenhum dado para exportar!');
+        return;
+    }
+    
+    var headers = [
+        'Código',
+        'Referência',
+        'Descrição',
+        'Marca',
+        'Grupo',
+        'ABC',
+        'Estoque',
+        'Etq Similar',
+        'Etq Mínimo',
+        'Etq Médio',
+        'Etq Máximo',
+        'Sugestão',
+        'Decisão',
+        'Urgência',
+        'Elegibilidade',
+        'Vendas 12M',
+        'Média/Mês'
+    ];
+    
+    var csv = headers.join(';') + '\n';
+    
+    for (var i = 0; i < dadosExportar.length; i++) {
+        var row = dadosExportar[i];
+        var linha = [
+            row.CODPROD || '',
+            row.REFFORN || '',
+            '"' + (row.DESCRPROD || '').replace(/"/g, '""') + '"',
+            row.MARCA || '',
+            '"' + (row.DESCRGRUPOPROD || '').replace(/"/g, '""') + '"',
+            row.ORG_ABC || '',
+            row.ORG_ETQAT || 0,
+            row.SIM_ETQAT || 0,
+            row.ORG_ETQMIN || 0,
+            row.ORG_ETQMED || 0,
+            row.ORG_ETQMAX || 0,
+            row.SUGESTAO || 0,
+            row.DECISAO || '',
+            row.URGENCIA || '',
+            row.SELECAO || '',
+            row.ORG_PED12M || 0,
+            row.ORG_MEDMES || 0
+        ];
+        csv += linha.join(';') + '\n';
+    }
+    
+    var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    var dataAtual = new Date().toISOString().slice(0, 10);
+    link.href = URL.createObjectURL(blob);
+    link.download = 'sugestao_compra_' + dataAtual + '.csv';
+    link.click();
+}
+
+// ============================================================
+// EXPORTAR SUGESTÃO DE PEDIDO
+// ============================================================
+function exportarPedido() {
+    var ignorados = getIgnorados();
+    
+    var dadosPedido = [];
+    for (var i = 0; i < dadosFiltrados.length; i++) {
+        var row = dadosFiltrados[i];
+        if (ignorados.indexOf(row.CODPROD) > -1) continue;
+        if (row.SELECAO === 'INELEGIVEL') continue;
+        if (row.SUGESTAO <= 0) continue;
+        if (row.DECISAO !== 'PEDIR' && row.DECISAO !== 'ANALISAR') continue;
+        dadosPedido.push(row);
+    }
+    
+    if (dadosPedido.length === 0) {
+        alert('Nenhum item com sugestão de compra para exportar!\n\nVerifique os filtros aplicados.');
+        return;
+    }
+    
+    dadosPedido.sort(function(a, b) {
+        var marcaA = (a.MARCA || '').toUpperCase();
+        var marcaB = (b.MARCA || '').toUpperCase();
+        if (marcaA !== marcaB) return marcaA.localeCompare(marcaB);
+        return (a.CODPROD || 0) - (b.CODPROD || 0);
+    });
+    
+    var headers = [
+        'Marca',
+        'Código',
+        'Referência',
+        'Descrição',
+        'ABC',
+        'Estoque Atual',
+        'Etq Mínimo',
+        'Sugestão Compra',
+        'Decisão',
+        'Urgência'
+    ];
+    
+    var csv = headers.join(';') + '\n';
+    
+    var marcaAtual = '';
+    var totalGeral = 0;
+    var totalMarca = 0;
+    
+    for (var i = 0; i < dadosPedido.length; i++) {
+        var row = dadosPedido[i];
+        var marca = row.MARCA || 'SEM MARCA';
+        
+        if (marca !== marcaAtual && marcaAtual !== '') {
+            csv += ';;;"SUBTOTAL ' + marcaAtual + '";;;' + totalMarca + ';;;\n';
+            csv += ';;;;;;;;;;;;\n';
+            totalMarca = 0;
+        }
+        marcaAtual = marca;
+        totalMarca += Number(row.SUGESTAO) || 0;
+        totalGeral += Number(row.SUGESTAO) || 0;
+        
+        var linha = [
+            marca,
+            row.CODPROD || '',
+            row.REFFORN || '',
+            '"' + (row.DESCRPROD || '').replace(/"/g, '""') + '"',
+            row.ORG_ABC || '',
+            row.ORG_ETQAT || 0,
+            row.ORG_ETQMIN || 0,
+            row.SUGESTAO || 0,
+            row.DECISAO || '',
+            row.URGENCIA || ''
+        ];
+        csv += linha.join(';') + '\n';
+    }
+    
+    if (marcaAtual !== '') {
+        csv += ';;;"SUBTOTAL ' + marcaAtual + '";;;' + totalMarca + ';;;\n';
+    }
+    
+    csv += ';;;;;;;;;;;;\n';
+    csv += ';;;"TOTAL GERAL";;;' + totalGeral + ';;;\n';
+    csv += ';;;"' + dadosPedido.length + ' itens";;;;;;;\n';
+    
+    var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    var dataAtual = new Date().toISOString().slice(0, 10);
+    link.href = URL.createObjectURL(blob);
+    link.download = 'pedido_compra_' + dataAtual + '.csv';
+    link.click();
+}
+
+// ============================================================
+// EVENT LISTENERS
+// ============================================================
+document.getElementById('filtroBusca').onkeypress = function(e) {
+    if (e.key === 'Enter' || e.keyCode === 13) aplicarFiltros();
+};
+
+document.onkeydown = function(e) {
+    if (e.key === 'Escape' || e.keyCode === 27) {
+        var modais = document.querySelectorAll('.modal-overlay.active');
+        for (var i = 0; i < modais.length; i++) {
+            modais[i].classList.remove('active');
+        }
+    }
+};
+
+// ============================================================
+// INICIALIZAÇÃO - CHAMADA DIRETA (SEM DOMContentLoaded)
+// ============================================================
+carregarDados();
+</script>
+</body>
+</html>

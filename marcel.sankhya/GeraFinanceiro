@@ -1,0 +1,308 @@
+package br.com.sankhya.apesp;
+
+import br.com.sankhya.extensions.actionbutton.AcaoRotinaJava;
+import br.com.sankhya.extensions.actionbutton.ContextoAcao;
+import br.com.sankhya.jape.EntityFacade;
+import br.com.sankhya.jape.core.JapeSession;
+import br.com.sankhya.jape.dao.JdbcWrapper;
+import br.com.sankhya.jape.sql.NativeSql;
+import br.com.sankhya.jape.wrapper.JapeFactory;
+import br.com.sankhya.jape.wrapper.JapeWrapper;
+import br.com.sankhya.jape.wrapper.fluid.FluidCreateVO;
+import br.com.sankhya.modelcore.auth.AuthenticationInfo;
+import br.com.sankhya.modelcore.util.EntityFacadeFactory;
+
+import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.Timestamp;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * LANÇAMENTO FINANCEIRO RÁPIDO - SANKHYA ERP
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * @author Marcel - APESP
+ * @version 1.2 PRODUÇÃO
+ * @date 01/01/2026
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
+public class GeraFinanceiro implements AcaoRotinaJava {
+
+    private static class ConfigLancamentoPadrao {
+        BigDecimal nulanc;
+        String nomelanc;
+        BigDecimal recdesp;
+        BigDecimal numnota;
+        BigDecimal codbco;
+        BigDecimal codctabcoint;
+        BigDecimal codtiptit;
+        BigDecimal codemp;
+        BigDecimal codtipoper;
+        BigDecimal codnat;
+    }
+
+    @Override
+    public void doAction(ContextoAcao contexto) throws Exception {
+        
+        JapeSession.SessionHandle hnd = null;
+        JdbcWrapper jdbc = null;
+        
+        try {
+            // ETAPA 1: OBTER USUÁRIO LOGADO
+            BigDecimal codUsuLogado = obterUsuarioLogado();
+            
+            // ETAPA 2: CAPTURAR PARÂMETROS DO POPUP
+            Object paramNulanc = contexto.getParam("NULANC");
+            if (paramNulanc == null) {
+                throw new Exception("Informe o Tipo de Lancamento!");
+            }
+            BigDecimal nulanc = converterParaBigDecimal(paramNulanc);
+            
+            Object paramCodparc = contexto.getParam("CODPARC");
+            if (paramCodparc == null) {
+                throw new Exception("Informe o Parceiro!");
+            }
+            BigDecimal codparc = converterParaBigDecimal(paramCodparc);
+            
+            Object paramVlrdesdob = contexto.getParam("VLRDESDOB");
+            if (paramVlrdesdob == null) {
+                throw new Exception("Informe o Valor!");
+            }
+            BigDecimal vlrdesdob = converterParaBigDecimal(paramVlrdesdob);
+            
+            if (vlrdesdob.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new Exception("O Valor deve ser maior que zero!");
+            }
+            
+            Object paramDtvenc = contexto.getParam("DTVENC");
+            Timestamp dtvenc;
+            if (paramDtvenc != null && paramDtvenc instanceof Timestamp) {
+                dtvenc = (Timestamp) paramDtvenc;
+            } else if (paramDtvenc != null && paramDtvenc instanceof java.util.Date) {
+                dtvenc = new Timestamp(((java.util.Date) paramDtvenc).getTime());
+            } else {
+                dtvenc = new Timestamp(System.currentTimeMillis());
+            }
+            
+            // ETAPA 3: ABRIR RECURSOS
+            hnd = JapeSession.open();
+            EntityFacade dwfFacade = EntityFacadeFactory.getDWFFacade();
+            jdbc = dwfFacade.getJdbcWrapper();
+            jdbc.openSession();
+            JapeWrapper finDAO = JapeFactory.dao("Financeiro");
+            
+            // ETAPA 4: BUSCAR TEMPLATE
+            ConfigLancamentoPadrao config = buscarConfigTemplate(jdbc, nulanc);
+            
+            // ETAPA 5: BUSCAR DHALTER
+            Timestamp dhtipoper = obterDhAlterTipOperacao(jdbc, config.codtipoper);
+            if (dhtipoper == null) {
+                throw new Exception("Tipo de Operacao " + config.codtipoper + " nao encontrado!");
+            }
+            
+            // ETAPA 6: VALIDAR PARCEIRO
+            String nomeParceiro = validarParceiro(jdbc, codparc);
+            
+            // ETAPA 7: PREPARAR DATAS
+            Timestamp dataHoraAtual = new Timestamp(System.currentTimeMillis());
+            Timestamp dataHoje = new Timestamp(System.currentTimeMillis());
+            
+            // ETAPA 8: CRIAR TÍTULO
+            FluidCreateVO novoTitulo = finDAO.create();
+            
+            novoTitulo
+                .set("CODEMP", config.codemp)
+                .set("CODBCO", config.codbco)
+                .set("CODCTABCOINT", config.codctabcoint)
+                .set("CODTIPTIT", config.codtiptit)
+                .set("CODTIPOPER", config.codtipoper)
+                .set("CODNAT", config.codnat)
+                .set("RECDESP", config.recdesp)
+                .set("NUMNOTA", config.numnota)
+                .set("CODPARC", codparc)
+                .set("VLRDESDOB", vlrdesdob)
+                .set("DTVENC", dtvenc)
+                .set("DTVENCINIC", dtvenc)
+                .set("CODUSU", codUsuLogado)
+                .set("DHTIPOPER", dhtipoper)
+                .set("DTNEG", dataHoje)
+                .set("DHMOV", dataHoraAtual)
+                .set("DTALTER", dataHoraAtual)
+                .set("ORIGEM", "F")
+                .set("PROVISAO", "N")
+                .set("HISTORICO", "Lanc. Rapido: " + config.nomelanc + " - " + nomeParceiro)
+                .save();
+            
+            // ETAPA 9: OBTER NUFIN
+            BigDecimal nufinCriado = obterUltimoNufinPorUsuario(jdbc, codUsuLogado, config.codemp);
+            
+            // ETAPA 10: MENSAGEM DE SUCESSO
+            String tipoLanc = config.recdesp.intValue() == 1 ? "RECEITA" : "DESPESA";
+            DecimalFormat dfMoeda = new DecimalFormat("#,##0.00");
+            SimpleDateFormat dfData = new SimpleDateFormat("dd/MM/yyyy");
+            
+            StringBuilder msg = new StringBuilder();
+            msg.append("\n");
+            msg.append("     ✅  LANÇAMENTO CRIADO COM SUCESSO!\n");
+            msg.append("\n");
+            msg.append("┌────────────────────────────────────────┐\n");
+            msg.append("│                                        │\n");
+            msg.append("│   📋 NUFIN: " + String.format("%-26s", nufinCriado) + "│\n");
+            msg.append("│                                        │\n");
+            msg.append("│   📁 " + String.format("%-33s", config.nomelanc) + "│\n");
+            msg.append("│                                        │\n");
+            msg.append("│   👤 " + String.format("%-33s", limitarTexto(nomeParceiro, 30)) + "│\n");
+            msg.append("│                                        │\n");
+            msg.append("│   💰 R$ " + String.format("%-30s", dfMoeda.format(vlrdesdob)) + "│\n");
+            msg.append("│                                        │\n");
+            msg.append("│   📅 Venc: " + String.format("%-27s", dfData.format(dtvenc)) + "│\n");
+            msg.append("│                                        │\n");
+            msg.append("│   🏷️  " + String.format("%-33s", tipoLanc) + "│\n");
+            msg.append("│                                        │\n");
+            msg.append("└────────────────────────────────────────┘\n");
+            msg.append("\n");
+            msg.append("   Título em ABERTO na Mov. Financeira\n");
+            
+            contexto.setMensagemRetorno(msg.toString());
+            
+        } catch (Exception e) {
+            StringBuilder msgErro = new StringBuilder();
+            msgErro.append("\n");
+            msgErro.append("     ❌  ERRO AO CRIAR LANÇAMENTO\n");
+            msgErro.append("\n");
+            msgErro.append("┌────────────────────────────────────────┐\n");
+            msgErro.append("│                                        │\n");
+            msgErro.append("│   " + String.format("%-37s", limitarTexto(e.getMessage(), 35)) + "│\n");
+            msgErro.append("│                                        │\n");
+            msgErro.append("└────────────────────────────────────────┘\n");
+            msgErro.append("\n");
+            msgErro.append("   Verifique os dados e tente novamente.\n");
+            
+            contexto.setMensagemRetorno(msgErro.toString());
+            throw e;
+            
+        } finally {
+            if (jdbc != null) {
+                try { JdbcWrapper.closeSession(jdbc); } catch (Exception e) { }
+            }
+            if (hnd != null) {
+                try { JapeSession.close(hnd); } catch (Exception e) { }
+            }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // MÉTODOS AUXILIARES
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    private String limitarTexto(String texto, int tamanho) {
+        if (texto == null) return "";
+        if (texto.length() <= tamanho) return texto;
+        return texto.substring(0, tamanho - 3) + "...";
+    }
+    
+    private BigDecimal converterParaBigDecimal(Object valor) {
+        if (valor == null) return null;
+        if (valor instanceof BigDecimal) return (BigDecimal) valor;
+        return new BigDecimal(valor.toString());
+    }
+    
+    private BigDecimal obterUsuarioLogado() {
+        try {
+            AuthenticationInfo authInfo = AuthenticationInfo.getCurrent();
+            if (authInfo != null) return authInfo.getUserID();
+            return BigDecimal.ONE;
+        } catch (Exception e) {
+            return BigDecimal.ONE;
+        }
+    }
+    
+    private ConfigLancamentoPadrao buscarConfigTemplate(JdbcWrapper jdbc, BigDecimal nulanc) throws Exception {
+        ConfigLancamentoPadrao config = new ConfigLancamentoPadrao();
+        boolean encontrou = false;
+        
+        NativeSql sql = new NativeSql(jdbc);
+        sql.appendSql("SELECT NULANC, NOMELANC, RECDESP, NUMNOTA, CODBCO, CODCTABCOINT, ");
+        sql.appendSql("CODTIPTIT, CODEMP, CODTIPOPER, CODNAT ");
+        sql.appendSql("FROM AD_LANCFINPADRAO WHERE NULANC = " + nulanc);
+        
+        ResultSet rs = sql.executeQuery();
+        
+        try {
+            if (rs.next()) {
+                encontrou = true;
+                config.nulanc = rs.getBigDecimal("NULANC");
+                config.nomelanc = rs.getString("NOMELANC");
+                config.recdesp = rs.getBigDecimal("RECDESP");
+                config.numnota = rs.getBigDecimal("NUMNOTA");
+                config.codbco = rs.getBigDecimal("CODBCO");
+                config.codctabcoint = rs.getBigDecimal("CODCTABCOINT");
+                config.codtiptit = rs.getBigDecimal("CODTIPTIT");
+                config.codemp = rs.getBigDecimal("CODEMP");
+                config.codtipoper = rs.getBigDecimal("CODTIPOPER");
+                config.codnat = rs.getBigDecimal("CODNAT");
+            }
+        } finally {
+            if (rs != null) try { rs.close(); } catch (Exception e) { }
+        }
+        
+        if (!encontrou) throw new Exception("Template nao encontrado: " + nulanc);
+        if (config.codtipoper == null) throw new Exception("CODTIPOPER vazio no template");
+        if (config.codnat == null) throw new Exception("CODNAT vazio no template");
+        if (config.codbco == null) throw new Exception("CODBCO vazio no template");
+        if (config.codctabcoint == null) throw new Exception("CODCTABCOINT vazio no template");
+        if (config.numnota == null) throw new Exception("NUMNOTA vazio no template");
+        
+        return config;
+    }
+    
+    private Timestamp obterDhAlterTipOperacao(JdbcWrapper jdbc, BigDecimal codTipOper) throws Exception {
+        if (codTipOper == null) return null;
+        
+        NativeSql sql = new NativeSql(jdbc);
+        sql.appendSql("SELECT MAX(DHALTER) AS DHALTER FROM TGFTOP WHERE CODTIPOPER = " + codTipOper);
+        
+        ResultSet rs = sql.executeQuery();
+        try {
+            if (rs.next()) return rs.getTimestamp("DHALTER");
+            return null;
+        } finally {
+            if (rs != null) try { rs.close(); } catch (Exception e) { }
+        }
+    }
+    
+    private String validarParceiro(JdbcWrapper jdbc, BigDecimal codparc) throws Exception {
+        NativeSql sql = new NativeSql(jdbc);
+        sql.appendSql("SELECT NOMEPARC, ATIVO FROM TGFPAR WHERE CODPARC = " + codparc);
+        
+        ResultSet rs = sql.executeQuery();
+        try {
+            if (rs.next()) {
+                String ativo = rs.getString("ATIVO");
+                String nomeparc = rs.getString("NOMEPARC");
+                if (!"S".equals(ativo)) throw new Exception("Parceiro INATIVO: " + codparc);
+                return nomeparc;
+            } else {
+                throw new Exception("Parceiro nao encontrado: " + codparc);
+            }
+        } finally {
+            if (rs != null) try { rs.close(); } catch (Exception e) { }
+        }
+    }
+    
+    private BigDecimal obterUltimoNufinPorUsuario(JdbcWrapper jdbc, BigDecimal codusu, BigDecimal codemp) throws Exception {
+        NativeSql sql = new NativeSql(jdbc);
+        sql.appendSql("SELECT MAX(NUFIN) AS NUFIN FROM TGFFIN ");
+        sql.appendSql("WHERE CODUSU = " + codusu + " AND CODEMP = " + codemp + " ");
+        sql.appendSql("AND TRUNC(DHMOV) = TRUNC(SYSDATE)");
+        
+        ResultSet rs = sql.executeQuery();
+        try {
+            if (rs.next()) return rs.getBigDecimal("NUFIN");
+            return null;
+        } finally {
+            if (rs != null) try { rs.close(); } catch (Exception e) { }
+        }
+    }
+}

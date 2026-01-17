@@ -1,0 +1,3566 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financeiro - Auto Peças São Paulo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --azul-principal: #1E3A8A;
+            --azul-claro: #3B5998;
+            --azul-hover: #2d4a9e;
+            --vermelho: #D32F2F;
+            --vermelho-claro: #FFEBEE;
+            --vermelho-borda: #EF9A9A;
+            --verde: #2E7D32;
+            --verde-claro: #E8F5E9;
+            --verde-borda: #A5D6A7;
+            --cinza-bg: #F5F7FA;
+            --cinza-borda: #E0E4E8;
+            --cinza-texto: #64748B;
+            --cinza-baixado: #E8E8E8;
+            --branco: #FFFFFF;
+            --texto: #1E293B;
+            --laranja: #F57C00;
+            --laranja-claro: #FFF3E0;
+            --laranja-borda: #FFCC80;
+            --roxo: #7B1FA2;
+            --roxo-claro: #F3E5F5;
+            --roxo-borda: #CE93D8;
+        }
+        
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            background: var(--cinza-bg);
+            color: var(--texto);
+            font-size: 13px;
+        }
+        
+        *, *::before, *::after {
+            font-family: Helvetica, Arial, sans-serif;
+        }
+        
+        input, select, button, textarea {
+            font-family: Helvetica, Arial, sans-serif;
+        }
+        
+        .app {
+            display: grid;
+            grid-template-rows: auto 1fr;
+            height: 100vh;
+            gap: 10px;
+            padding: 10px;
+        }
+        
+        /* HEADER UNIFICADO */
+/* HEADER REESTRUTURADO */
+      .header {
+            display: flex;
+            justify-content: flex-start; /* ALTERADO: Alinha tudo à esquerda */
+            align-items: center;
+            background: var(--branco);
+            padding: 8px 15px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            gap: 20px; /* Mantém um espaço elegante entre Logo, Infos e Botões */
+            flex-wrap: wrap;
+        }
+        
+        /* BLOCO ESQUERDA: LOGO */
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 180px; /* Garante espaço pro logo */
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+        
+        .logo-text .auto-pecas {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--vermelho);
+            letter-spacing: 2px;
+        }
+        
+        .logo-text .sao-paulo {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--azul-principal);
+        }
+        
+        /* GRUPO 1: INFORMATIVOS (MEIO) */
+        .header-info-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #F8FAFC; /* Fundo leve para diferenciar */
+            padding: 5px 10px;
+            border-radius: 6px;
+            border: 1px solid #E2E8F0;
+        }
+        
+        .selecao-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .selecao-item .icon {
+            width: 24px; /* Menor */
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+        }
+        
+        .selecao-item .icon.qtd {
+            background: #E0E7FF;
+            color: var(--azul-principal);
+        }
+        
+        .selecao-item .icon.valor {
+            background: #DCFCE7;
+            color: var(--verde);
+        }
+        
+        .selecao-item .dados {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .selecao-item .label {
+            font-size: 8px; /* Fonte reduzida */
+            color: var(--cinza-texto);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        
+        .selecao-item .valor {
+            font-size: 11px; /* Fonte reduzida */
+            font-weight: 700;
+            color: var(--texto);
+        }
+        
+        .selecao-item .valor.money {
+            color: var(--verde);
+        }
+        
+        .selecao-item .valor.money.negativo {
+            color: var(--vermelho);
+        }
+        
+       /* GRUPO 2: AÇÕES (AGORA NA ESQUERDA) */
+        .header-actions-group {
+            display: flex;
+            align-items: center;
+            gap: 10px; /* Distância fixa entre os botões */
+            flex-wrap: wrap;
+            /* REMOVIDO: flex: 1 e justify-content: flex-end */
+        }
+
+        /* Estilo Base para Botões de Ação (Card 3D) */
+        .btn-action {
+            padding: 8px 12px; /* Altura maior */
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.1s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            position: relative;
+            /* Efeito 3D */
+            box-shadow: 0 4px 0 rgba(0,0,0,0.15); 
+            transform: translateY(0);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-action:active {
+            transform: translateY(3px); /* Afunda ao clicar */
+            box-shadow: 0 1px 0 rgba(0,0,0,0.15); /* Sombra diminui */
+        }
+        
+        /* Cores dos Botões de Ação */
+        .btn-action.success {
+            background: var(--verde);
+            color: white;
+            box-shadow: 0 4px 0 #1B5E20;
+        }
+        .btn-action.success:active { box-shadow: 0 1px 0 #1B5E20; }
+
+        .btn-action.danger {
+            background: var(--vermelho);
+            color: white;
+            box-shadow: 0 4px 0 #B71C1C;
+        }
+        .btn-action.danger:active { box-shadow: 0 1px 0 #B71C1C; }
+
+        .btn-action.primary {
+            background: var(--azul-principal);
+            color: white;
+            box-shadow: 0 4px 0 #0D226B;
+        }
+        .btn-action.primary:active { box-shadow: 0 1px 0 #0D226B; }
+
+        .btn-action.outline {
+            background: white;
+            color: var(--azul-principal);
+            border: 1px solid var(--cinza-borda);
+            box-shadow: 0 4px 0 #CBD5E1;
+        }
+        .btn-action.outline:active { box-shadow: 0 1px 0 #CBD5E1; }
+
+        .btn-action.outline:hover {
+            background: #F1F5F9;
+        }
+        
+        /* ÁREA PRINCIPAL */
+        .main-area {
+            display: grid;
+            grid-template-columns: 224px 1fr;
+            gap: 10px;
+            min-height: 0;
+        }
+        
+        /* PAINEL FILTROS */
+        .filtros-panel {
+            background: var(--branco);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        
+        .filtro-section {
+            border-bottom: 1px solid var(--cinza-borda);
+            padding-bottom: 10px;
+        }
+        
+        .filtro-section:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        
+        .filtro-title {
+            font-size: 10px;
+            color: var(--azul-principal);
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        
+        /* FILTRO DE DATA */
+        .data-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        .data-row .check-inline {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            flex-shrink: 0;
+        }
+        
+        .data-row .check-inline input[type="checkbox"] {
+            width: 12px;
+            height: 12px;
+            margin: 0;
+        }
+        
+        .data-row .data-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--azul-principal);
+        }
+        
+        .data-inputs {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+        }
+        
+        .data-inputs input[type="date"] {
+            padding: 5px 6px;
+            font-size: 10px;
+            width: 95px;
+            flex-shrink: 0;
+        }
+        
+        .data-inputs .data-separator {
+            font-size: 10px;
+            color: var(--cinza-texto);
+            font-weight: 500;
+        }
+        
+        .btn-regua {
+            padding: 4px 8px;
+            font-size: 9px;
+            background: var(--azul-principal);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            white-space: nowrap;
+            margin-top: 6px;
+        }
+        
+        .btn-regua:hover {
+            background: var(--azul-hover);
+        }
+        
+        /* FILTRO PARCEIRO */
+        .parceiro-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        
+        .radio-inline {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .radio-mini {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            font-size: 9px;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid var(--cinza-borda);
+            transition: all 0.2s;
+            color: var(--cinza-texto);
+        }
+        
+        .radio-mini:hover {
+            border-color: var(--azul-principal);
+        }
+        
+        .radio-mini.selected {
+            background: #EEF2FF;
+            border-color: var(--azul-principal);
+            color: var(--azul-principal);
+            font-weight: 600;
+        }
+        
+        .radio-mini input[type="radio"] {
+            width: 10px;
+            height: 10px;
+            margin: 0;
+        }
+        
+        /* Lookup Container */
+        .lookup-container {
+            position: relative;
+        }
+        
+        .lookup-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .lookup-input-wrapper input {
+            padding: 6px 24px 6px 8px;
+            font-size: 10px;
+        }
+        
+        .lookup-icon {
+            position: absolute;
+            right: 6px;
+            color: var(--cinza-texto);
+            font-size: 10px;
+            pointer-events: none;
+        }
+        
+        .lookup-loading {
+            position: absolute;
+            right: 6px;
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--cinza-borda);
+            border-top-color: var(--azul-principal);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .lookup-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--branco);
+            border: 1px solid var(--cinza-borda);
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            max-height: 180px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .lookup-dropdown.visible {
+            display: block;
+        }
+        
+        .lookup-item {
+            padding: 6px 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--cinza-borda);
+            transition: background 0.15s;
+            font-size: 10px;
+        }
+        
+        .lookup-item:last-child {
+            border-bottom: none;
+        }
+        
+        .lookup-item:hover {
+            background: #EEF2FF;
+        }
+        /* ESTILO PARA NAVEGAÇÃO POR TECLADO */
+        .lookup-item.active {
+            background-color: #B3E5FC; /* Azul claro destaque */
+            border-left: 3px solid var(--azul-principal);
+            padding-left: 5px; /* Compensa a borda */
+            font-weight: 600;
+        }
+        .lookup-item-code {
+            font-size: 9px;
+            color: var(--azul-principal);
+            font-weight: 600;
+            min-width: 35px;
+        }
+        
+        .lookup-item-name {
+            flex: 1;
+            font-size: 10px;
+            color: var(--texto);
+            margin-left: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .lookup-no-results {
+            padding: 10px;
+            text-align: center;
+            color: var(--cinza-texto);
+            font-size: 10px;
+        }
+        
+        .lookup-selected-tag {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #EEF2FF;
+            border: 1px solid var(--azul-principal);
+            border-radius: 5px;
+            padding: 5px 8px;
+            margin-top: 5px;
+        }
+        
+        .lookup-selected-info {
+            flex: 1;
+            font-size: 10px;
+        }
+        
+        .lookup-selected-info strong {
+            color: var(--azul-principal);
+        }
+        
+        .lookup-clear-btn {
+            background: none;
+            border: none;
+            color: var(--vermelho);
+            cursor: pointer;
+            font-size: 12px;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        
+        .lookup-clear-btn:hover {
+            background: #FFEBEE;
+        }
+        
+        /* GRID DE FILTROS */
+        .filtros-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+        }
+        
+        .filtro-check {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 6px 4px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            background: var(--branco);
+            color: var(--cinza-texto);
+            text-align: center;
+            user-select: none;
+        }
+        
+        .filtro-check input[type="checkbox"] {
+            width: 12px;
+            height: 12px;
+            margin: 0;
+            pointer-events: none;
+            flex-shrink: 0;
+        }
+        
+        .filtro-check span {
+            pointer-events: none;
+        }
+        
+        .filtro-check.receita {
+            border-color: var(--verde-borda);
+            background: rgba(46, 125, 50, 0.05);
+        }
+        
+        .filtro-check.despesa {
+            border-color: var(--vermelho-borda);
+            background: rgba(211, 47, 47, 0.05);
+        }
+        
+        .filtro-check.pendente {
+            border-color: #93C5FD;
+            background: rgba(30, 58, 138, 0.05);
+        }
+        
+        .filtro-check.baixado {
+            border-color: #D1D5DB;
+            background: rgba(117, 117, 117, 0.05);
+        }
+        
+        .filtro-check.provisao {
+            border-color: var(--laranja-borda);
+            background: rgba(245, 124, 0, 0.05);
+        }
+        
+        .filtro-check.real {
+            border-color: var(--roxo-borda);
+            background: rgba(123, 31, 162, 0.05);
+        }
+        
+        .filtro-check.receita.active {
+            border-color: var(--verde);
+            background: var(--verde-claro);
+            color: var(--verde);
+            font-weight: 600;
+        }
+        
+        .filtro-check.receita.active input[type="checkbox"] {
+            accent-color: var(--verde);
+        }
+        
+        .filtro-check.despesa.active {
+            border-color: var(--vermelho);
+            background: var(--vermelho-claro);
+            color: var(--vermelho);
+            font-weight: 600;
+        }
+        
+        .filtro-check.despesa.active input[type="checkbox"] {
+            accent-color: var(--vermelho);
+        }
+        
+        .filtro-check.pendente.active {
+            border-color: var(--azul-principal);
+            background: #DBEAFE;
+            color: var(--azul-principal);
+            font-weight: 600;
+        }
+        
+        .filtro-check.pendente.active input[type="checkbox"] {
+            accent-color: var(--azul-principal);
+        }
+        
+        .filtro-check.baixado.active {
+            border-color: #757575;
+            background: var(--cinza-baixado);
+            color: #424242;
+            font-weight: 600;
+        }
+        
+        .filtro-check.baixado.active input[type="checkbox"] {
+            accent-color: #757575;
+        }
+        
+        .filtro-check.provisao.active {
+            border-color: var(--laranja);
+            background: var(--laranja-claro);
+            color: var(--laranja);
+            font-weight: 600;
+        }
+        
+        .filtro-check.provisao.active input[type="checkbox"] {
+            accent-color: var(--laranja);
+        }
+        
+        .filtro-check.real.active {
+            border-color: var(--roxo);
+            background: var(--roxo-claro);
+            color: var(--roxo);
+            font-weight: 600;
+        }
+        
+        .filtro-check.real.active input[type="checkbox"] {
+            accent-color: var(--roxo);
+        }
+        
+        /* INPUTS GERAIS */
+        input, select {
+            background: var(--cinza-bg);
+            border: 1px solid var(--cinza-borda);
+            color: var(--texto);
+            padding: 7px 10px;
+            border-radius: 5px;
+            font-size: 11px;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--azul-principal);
+            box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.1);
+        }
+        
+        .btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .btn-primary {
+            background: var(--azul-principal);
+            color: var(--branco);
+        }
+        
+        .btn-primary:hover {
+            background: var(--azul-hover);
+        }
+        
+        .btn-full {
+            width: 100%;
+        }
+        
+        .btn-success {
+            background: var(--verde);
+            color: var(--branco);
+        }
+        
+        .btn-success:hover {
+            background: #1B5E20;
+        }
+        
+        .btn-danger {
+            background: var(--vermelho);
+            color: var(--branco);
+        }
+        
+        .btn-danger:hover {
+            background: #C62828;
+        }
+        
+        .btn-outline {
+            background: var(--branco);
+            color: var(--azul-principal);
+            border: 1px solid var(--cinza-borda);
+        }
+        
+        .btn-outline:hover {
+            background: var(--cinza-bg);
+            border-color: var(--azul-principal);
+        }
+        
+        .btn-sm {
+            padding: 6px 10px;
+            font-size: 10px;
+        }
+        
+        /* TABELA PRINCIPAL */
+        .tabela-area {
+            background: var(--branco);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            position: relative;
+        }
+        
+        .tabela-scroll {
+            flex: 1;
+            overflow: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        
+        th {
+            position: sticky;
+            top: 0;
+            background: var(--cinza-bg);
+            padding: 0;
+            text-align: left;
+            font-size: 9px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--azul-principal);
+            border-bottom: 2px solid var(--cinza-borda);
+            white-space: nowrap;
+            z-index: 10;
+            min-width: 50px;
+            overflow: hidden;
+        }
+        
+        th.dragging {
+            opacity: 0.5;
+            background: #DBEAFE;
+        }
+        
+        th.drag-over {
+            border-left: 3px solid var(--azul-principal);
+        }
+        
+        .th-content {
+            display: flex;
+            align-items: center;
+            padding: 8px 5px;
+            gap: 3px;
+            cursor: grab;
+        }
+        
+        .th-content:active {
+            cursor: grabbing;
+        }
+        
+        .th-label {
+            flex: 1;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .th-label:hover {
+            color: var(--azul-hover);
+        }
+        
+        .sort-icon {
+            font-size: 9px;
+            color: var(--cinza-texto);
+            opacity: 0.5;
+        }
+        
+        th.sorted .sort-icon {
+            opacity: 1;
+            color: var(--vermelho);
+        }
+        
+        .filter-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 2px 3px;
+            font-size: 9px;
+            color: var(--cinza-texto);
+            border-radius: 3px;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+        
+        .filter-btn:hover {
+            background: var(--branco);
+            color: var(--azul-principal);
+        }
+        
+        .filter-btn.active {
+            background: var(--azul-principal);
+            color: var(--branco);
+        }
+        
+        .th-resizer {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            cursor: col-resize;
+            background: transparent;
+            z-index: 20;
+        }
+        
+        .th-resizer:hover,
+        .th-resizer.resizing {
+            background: var(--azul-principal);
+        }
+        
+        /* DROPDOWN DE FILTRO */
+        .filter-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: var(--branco);
+            border: 1px solid var(--cinza-borda);
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            min-width: 200px;
+            max-width: 280px;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .filter-dropdown.visible {
+            display: block;
+        }
+        
+        .filter-dropdown-header {
+            padding: 10px;
+            border-bottom: 1px solid var(--cinza-borda);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .filter-dropdown-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--azul-principal);
+        }
+        
+        .filter-dropdown-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--cinza-texto);
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+        
+        .filter-dropdown-close:hover {
+            background: var(--cinza-bg);
+            color: var(--vermelho);
+        }
+        
+        .filter-search {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--cinza-borda);
+        }
+        
+        .filter-search input {
+            width: 100%;
+            padding: 6px 8px;
+            font-size: 10px;
+        }
+        
+        .filter-actions-top {
+            padding: 6px 10px;
+            border-bottom: 1px solid var(--cinza-borda);
+            display: flex;
+            gap: 6px;
+        }
+        
+        .filter-action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 10px;
+            color: var(--azul-principal);
+            padding: 3px 6px;
+            border-radius: 3px;
+        }
+        
+        .filter-action-btn:hover {
+            background: #EEF2FF;
+        }
+        
+        .filter-list {
+            max-height: 180px;
+            overflow-y: auto;
+            padding: 6px 0;
+        }
+        
+        .filter-list-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 10px;
+            transition: background 0.1s;
+        }
+        
+        .filter-list-item:hover {
+            background: var(--cinza-bg);
+        }
+        
+        .filter-list-item input[type="checkbox"] {
+            width: 12px;
+            height: 12px;
+            margin: 0;
+        }
+        
+        .filter-list-item-label {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .filter-list-item-count {
+            font-size: 9px;
+            color: var(--cinza-texto);
+            background: var(--cinza-bg);
+            padding: 2px 5px;
+            border-radius: 8px;
+        }
+        
+        .filter-dropdown-footer {
+            padding: 8px 10px;
+            border-top: 1px solid var(--cinza-borda);
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+        }
+        
+        .filter-dropdown-footer .btn {
+            padding: 5px 10px;
+            font-size: 10px;
+        }
+        
+        /* LINHAS DA TABELA */
+        td {
+            padding: 5px 5px;
+            border-bottom: 1px solid var(--cinza-borda);
+            font-size: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        tr:hover {
+            filter: brightness(0.97);
+        }
+        
+        tr.selected {
+            outline: 2px solid var(--azul-principal);
+            outline-offset: -2px;
+        }
+        
+        tr.row-pendente {
+            background: var(--branco);
+        }
+        
+        tr.row-baixado {
+            background: var(--cinza-baixado);
+        }
+        
+        .texto-receita {
+            color: var(--verde) !important;
+        }
+        
+        .texto-despesa {
+            color: var(--vermelho) !important;
+        }
+        
+        .nufin-bold {
+            font-weight: 700 !important;
+            font-size: 11px !important;
+        }
+        
+        .dtvenc-destaque {
+            font-weight: 700 !important;
+            font-size: 10px !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        
+        .dtvenc-destaque .calendario-emoji {
+            font-size: 11px;
+            line-height: 1;
+        }
+        
+        .status-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-tag.pendente {
+            background: #DBEAFE;
+            color: #1E40AF;
+            border: 1px solid #93C5FD;
+        }
+        
+        .status-tag.baixado {
+            background: #E5E7EB;
+            color: #374151;
+            border: 1px solid #D1D5DB;
+        }
+        
+        .natureza-texto {
+            font-size: 9px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        
+        .natureza-texto.provisao {
+            color: var(--laranja);
+        }
+        
+        .natureza-texto.real {
+            color: var(--roxo);
+        }
+        
+        /* BOTÃO DE ORIGEM */
+        .origem-btn {
+            cursor: pointer;
+            font-size: 14px;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            display: inline-block;
+        }
+        
+        .origem-btn:hover {
+            background: #EEF2FF;
+            transform: scale(1.1);
+        }
+        
+        .origem-btn.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .origem-btn.disabled:hover {
+            background: transparent;
+            transform: none;
+        }
+        
+        /* =============================================
+           MODAL POPUP DE NOTA - EXPANDIDO
+           ============================================= */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .modal-overlay.visible {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: #FFFFFF;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 850px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            animation: modalSlideIn 0.2s ease-out;
+        }
+        
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            border-bottom: 2px solid var(--azul-principal);
+            background: var(--cinza-bg);
+            border-radius: 10px 10px 0 0;
+        }
+        
+        .modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--azul-principal);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: var(--cinza-texto);
+            padding: 3px 8px;
+            border-radius: 4px;
+            line-height: 1;
+        }
+        
+        .modal-close:hover {
+            background: #FFEBEE;
+            color: var(--vermelho);
+        }
+        
+        .modal-body {
+            padding: 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+        
+        .modal-loading {
+            text-align: center;
+            padding: 50px;
+            color: var(--cinza-texto);
+        }
+        
+        .modal-loading .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--cinza-borda);
+            border-top-color: var(--azul-principal);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+        
+        .modal-error {
+            text-align: center;
+            padding: 40px;
+            color: var(--vermelho);
+            font-size: 14px;
+        }
+        
+        /* Cabeçalho da Nota no Modal */
+        .nota-cabecalho {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            padding: 15px 20px;
+            background: #FAFBFC;
+            border-bottom: 1px solid var(--cinza-borda);
+        }
+        
+        .nota-info-grupo {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .nota-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .nota-info-label {
+            font-size: 10px;
+            color: var(--cinza-texto);
+            text-transform: uppercase;
+            font-weight: 600;
+            min-width: 60px;
+        }
+        
+        .nota-info-value {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--texto);
+        }
+        
+        .nota-info-value.destaque {
+            font-size: 16px;
+            color: var(--azul-principal);
+            font-weight: 700;
+        }
+        
+        .nota-info-value.cliente {
+            font-size: 13px;
+            color: var(--texto);
+        }
+        
+        /* Tabela de Itens no Modal */
+        .nota-itens-container {
+            padding: 0;
+        }
+        
+        .nota-itens-titulo {
+            padding: 10px 20px;
+            background: var(--azul-principal);
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .nota-itens-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .nota-itens-table th {
+            position: static;
+            background: #E8ECF0;
+            padding: 10px 8px;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--azul-principal);
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--cinza-borda);
+            text-align: left;
+        }
+        
+        .nota-itens-table th.text-right {
+            text-align: right;
+        }
+        
+        .nota-itens-table th.text-center {
+            text-align: center;
+        }
+        
+        .nota-itens-table td {
+            padding: 10px 8px;
+            font-size: 11px;
+            border-bottom: 1px solid var(--cinza-borda);
+            color: var(--texto);
+        }
+        
+        .nota-itens-table td.text-right {
+            text-align: right;
+            font-weight: 600;
+        }
+        
+        .nota-itens-table td.text-center {
+            text-align: center;
+        }
+        
+        .nota-itens-table tr:nth-child(even) {
+            background: #FAFBFC;
+        }
+        
+        .nota-itens-table tr:hover {
+            background: #EEF2FF;
+        }
+        
+        .nota-itens-table .cod-prod {
+            font-weight: 700;
+            color: var(--azul-principal);
+        }
+        
+        .nota-itens-table .valor-total {
+            font-weight: 700;
+            color: var(--verde);
+        }
+        
+        .nota-itens-table .valor-desc {
+            color: var(--vermelho);
+        }
+        
+        /* Rodapé da Nota - Totais */
+        .nota-rodape {
+            display: flex;
+            justify-content: flex-end;
+            gap: 30px;
+            padding: 15px 20px;
+            background: #FAFBFC;
+            border-top: 2px solid var(--cinza-borda);
+        }
+        
+        .nota-total-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        
+        .nota-total-label {
+            font-size: 10px;
+            color: var(--cinza-texto);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        
+        .nota-total-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--texto);
+        }
+        
+        .nota-total-value.bruto {
+            color: var(--cinza-texto);
+        }
+        
+        .nota-total-value.desconto {
+            color: var(--vermelho);
+        }
+        
+        .nota-total-value.liquido {
+            font-size: 20px;
+            color: var(--verde);
+        }
+        
+        .modal-footer {
+            padding: 12px 20px;
+            border-top: 1px solid var(--cinza-borda);
+            display: flex;
+            justify-content: flex-end;
+            background: var(--cinza-bg);
+            border-radius: 0 0 10px 10px;
+        }
+        
+        /* CONTADOR FLUTUANTE */
+        .contador-flutuante {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(30, 58, 138, 0.9);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 100;
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .contador-flutuante.visible {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* STATUS BAR */
+        .status-bar {
+            background: var(--azul-principal);
+            color: var(--branco);
+            padding: 6px 12px;
+            font-size: 11px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: none;
+            z-index: 1000;
+        }
+        
+        .status-bar.erro { background: var(--vermelho); }
+        .status-bar.sucesso { background: var(--verde); }
+        .status-bar.visible { display: block; }
+        
+        .loading-text {
+            text-align: center;
+            padding: 40px;
+            color: var(--cinza-texto);
+            font-size: 11px;
+        }
+        
+        .cb {
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+        }
+        
+        ::-webkit-scrollbar { width: 7px; height: 7px; }
+        ::-webkit-scrollbar-track { background: var(--cinza-bg); }
+        ::-webkit-scrollbar-thumb { background: var(--cinza-borda); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #C0C4C8; }
+        
+        @media (max-width: 1024px) {
+            .main-area { grid-template-columns: 1fr; }
+            .filtros-panel { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+<div class="header">
+            <div class="header-left">
+                <div class="logo-container">
+                    <svg width="40" height="32" viewBox="0 0 100 80">
+                        <path d="M10 50 Q50 20 90 40 Q60 50 30 55 Q10 58 10 50" fill="#1E3A8A" />
+                        <path d="M15 52 Q50 75 95 45" stroke="#1E3A8A" stroke-width="4" fill="none" />
+                    </svg>
+                    <div class="logo-text">
+                        <span class="auto-pecas">AUTO PEÇAS</span>
+                        <span class="sao-paulo">SÃO PAULO</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="header-info-group">
+                <div class="selecao-item">
+                    <div class="icon qtd">📋</div>
+                    <div class="dados">
+                        <span class="label">Seleção</span> <span class="valor" id="qtdSelTop">0</span>
+                    </div>
+                </div>
+                <div class="selecao-item">
+                    <div class="icon valor">💰</div>
+                    <div class="dados">
+                        <span class="label">Vlr tt</span> <span class="valor money" id="valSelTop">R$ 0,00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="header-actions-group">
+                <button class="btn-action success" onclick="baixar()">✓ Baixar</button>
+                <button class="btn-action danger" onclick="estornar()">↩ Estornar</button>
+                <button class="btn-action outline" onclick="consultar()">🔄 Atualizar</button>
+                <button class="btn-action outline" onclick="abrirModalLancamento()">💰 Lançamento Fin.</button>
+                
+                <div style="width: 10px;"></div>
+
+                <button class="btn-action primary" onclick="abrirModalCadastroParceiro()">➕ Parc.</button>
+                <button class="btn-action outline" onclick="exportarCSV()">📥 CSV</button>
+            </div>
+        </div>
+        
+        <div class="main-area">
+            <div class="filtros-panel">
+                <div class="filtro-section">
+                    <div class="data-row">
+                        <label class="check-inline">
+                            <input type="checkbox" id="usarDtVenc" checked onchange="toggleDtVenc()">
+                        </label>
+                        <span class="data-label">DATA:</span>
+                        <div class="data-inputs" id="dtVencArea">
+                            <input type="date" id="dtIni" title="Data inicial">
+                            <span class="data-separator">a</span>
+                            <input type="date" id="dtFim" title="Data final">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="filtro-section">
+                    <div class="parceiro-header">
+                        <span class="filtro-title" style="margin-bottom:0;">Parceiro:</span>
+                        <div class="radio-inline">
+    <label class="radio-mini selected" id="labelExata" onclick="setTipoBusca('exata')">
+        <input type="radio" name="tipoBusca" value="exata" checked>
+        Exata
+    </label>
+    <label class="radio-mini" id="labelParcial" onclick="setTipoBusca('parcial')">
+        <input type="radio" name="tipoBusca" value="parcial">
+        Parcial
+    </label>
+</div>
+                    </div>
+                    
+                    <div class="lookup-container" id="lookupContainer">
+                        <div class="lookup-input-wrapper">
+                            <input type="text" 
+                                   id="buscaParc" 
+                                   placeholder="Código ou nome..." 
+                                   autocomplete="off"
+                                   onkeyup="buscarParceiro(event)"
+                                   onfocus="onFocusLookup()">
+                            <span class="lookup-icon" id="lookupIcon">🔍</span>
+                            <div class="lookup-loading" id="lookupLoading" style="display:none;"></div>
+                        </div>
+                        <div class="lookup-dropdown" id="lookupDropdown"></div>
+                        <div id="parceiroSelecionado" style="display:none;">
+                            <div class="lookup-selected-tag">
+                                <div class="lookup-selected-info">
+                                    <strong id="parcSelCod"></strong> - <span id="parcSelNome"></span>
+                                </div>
+                                <button class="lookup-clear-btn" onclick="limparParceiro()" title="Remover">✕</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="filtro-section">
+                    <div class="filtros-grid">
+                        <div class="filtro-check receita active" onclick="toggleFiltroCheck(this, 'receita')">
+                            <input type="checkbox" checked>
+                            <span>Receita</span>
+                        </div>
+                        <div class="filtro-check pendente active" onclick="toggleFiltroCheck(this, 'pendente')">
+                            <input type="checkbox" checked>
+                            <span>Pendente</span>
+                        </div>
+                        <div class="filtro-check provisao" onclick="toggleFiltroCheck(this, 'provisao')">
+                            <input type="checkbox">
+                            <span>Provisão</span>
+                        </div>
+                        
+                        <div class="filtro-check despesa active" onclick="toggleFiltroCheck(this, 'despesa')">
+                            <input type="checkbox" checked>
+                            <span>Despesa</span>
+                        </div>
+                        <div class="filtro-check baixado active" onclick="toggleFiltroCheck(this, 'baixado')">
+                            <input type="checkbox" checked>
+                            <span>Baixado</span>
+                        </div>
+                        <div class="filtro-check real" onclick="toggleFiltroCheck(this, 'real')">
+                            <input type="checkbox">
+                            <span>Real</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary btn-full" onclick="consultar()">🔍 Consultar</button>
+                <button class="btn btn-outline btn-full" onclick="limparTudo()">↺ Limpar</button>
+            </div>
+            
+            <div class="tabela-area">
+                <div class="tabela-scroll">
+                    <table id="tabelaPrincipal">
+                        <thead>
+                            <tr id="headerRow"></tr>
+                        </thead>
+                        <tbody id="tbody">
+                            <tr><td colspan="18" class="loading-text">Configure os filtros e clique em <strong>Consultar</strong></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="contador-flutuante" id="contadorFlutuante">0 registros</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="filter-dropdown" id="filterDropdownTemplate" style="display:none;">
+        <div class="filter-dropdown-header">
+            <span class="filter-dropdown-title">Filtrar</span>
+            <button class="filter-dropdown-close" onclick="fecharFiltroColuna()">✕</button>
+        </div>
+        <div class="filter-search">
+            <input type="text" placeholder="Buscar..." onkeyup="filtrarListaDropdown(this)">
+        </div>
+        <div class="filter-actions-top">
+            <button class="filter-action-btn" onclick="selecionarTodosFiltro()">Selecionar Todos</button>
+            <button class="filter-action-btn" onclick="limparTodosFiltro()">Limpar</button>
+        </div>
+        <div class="filter-list"></div>
+        <div class="filter-dropdown-footer">
+            <button class="btn btn-outline" onclick="fecharFiltroColuna()">Cancelar</button>
+            <button class="btn btn-primary" onclick="aplicarFiltroColuna()">Aplicar</button>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="modalOrigem" onclick="fecharModalOrigem(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span class="modal-title">📄 Detalhes da Nota</span>
+                <button class="modal-close" onclick="fecharModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalOrigemBody"></div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="fecharModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+<div class="modal-overlay" id="modalCadastroParceiro" onclick="fecharModalCadastroParceiro(event)">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 550px;">
+        <div class="modal-header">
+            <span class="modal-title">➕ Cadastro Rápido de Parceiro</span>
+            <button class="modal-close" onclick="fecharModalCadastro()">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 20px;">
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 11px; font-weight: 600; color: var(--azul-principal); margin-bottom: 5px;">NOME *</label>
+                <input type="text" id="cadNome" placeholder="Nome do parceiro" style="width: 100%;" maxlength="40">
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 11px; font-weight: 600; color: var(--azul-principal); margin-bottom: 5px;">CPF <span style="color: var(--cinza-texto); font-weight: normal;">(opcional)</span></label>
+                <input type="text" id="cadCPF" placeholder="000.000.000-00" style="width: 100%;" maxlength="14" onkeyup="mascaraCPF(this)">
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 11px; font-weight: 600; color: var(--azul-principal); margin-bottom: 5px;">TELEFONE *</label>
+                <input type="text" id="cadTelefone" placeholder="(00) 00000-0000" style="width: 100%;" maxlength="15" onkeyup="mascaraTelefone(this)">
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 11px; font-weight: 600; color: var(--azul-principal); margin-bottom: 5px;">CEP *</label>
+                <input type="text" id="cadCEP" placeholder="00000-000" style="width: 100%;" maxlength="9" onkeyup="mascaraCEP(this)">
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 11px; font-weight: 600; color: var(--azul-principal); margin-bottom: 5px;">CIDADE *</label>
+                <div class="lookup-container" id="lookupCidadeContainer">
+                    <div class="lookup-input-wrapper">
+                        <input type="text" 
+                               id="cadCidadeInput" 
+                               placeholder="Digite o nome da cidade..." 
+                               autocomplete="off"
+                               onkeyup="buscarCidade(event)">
+                        <span class="lookup-icon" id="lookupCidadeIcon">🔍</span>
+                        <div class="lookup-loading" id="lookupCidadeLoading" style="display:none;"></div>
+                    </div>
+                    <div class="lookup-dropdown" id="lookupCidadeDropdown"></div>
+                    <div id="cidadeSelecionada" style="display:none;">
+                        <div class="lookup-selected-tag">
+                            <div class="lookup-selected-info">
+                                <strong id="cidSelNome"></strong> - <span id="cidSelUF"></span>
+                            </div>
+                            <button class="lookup-clear-btn" onclick="limparCidade()" title="Remover">✕</button>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" id="cadCODCID" value="">
+            </div>
+            
+ <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 11px; font-weight: 600; color: var(--azul-principal); margin-bottom: 5px;">TIPO LOGRADOURO *</label>
+                <div class="lookup-container" id="lookupEndContainer">
+                    <div class="lookup-input-wrapper">
+                        <input type="text" 
+                               id="cadEndInput" 
+                               placeholder="Rua, Avenida, Travessa..." 
+                               autocomplete="off"
+                               onkeyup="buscarLogradouro(event)">
+                        <span class="lookup-icon" id="lookupEndIcon">🔍</span>
+                        <div class="lookup-loading" id="lookupEndLoading" style="display:none;"></div>
+                    </div>
+                    <div class="lookup-dropdown" id="lookupEndDropdown"></div>
+                    <div id="endSelecionado" style="display:none;">
+                        <div class="lookup-selected-tag">
+                            <div class="lookup-selected-info">
+                                <strong id="endSelCod"></strong> - <span id="endSelNome"></span>
+                            </div>
+                            <button class="lookup-clear-btn" onclick="limparLogradouro()" title="Remover">✕</button>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" id="cadCODEND" value="">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 11px; font-weight: 600; color: var(--azul-principal); margin-bottom: 5px;">LOGRADOURO (RUA) *</label>
+                <input type="text" id="cadLogradouro" placeholder="Ex: Paulista" style="width: 100%;" maxlength="60">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 11px; font-weight: 600; color: var(--azul-principal); margin-bottom: 5px;">BAIRRO *</label>
+                <input type="text" id="cadBairro" placeholder="Ex: Centro" style="width: 100%;" maxlength="40">
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 11px; font-weight: 600; color: var(--azul-principal); margin-bottom: 5px;">NÚMERO *</label>
+                <input type="text" id="cadNumero" placeholder="123" style="width: 100px;" maxlength="6">
+            </div>
+            
+        </div>
+        <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn btn-outline" onclick="fecharModalCadastro()">Cancelar</button>
+            <button class="btn btn-success" id="btnSalvarParceiro" onclick="salvarParceiro()">💾 Salvar</button>
+        </div>
+    </div>
+</div>
+<div class="modal-overlay" id="modalLancamentoFin" onclick="fecharModalLancamento(event)">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 500px;">
+        <div class="modal-header">
+            <span class="modal-title">💰 Novo Lançamento</span>
+            <button class="modal-close" onclick="fecharModalLancamento()">×</button>
+        </div>
+        <div class="modal-body" style="padding: 20px;">
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 12px; font-weight: 700; color: var(--azul-principal); margin-bottom: 5px;">TIPO DE LANÇAMENTO *</label>
+                <select id="finRECDESP" style="width: 100%; padding: 10px; border: 1px solid var(--cinza-borda); border-radius: 5px; font-weight: bold; font-size: 13px;">
+                    <option value="1">🟢 RECEITA (Entrada)</option>
+                    <option value="-1">🔴 DESPESA (Saída)</option>
+                    <option value="4">🔄 TRANSFERÊNCIA</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 11px; font-weight: 600; color: var(--azul-principal); margin-bottom: 5px;">VALOR (R$) *</label>
+                <input type="number" id="finVLRDESDOB" step="0.01" placeholder="0,00" style="padding: 10px; font-size: 14px; font-weight: bold;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 11px; font-weight: 600; color: var(--azul-principal); margin-bottom: 5px;">PARCEIRO *</label>
+                <div class="lookup-container" id="finParcContainer">
+                    <div class="lookup-input-wrapper">
+                        <input type="text" id="finBuscaParc" placeholder="Digite cód. ou nome do parceiro..." autocomplete="off" onkeyup="buscarParceiroFin(event)">
+                        <span class="lookup-icon">🔍</span>
+                        <div class="lookup-loading" id="finLoadParc" style="display:none;"></div>
+                    </div>
+                    <div class="lookup-dropdown" id="finDropParc"></div>
+                    <div id="finSelParc" style="display:none;">
+                        <div class="lookup-selected-tag">
+                            <div class="lookup-selected-info">
+                                <strong id="finTxtParcCod"></strong> - <span id="finTxtParcNome"></span>
+                            </div>
+                            <button class="lookup-clear-btn" onclick="limparParceiroFin()">✕</button>
+                        </div>
+                    </div>
+                    <input type="hidden" id="finCODPARC">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 11px; font-weight: 600; color: var(--azul-principal); margin-bottom: 5px;">NATUREZA *</label>
+                <div class="lookup-container" id="finNatContainer">
+                    <div class="lookup-input-wrapper">
+                        <input type="text" id="finBuscaNat" placeholder="Busque a natureza..." autocomplete="off" onkeyup="buscarNatureza(event)">
+                        <span class="lookup-icon">🔍</span>
+                        <div class="lookup-loading" id="finLoadNat" style="display:none;"></div>
+                    </div>
+                    <div class="lookup-dropdown" id="finDropNat"></div>
+                    <div id="finSelNat" style="display:none;">
+                        <div class="lookup-selected-tag">
+                            <div class="lookup-selected-info">
+                                <strong id="finTxtNatCod"></strong> - <span id="finTxtNatNome"></span>
+                            </div>
+                            <button class="lookup-clear-btn" onclick="limparNatureza()">✕</button>
+                        </div>
+                    </div>
+                    <input type="hidden" id="finCODNAT">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 11px; font-weight: 600; color: var(--azul-principal); margin-bottom: 5px;">TIPO DE TÍTULO *</label>
+                <div class="lookup-container" id="finTitContainer">
+                    <div class="lookup-input-wrapper">
+                        <input type="text" id="finBuscaTit" placeholder="Boleto, Pix, Dinheiro..." autocomplete="off" onkeyup="buscarTipoTitulo(event)">
+                        <span class="lookup-icon">🔍</span>
+                        <div class="lookup-loading" id="finLoadTit" style="display:none;"></div>
+                    </div>
+                    <div class="lookup-dropdown" id="finDropTit"></div>
+                    <div id="finSelTit" style="display:none;">
+                        <div class="lookup-selected-tag">
+                            <div class="lookup-selected-info">
+                                <strong id="finTxtTitCod"></strong> - <span id="finTxtTitNome"></span>
+                            </div>
+                            <button class="lookup-clear-btn" onclick="limparTipoTitulo()">✕</button>
+                        </div>
+                    </div>
+                    <input type="hidden" id="finCODTIPTIT">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 11px; font-weight: 600; color: var(--azul-principal); margin-bottom: 5px;">CONTA BANCÁRIA *</label>
+                <div class="lookup-container" id="finCtaContainer">
+                    <div class="lookup-input-wrapper">
+                        <input type="text" id="finBuscaCta" placeholder="Busque a conta..." autocomplete="off" onkeyup="buscarContaBancaria(event)">
+                        <span class="lookup-icon">🔍</span>
+                        <div class="lookup-loading" id="finLoadCta" style="display:none;"></div>
+                    </div>
+                    <div class="lookup-dropdown" id="finDropCta"></div>
+                    <div id="finSelCta" style="display:none;">
+                        <div class="lookup-selected-tag">
+                            <div class="lookup-selected-info">
+                                <strong id="finTxtCtaCod"></strong> - <span id="finTxtCtaNome"></span>
+                            </div>
+                            <button class="lookup-clear-btn" onclick="limparContaBancaria()">✕</button>
+                        </div>
+                    </div>
+                    <input type="hidden" id="finCODCTABCOINT">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 11px; font-weight: 600; color: var(--azul-principal); margin-bottom: 5px;">TIPO OPERAÇÃO (TOP) *</label>
+                <div class="lookup-container" id="finTopContainer">
+                    <div class="lookup-input-wrapper">
+                        <input type="text" id="finBuscaTop" placeholder="Busque a TOP..." autocomplete="off" onkeyup="buscarTop(event)">
+                        <span class="lookup-icon">🔍</span>
+                        <div class="lookup-loading" id="finLoadTop" style="display:none;"></div>
+                    </div>
+                    <div class="lookup-dropdown" id="finDropTop"></div>
+                    <div id="finSelTop" style="display:none;">
+                        <div class="lookup-selected-tag">
+                            <div class="lookup-selected-info">
+                                <strong id="finTxtTopCod"></strong> - <span id="finTxtTopNome"></span>
+                            </div>
+                            <button class="lookup-clear-btn" onclick="limparTop()">✕</button>
+                        </div>
+                    </div>
+                    <input type="hidden" id="finCODTIPOPER">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 10px;">
+                <label style="display: block; font-size: 11px; font-weight: 600; color: var(--azul-principal); margin-bottom: 5px;">HISTÓRICO</label>
+                <textarea id="finHISTORICO" rows="2" placeholder="Descrição opcional..." style="width: 100%; padding: 8px; border: 1px solid var(--cinza-borda); border-radius: 5px; resize: vertical;"></textarea>
+            </div>
+
+        </div>
+        <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn btn-outline" onclick="fecharModalLancamento()">Cancelar</button>
+            <button class="btn btn-success" id="btnSalvarFin" onclick="salvarLancamentoFinanceiro()">💾 Salvar</button>
+        </div>
+    </div>
+</div>
+    <div id="statusBar" class="status-bar"></div>
+    <script src="https://cdn.jsdelivr.net/gh/wansleynery/SankhyaJX@main/jx.min.js"></script>
+    
+    <script>
+        // =============================================
+        // REMOVER FRAME DO DASHBOARD
+        // =============================================
+        try {
+            JX.removerFrame({ instancia: '2512- MOVIMENTA FINANCEIRO C NOTA V3', paginaInicial: 'movfinv40.html' });
+        } catch(e) {
+            console.log('Frame não removido:', e);
+        }
+        
+        // =============================================
+        // CONSTANTES E CONFIGURAÇÕES
+        // =============================================
+        var LIMITE_REGISTROS = 500;
+        var DEBOUNCE_DELAY = 300;
+        
+        var COLUNAS_ORIGINAL = [
+            { campo: 'ORIGEM', label: 'Orig', tipo: 'origem', filtravel: false, largura: 45 },
+            { campo: 'NUFIN', label: 'NUFIN', tipo: 'numero', filtravel: true, largura: 65 },
+            { campo: 'NUNOTA', label: 'Nota', tipo: 'numero', filtravel: true, largura: 60 },
+            { campo: 'CODPARC', label: 'Cód', tipo: 'numero', filtravel: true, largura: 50 },
+            { campo: 'NOMEPARC', label: 'Parceiro', tipo: 'texto', filtravel: true, largura: 150 },
+            { campo: 'DTNEG', label: 'Dt.Neg', tipo: 'data', filtravel: true, largura: 75 },
+            { campo: 'DTVENC', label: 'Dt.Venc', tipo: 'dtvenc', filtravel: true, largura: 100 },
+            { campo: 'VLRDESDOB', label: 'Valor', tipo: 'moeda', filtravel: false, largura: 90 },
+            { campo: 'CODTIPVENDA', label: 'Tip.Vda', tipo: 'numero', filtravel: true, largura: 60 },
+            { campo: 'DESCRTIPVENDA', label: 'Desc.Tip.Vda', tipo: 'texto', filtravel: true, largura: 100 },
+            { campo: 'CODTIPTIT', label: 'Tip.Tít', tipo: 'texto', filtravel: true, largura: 60 },
+            { campo: 'DESCRTIPTIT', label: 'Desc.Tip.Tít', tipo: 'texto', filtravel: true, largura: 100 },
+            { campo: 'CODCTABCOINT', label: 'Cta.Banc', tipo: 'texto', filtravel: true, largura: 70 },
+            { campo: 'DESCRICAO_CTA', label: 'Desc.Conta', tipo: 'texto', filtravel: true, largura: 100 },
+            { campo: 'NURENEG', label: 'Reneg', tipo: 'numero', filtravel: true, largura: 60 },
+            { campo: 'RECDESP', label: 'Tipo', tipo: 'tipo', filtravel: true, largura: 60 },
+            { campo: 'STATUS', label: 'Status', tipo: 'status', filtravel: true, largura: 85 },
+            { campo: 'PROVISAO', label: 'Natureza', tipo: 'provisao', filtravel: true, largura: 70 },
+            { campo: 'DTALTER', label: 'Dt.Alter', tipo: 'datahora', filtravel: true, largura: 120 },
+            { campo: 'CAB_AD_OBS', label: 'Obs.', tipo: 'texto', filtravel: true, largura: 150 },
+            { campo: 'CAB_VLRFRETE', label: 'Frete', tipo: 'moeda', filtravel: false, largura: 80 }
+        ];
+        
+        var COLUNAS = JSON.parse(JSON.stringify(COLUNAS_ORIGINAL));
+        
+        // =============================================
+        // VARIÁVEIS GLOBAIS
+        // =============================================
+        var dados = [], filtrados = [];
+        var colOrd = 'DTALTER', ordAsc = false;
+        var debounceTimer = null;
+        var parceiroFiltro = null;
+var tipoBuscaParceiro = 'exata';        
+        var filtroReceita = true;
+        var filtroDespesa = true;
+        var filtroPendente = true;
+        var filtroBaixado = true;
+        var filtroProvisao = false;
+        var filtroReal = false;
+        
+        var filtrosColunas = {};
+        var colunaFiltroAtual = null;
+        var valoresFiltroTemp = new Set();
+        
+        var colunaDragging = null;
+        var resizerAtivo = null;
+        var larguraInicial = 0;
+        var xInicial = 0;
+        
+        // =============================================
+        // INICIALIZAÇÃO
+        // =============================================
+        window.onload = function() {
+            aplicarRegua30Dias(); // <--- Nova função chamada ao iniciar
+            gerarCabecalhos();
+            
+            document.addEventListener('click', function(e) {
+    var lookupContainer = document.getElementById('lookupContainer');
+    if (lookupContainer && !lookupContainer.contains(e.target)) {
+        fecharDropdown();
+    }
+    
+    var lookupCidadeContainer = document.getElementById('lookupCidadeContainer');
+    if (lookupCidadeContainer && !lookupCidadeContainer.contains(e.target)) {
+        fecharDropdownCidade();
+    }
+	var lookupEndContainer = document.getElementById('lookupEndContainer');
+if (lookupEndContainer && !lookupEndContainer.contains(e.target)) {
+    fecharDropdownEnd();
+}
+                
+                var filterDropdown = document.querySelector('.filter-dropdown.visible');
+                if (filterDropdown && !filterDropdown.contains(e.target) && !e.target.classList.contains('filter-btn')) {
+                    fecharFiltroColuna();
+                }
+            });
+            
+            document.addEventListener('mousemove', function(e) {
+                if (resizerAtivo) {
+                    var diff = e.pageX - xInicial;
+                    var novaLargura = Math.max(40, larguraInicial + diff);
+                    resizerAtivo.th.style.width = novaLargura + 'px';
+                    
+                    var campo = resizerAtivo.th.getAttribute('data-campo');
+                    for (var i = 0; i < COLUNAS.length; i++) {
+                        if (COLUNAS[i].campo === campo) {
+                            COLUNAS[i].largura = novaLargura;
+                            break;
+                        }
+                    }
+                }
+            });
+            
+            document.addEventListener('mouseup', function() {
+                if (resizerAtivo) {
+                    resizerAtivo.resizer.classList.remove('resizing');
+                    resizerAtivo = null;
+                }
+            });
+            
+            document.addEventListener('keydown', function(e) {
+                if (e.keyCode === 27) fecharModal();
+            });
+        };
+        
+        function aplicarRegua30Dias() {
+            var hoje = new Date();
+            var ini = new Date();
+            var fim = new Date();
+            
+            // Configura para 30 dias atrás e 30 dias à frente
+            ini.setDate(hoje.getDate() - 30);
+            fim.setDate(hoje.getDate() + 30);
+            
+            document.getElementById('dtIni').value = ini.toISOString().split('T')[0];
+            document.getElementById('dtFim').value = fim.toISOString().split('T')[0];
+            
+            // Opcional: Atualiza a barra de status apenas se quiser feedback visual
+            // status('Período padrão: -30 / +30 dias aplicado', ''); 
+        }
+        
+        // =============================================
+        // POPUP DE NOTA - EXPANDIDO COM ITENS
+        // =============================================
+        function abrirPopupOrigem(indice) {
+            var registro = filtrados[indice];
+            var nunota = registro.NUNOTA;
+            
+            if (!nunota) {
+                status('Este título não possui nota vinculada.', 'erro');
+                return;
+            }
+            
+            var modal = document.getElementById('modalOrigem');
+            modal.classList.add('visible');
+            
+            var body = document.getElementById('modalOrigemBody');
+            body.innerHTML = '<div class="modal-loading"><div class="spinner"></div>Carregando dados da nota...</div>';
+            
+            // Query na view EE_NV1_ITECABMOV
+            var sql = "SELECT CAB_NUNOTA, CAB_NUMNOTA, CAB_DTNEG, CAB_HRENTSAI, CAB_CODPARC, " +
+                      "VEN_APELIDO, PAR_NOMEPARC, TOP_DESCROPER, " +
+                      "ITE_SEQUENCIA, ITE_CODPROD, PRO_DESCRPROD, PRO_MARCA, " +
+                      "ITE_QTDNEG, ITE_VLRUNIT, ITE_VLRDESC, ITE_VLRTOT, " +
+                      "CAB_VLRNOTA, CAB_VLRDESCTOT, CAB_AD_OBS, CAB_VLRFRETE " +
+                      "FROM EE_NV1_ITECABMOV WHERE CAB_NUNOTA = " + nunota + " " +
+                      "ORDER BY ITE_SEQUENCIA";
+            
+            JX.consultar(sql).then(function(res) {
+                if (!res || res.length === 0) {
+                    body.innerHTML = '<div class="modal-error">❌ Nota não encontrada na base de dados.</div>';
+                    return;
+                }
+                
+                // Pega info do cabeçalho do primeiro registro
+                var cab = res[0];
+                
+                // Calcula totais
+                var totalBruto = 0;
+                var totalDesc = 0;
+                for (var i = 0; i < res.length; i++) {
+                    totalBruto += parseFloat(res[i].ITE_VLRTOT) || 0;
+                    totalDesc += parseFloat(res[i].ITE_VLRDESC) || 0;
+                }
+                var vlrFrete = parseFloat(cab.CAB_VLRFRETE) || 0;
+                var totalLiquido = (totalBruto - totalDesc) + vlrFrete;
+                
+                // Monta HTML do popup
+                var html = '';
+                
+                // CABEÇALHO DA NOTA
+                html += '<div class="nota-cabecalho">';
+                
+                // Coluna 1
+                html += '<div class="nota-info-grupo">';
+                html += '<div class="nota-info-item">';
+                html += '<span class="nota-info-label">Nº Único:</span>';
+                html += '<a href="javascript:void(0)" class="nota-info-value destaque" onclick="abrirCentralVendas(' + cab.CAB_NUNOTA + ')" style="text-decoration:underline; cursor:pointer;" title="Abrir na Central">' + cab.CAB_NUNOTA + '</a>';
+                html += '</div>';
+                html += '<div class="nota-info-item">';
+                html += '<span class="nota-info-label">Nº Nota:</span>';
+                html += '<span class="nota-info-value">' + (cab.CAB_NUMNOTA || '-') + '</span>';
+                html += '</div>';
+                html += '</div>';
+                
+                // Coluna 2
+                html += '<div class="nota-info-grupo">';
+                html += '<div class="nota-info-item">';
+                html += '<span class="nota-info-label">Data:</span>';
+                // Correção da data para formato DD/MM/AAAA
+                var dataFormatada = fmtData(cab.CAB_DTNEG);
+                html += '<span class="nota-info-value">' + dataFormatada + '</span>';
+                html += '</div>';
+                html += '<div class="nota-info-item">';
+                html += '<span class="nota-info-label">Vendedor:</span>';
+                html += '<span class="nota-info-value">' + (cab.VEN_APELIDO || '-') + '</span>';
+                html += '</div>';
+                html += '<div class="nota-info-item">';
+                html += '<span class="nota-info-label">Operação:</span>';
+                html += '<span class="nota-info-value">' + (cab.TOP_DESCROPER || '-') + '</span>';
+                html += '</div>';
+                html += '</div>';
+                
+                // Coluna 3
+                html += '<div class="nota-info-grupo">';
+                html += '<div class="nota-info-item">';
+                html += '<span class="nota-info-label">Cód. Cli:</span>';
+                html += '<span class="nota-info-value">' + (cab.CAB_CODPARC || '-') + '</span>';
+                html += '</div>';
+                html += '<div class="nota-info-item">';
+                html += '<span class="nota-info-label">Cliente:</span>';
+                html += '<span class="nota-info-value cliente">' + (cab.PAR_NOMEPARC || '-') + '</span>';
+                html += '</div>';
+                html += '</div>';
+                
+                html += '</div>'; // fecha nota-cabecalho
+                
+                // TABELA DE ITENS
+                html += '<div class="nota-itens-container">';
+                html += '<div class="nota-itens-titulo">📦 Produtos</div>';
+                html += '<table class="nota-itens-table">';
+                html += '<thead><tr>';
+                html += '<th style="width:70px;">Código</th>';
+                html += '<th>Descrição</th>';
+                html += '<th style="width:100px;">Marca</th>';
+                html += '<th class="text-center" style="width:50px;">Qtd</th>';
+                html += '<th class="text-right" style="width:90px;">Vlr Unit</th>';
+                html += '<th class="text-right" style="width:80px;">Desc</th>';
+                html += '<th class="text-right" style="width:90px;">Total</th>';
+                html += '</tr></thead>';
+                html += '<tbody>';
+                
+                for (var i = 0; i < res.length; i++) {
+                    var item = res[i];
+                    html += '<tr>';
+                    html += '<td class="cod-prod">' + (item.ITE_CODPROD || '-') + '</td>';
+                    html += '<td title="' + escapeHtml(item.PRO_DESCRPROD) + '">' + truncar(item.PRO_DESCRPROD, 40) + '</td>';
+                    html += '<td>' + (item.PRO_MARCA || '-') + '</td>';
+                    html += '<td class="text-center">' + fmtQtd(item.ITE_QTDNEG) + '</td>';
+                    html += '<td class="text-right" style="color:var(--texto);">' + fmtMoedaSemCor(item.ITE_VLRUNIT) + '</td>';
+                    html += '<td class="text-right valor-desc" style="color:var(--texto);">' + fmtMoedaSemCor(item.ITE_VLRDESC) + '</td>';
+                    html += '<td class="text-right valor-total" style="color:var(--texto);">' + fmtMoedaSemCor(item.ITE_VLRTOT) + '</td>';
+                    html += '</tr>';
+                }
+                
+                html += '</tbody></table>';
+                html += '</div>';
+                
+                // RODAPÉ COM TOTAIS
+                html += '<div class="nota-rodape">';
+                
+                // Reposicionamento do AD_OBS no container de totais
+                if (cab.CAB_AD_OBS) {
+                    html += '<div class="nota-total-item" style="margin-right: auto; align-items: flex-start; max-width: 40%;">';
+                    html += '<span class="nota-total-label">Observações</span>';
+                    html += '<span class="nota-total-value" style="font-size: 11px; font-weight: normal; color: var(--texto);">' + cab.CAB_AD_OBS + '</span>';
+                    html += '</div>';
+                }
+                
+                html += '<div class="nota-total-item">';
+                html += '<span class="nota-total-label">Total Bruto</span>';
+                html += '<span class="nota-total-value bruto" style="color:var(--texto);">' + fmtMoedaSemCor(totalBruto) + '</span>';
+                html += '</div>';
+                html += '<div class="nota-total-item">';
+                html += '<span class="nota-total-label">Desconto</span>';
+                html += '<span class="nota-total-value desconto" style="color:var(--texto);">- ' + fmtMoedaSemCor(totalDesc) + '</span>';
+                html += '</div>';
+                // Inclusão do Frete
+                html += '<div class="nota-total-item">';
+                html += '<span class="nota-total-label">Frete</span>';
+                html += '<span class="nota-total-value" style="color:var(--texto);">+ ' + fmtMoedaSemCor(vlrFrete) + '</span>';
+                html += '</div>';
+                
+                html += '<div class="nota-total-item">';
+                html += '<span class="nota-total-label">Total Líquido</span>';
+                html += '<span class="nota-total-value liquido" style="color:var(--texto);">' + fmtMoedaSemCor(totalLiquido) + '</span>';
+                html += '</div>';
+                html += '</div>';
+                
+                body.innerHTML = html;
+                
+            }).catch(function(e) {
+                body.innerHTML = '<div class="modal-error">❌ Erro ao carregar nota: ' + e + '</div>';
+            });
+        }
+        
+        function fecharModalOrigem(event) {
+            if (event.target.classList.contains('modal-overlay')) fecharModal();
+        }
+        
+        function fecharModal() {
+            document.getElementById('modalOrigem').classList.remove('visible');
+        }
+        
+        function abrirCentralVendas(nunota) {
+            // Função para abrir a central de vendas
+            if (window.parent && window.parent.openMenu) {
+                // Tenta abrir via função do Sankhya se disponível
+                // Parâmetros podem variar conforme versão, tentativa genérica:
+                window.parent.openMenu('CentralNotas', { NUNOTA: nunota });
+            } else {
+                // Fallback ou mensagem
+                alert('Navegação direta não disponível neste contexto. Número da nota: ' + nunota);
+            }
+        }
+        // =============================================
+        // FORMATAÇÕES
+        // =============================================
+        function fmtMoeda(valor) {
+            var n = parseFloat(valor) || 0;
+            return 'R$ ' + n.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+        }
+        
+        // Nova função para formatar moeda sem cor (padrão preto/texto)
+        function fmtMoedaSemCor(valor) {
+            var n = parseFloat(valor) || 0;
+            return 'R$ ' + n.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+        }
+        
+        function fmtQtd(valor) {
+            var n = parseFloat(valor) || 0;
+            return n.toFixed(2).replace('.', ',');
+        }
+        
+        function truncar(texto, max) {
+            if (!texto) return '-';
+            return texto.length > max ? texto.substring(0, max) + '...' : texto;
+        }
+        
+        function fmtData(v) {
+            if (!v) return '-';
+            // Tenta tratar diversos formatos
+            var s = String(v);
+            
+            // Se vier com timestamp e formato DD/MM/AAAA ...
+            if (s.indexOf('/') > 0) {
+                return s.split(' ')[0]; // Pega só a data antes do espaço
+            }
+            
+            // Formato YYYY-MM-DD
+            if (s.indexOf('-') > 0) {
+                var p = s.split(' ')[0].split('-');
+                return p[2]+'/'+p[1]+'/'+p[0];
+            }
+            
+            // Formato YYYYMMDD
+            if (s.length === 8 && !isNaN(s)) {
+                return s.substr(6,2)+'/'+s.substr(4,2)+'/'+s.substr(0,4);
+            }
+            
+            return v;
+        }
+        
+        function fmtDataHora(v) {
+            if (!v) return '-';
+            var s = String(v);
+            if (s.length >= 8) {
+                var partes = s.split(' ');
+                var data = partes[0];
+                var hora = partes[1] || '00:00:00';
+                
+                if (data.length === 8 && data.indexOf('/') === -1 && data.indexOf('-') === -1) {
+                    data = data.substr(0,2)+'/'+data.substr(2,2)+'/'+data.substr(4,4); // Assumindo DDMMAAAA se não for YYYYMMDD
+                    // Ajuste se for YYYYMMDD: data.substr(6,2)+'/'+data.substr(4,2)+'/'+data.substr(0,4)
+                }
+                else if (data.indexOf('-') > 0) {
+                    var p = data.split('-');
+                    data = p[2]+'/'+p[1]+'/'+p[0];
+                }
+                
+                return data + ' ' + hora.substring(0, 8);
+            }
+            return v;
+        }
+        
+        function fmtMoedaComSinal(valor, tipo) {
+            var n = Math.abs(parseFloat(valor) || 0);
+            var formatado = 'R$ ' + n.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+            return tipo === 'pagar' ? '- ' + formatado : formatado;
+        }
+        
+        function dtOracle(d) { 
+            if (!d) return null;
+            var p = d.split('-'); 
+            return p[2]+'/'+p[1]+'/'+p[0]; 
+        }
+        
+        function getStatus(r) { return r.DHBAIXA ? 'baixado' : 'pendente'; }
+        function getTipo(r) { return r.RECDESP == 1 ? 'receber' : 'pagar'; }
+        function getProvisao(r) { return r.PROVISAO === 'S' ? 'provisao' : 'real'; }
+        
+        function status(msg, tipo) {
+            var el = document.getElementById('statusBar');
+            el.textContent = msg;
+            el.className = 'status-bar visible ' + (tipo || '');
+            setTimeout(function() { el.className = 'status-bar'; }, 4000);
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+        
+        // =============================================
+        // GERAÇÃO DE CABEÇALHOS
+        // =============================================
+        function gerarCabecalhos() {
+            var headerRow = document.getElementById('headerRow');
+            var html = '<th style="width:28px;min-width:28px;"><input type="checkbox" class="cb" id="chkAll" onclick="selecionarTodos()"></th>';
+            
+            for (var i = 0; i < COLUNAS.length; i++) {
+                var col = COLUNAS[i];
+                var sortIcon = '⇅';
+                var larguraStyle = col.largura ? 'width:' + col.largura + 'px;' : '';
+                
+                if (col.campo === 'ORIGEM') {
+                    html += '<th style="' + larguraStyle + 'text-align:center;">';
+                    html += '<div class="th-content" style="justify-content:center;">';
+                    html += '<span class="th-label" style="cursor:default;">' + col.label + '</span>';
+                    html += '</div></th>';
+                    continue;
+                }
+                
+                html += '<th data-campo="' + col.campo + '" data-index="' + i + '" style="position:relative;' + larguraStyle + '" draggable="true" ondragstart="onDragStart(event)" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)" ondragend="onDragEnd(event)">';
+                html += '<div class="th-content">';
+                html += '<span class="th-label" onclick="ordenarColuna(\'' + col.campo + '\', event)">';
+                html += col.label;
+                html += ' <span class="sort-icon">' + sortIcon + '</span>';
+                html += '</span>';
+                
+                if (col.filtravel) {
+                    html += '<button class="filter-btn" onclick="abrirFiltroColuna(event, \'' + col.campo + '\', this)" title="Filtrar">▼</button>';
+                }
+                
+                html += '</div>';
+                html += '<div class="th-resizer" onmousedown="iniciarResize(event, this)"></div>';
+                html += '</th>';
+            }
+            
+            headerRow.innerHTML = html;
+        }
+        
+        // =============================================
+        // REDIMENSIONAMENTO
+        // =============================================
+        function iniciarResize(e, resizer) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            var th = resizer.parentElement;
+            larguraInicial = th.offsetWidth;
+            xInicial = e.pageX;
+            
+            resizerAtivo = { th: th, resizer: resizer };
+            resizer.classList.add('resizing');
+        }
+        
+        // =============================================
+        // DRAG & DROP
+        // =============================================
+        function onDragStart(e) {
+            var th = e.target.closest('th');
+            if (!th || !th.hasAttribute('data-campo')) return;
+            
+            colunaDragging = th.getAttribute('data-campo');
+            th.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', colunaDragging);
+        }
+        
+        function onDragOver(e) {
+            e.preventDefault();
+            var th = e.target.closest('th');
+            if (th && th.hasAttribute('data-campo') && th.getAttribute('data-campo') !== colunaDragging) {
+                th.classList.add('drag-over');
+            }
+        }
+        
+        function onDragLeave(e) {
+            var th = e.target.closest('th');
+            if (th) th.classList.remove('drag-over');
+        }
+        
+        function onDrop(e) {
+            e.preventDefault();
+            var thDestino = e.target.closest('th');
+            if (!thDestino || !thDestino.hasAttribute('data-campo')) return;
+            
+            var campoDestino = thDestino.getAttribute('data-campo');
+            thDestino.classList.remove('drag-over');
+            
+            if (colunaDragging && colunaDragging !== campoDestino) {
+                var idxOrigem = -1, idxDestino = -1;
+                for (var i = 0; i < COLUNAS.length; i++) {
+                    if (COLUNAS[i].campo === colunaDragging) idxOrigem = i;
+                    if (COLUNAS[i].campo === campoDestino) idxDestino = i;
+                }
+                
+                if (idxOrigem !== -1 && idxDestino !== -1) {
+                    var colMovida = COLUNAS.splice(idxOrigem, 1)[0];
+                    COLUNAS.splice(idxDestino, 0, colMovida);
+                    gerarCabecalhos();
+                    if (filtrados.length > 0) render();
+                }
+            }
+        }
+        
+        function onDragEnd(e) {
+            var th = e.target.closest('th');
+            if (th) th.classList.remove('dragging');
+            document.querySelectorAll('th.drag-over').forEach(function(el) { el.classList.remove('drag-over'); });
+            colunaDragging = null;
+        }
+        
+        // =============================================
+        // ORDENAÇÃO
+        // =============================================
+        function ordenarColuna(campo, e) {
+            if (e) e.stopPropagation();
+            
+            document.querySelectorAll('th').forEach(function(th) {
+                th.classList.remove('sorted', 'asc', 'desc');
+                var icon = th.querySelector('.sort-icon');
+                if (icon) icon.textContent = '⇅';
+            });
+            
+            if (colOrd === campo) {
+                ordAsc = !ordAsc;
+            } else {
+                colOrd = campo;
+                ordAsc = true;
+            }
+            
+            var th = document.querySelector('th[data-campo="' + campo + '"]');
+            if (th) {
+                th.classList.add('sorted', ordAsc ? 'asc' : 'desc');
+                var sortIcon = th.querySelector('.sort-icon');
+                if (sortIcon) sortIcon.textContent = ordAsc ? '▲' : '▼';
+            }
+            
+            filtrados.sort(function(a, b) {
+                var va = obterValorOrdenacao(a, campo);
+                var vb = obterValorOrdenacao(b, campo);
+                
+                if (va === null || va === undefined) va = '';
+                if (vb === null || vb === undefined) vb = '';
+                
+                if (typeof va === 'number' && typeof vb === 'number') {
+                    return ordAsc ? va - vb : vb - va;
+                }
+                
+                var strA = String(va).toLowerCase();
+                var strB = String(vb).toLowerCase();
+                
+                if (strA < strB) return ordAsc ? -1 : 1;
+                if (strA > strB) return ordAsc ? 1 : -1;
+                return 0;
+            });
+            
+            render();
+        }
+        
+        function obterValorOrdenacao(registro, campo) {
+            if (campo === 'STATUS') return registro.DHBAIXA ? 'baixado' : 'pendente';
+            if (campo === 'RECDESP') return registro.RECDESP == 1 ? 'receita' : 'despesa';
+            if (campo === 'PROVISAO') return registro.PROVISAO === 'S' ? 'provisao' : 'real';
+            return registro[campo];
+        }
+        
+        // =============================================
+        // FILTRO DE COLUNA
+        // =============================================
+        function abrirFiltroColuna(event, campo, botao) {
+            event.stopPropagation();
+            fecharFiltroColuna();
+            
+            colunaFiltroAtual = campo;
+            
+            var template = document.getElementById('filterDropdownTemplate');
+            var dropdown = template.cloneNode(true);
+            dropdown.id = 'filterDropdownAtivo';
+            dropdown.style.display = 'block';
+            dropdown.classList.add('visible');
+            
+            var th = botao.closest('th');
+            th.style.position = 'relative';
+            th.appendChild(dropdown);
+            
+            var valores = obterValoresUnicos(campo);
+            var filtroAtual = filtrosColunas[campo] || null;
+            
+            if (!filtroAtual) {
+                valoresFiltroTemp = new Set(valores.map(function(v) { return v.valor; }));
+            } else {
+                valoresFiltroTemp = new Set(filtroAtual);
+            }
+            
+            renderizarListaFiltro(dropdown, valores);
+            botao.classList.add('active');
+        }
+        
+        function obterValoresUnicos(campo) {
+            var contagem = {};
+            
+            dados.forEach(function(r) {
+                var valor = obterValorExibicao(r, campo);
+                var chave = String(valor);
+                
+                if (!contagem[chave]) {
+                    contagem[chave] = { valor: chave, display: valor, count: 0 };
+                }
+                contagem[chave].count++;
+            });
+            
+            var lista = Object.values(contagem);
+            lista.sort(function(a, b) {
+                return String(a.display).localeCompare(String(b.display));
+            });
+            
+            return lista;
+        }
+        
+        function obterValorExibicao(registro, campo) {
+            if (campo === 'STATUS') return registro.DHBAIXA ? 'Baixado' : 'Pendente';
+            if (campo === 'RECDESP') return registro.RECDESP == 1 ? 'Receita' : 'Despesa';
+            if (campo === 'PROVISAO') return registro.PROVISAO === 'S' ? 'Provisão' : 'Real';
+            if (campo === 'DTNEG' || campo === 'DTVENC') return fmtData(registro[campo]);
+            if (campo === 'DTALTER') return fmtDataHora(registro[campo]);
+            if (campo === 'NOMEPARC') return (registro[campo] || '').substring(0, 25);
+            return registro[campo] || '-';
+        }
+        
+        function renderizarListaFiltro(dropdown, valores) {
+            var lista = dropdown.querySelector('.filter-list');
+            var html = '';
+            
+            valores.forEach(function(item) {
+                var checked = valoresFiltroTemp.has(item.valor) ? 'checked' : '';
+                html += '<label class="filter-list-item">';
+                html += '<input type="checkbox" ' + checked + ' value="' + escapeHtml(item.valor) + '" onchange="toggleItemFiltro(this)">';
+                html += '<span class="filter-list-item-label">' + escapeHtml(item.display) + '</span>';
+                html += '<span class="filter-list-item-count">' + item.count + '</span>';
+                html += '</label>';
+            });
+            
+            lista.innerHTML = html || '<div class="lookup-no-results">Nenhum valor</div>';
+        }
+        
+        function toggleItemFiltro(checkbox) {
+            if (checkbox.checked) {
+                valoresFiltroTemp.add(checkbox.value);
+            } else {
+                valoresFiltroTemp.delete(checkbox.value);
+            }
+        }
+        
+        function selecionarTodosFiltro() {
+            var dropdown = document.getElementById('filterDropdownAtivo');
+            if (!dropdown) return;
+            dropdown.querySelectorAll('.filter-list input[type="checkbox"]').forEach(function(cb) {
+                cb.checked = true;
+                valoresFiltroTemp.add(cb.value);
+            });
+        }
+        
+        function limparTodosFiltro() {
+            var dropdown = document.getElementById('filterDropdownAtivo');
+            if (!dropdown) return;
+            dropdown.querySelectorAll('.filter-list input[type="checkbox"]').forEach(function(cb) {
+                cb.checked = false;
+            });
+            valoresFiltroTemp.clear();
+        }
+        
+        function filtrarListaDropdown(input) {
+            var termo = input.value.toLowerCase();
+            var dropdown = document.getElementById('filterDropdownAtivo');
+            if (!dropdown) return;
+            
+            dropdown.querySelectorAll('.filter-list-item').forEach(function(item) {
+                var label = item.querySelector('.filter-list-item-label').textContent.toLowerCase();
+                item.style.display = label.indexOf(termo) >= 0 ? 'flex' : 'none';
+            });
+        }
+        
+        function aplicarFiltroColuna() {
+            if (!colunaFiltroAtual) return;
+            
+            var totalValores = obterValoresUnicos(colunaFiltroAtual).length;
+            
+            if (valoresFiltroTemp.size === 0 || valoresFiltroTemp.size === totalValores) {
+                delete filtrosColunas[colunaFiltroAtual];
+            } else {
+                filtrosColunas[colunaFiltroAtual] = new Set(valoresFiltroTemp);
+            }
+            
+            fecharFiltroColuna();
+            filtrar();
+            atualizarBotoesFiltro();
+        }
+        
+        function fecharFiltroColuna() {
+            var dropdown = document.getElementById('filterDropdownAtivo');
+            if (dropdown) dropdown.remove();
+            
+            document.querySelectorAll('.filter-btn').forEach(function(btn) {
+                var th = btn.closest('th');
+                if (th) {
+                    var campo = th.getAttribute('data-campo');
+                    if (!filtrosColunas[campo]) btn.classList.remove('active');
+                }
+            });
+            
+            colunaFiltroAtual = null;
+            valoresFiltroTemp.clear();
+        }
+        
+        function atualizarBotoesFiltro() {
+            document.querySelectorAll('th[data-campo]').forEach(function(th) {
+                var campo = th.getAttribute('data-campo');
+                var btn = th.querySelector('.filter-btn');
+                if (btn) {
+                    btn.classList.toggle('active', !!filtrosColunas[campo]);
+                }
+            });
+        }
+        
+        // =============================================
+        // TIPO DE BUSCA PARCEIRO
+        // =============================================
+        function setTipoBusca(tipo) {
+            tipoBuscaParceiro = tipo;
+            document.getElementById('labelExata').classList.toggle('selected', tipo === 'exata');
+            document.getElementById('labelParcial').classList.toggle('selected', tipo === 'parcial');
+            
+            var termo = document.getElementById('buscaParc').value.trim();
+            if (termo.length >= 2) executarBuscaParceiro(termo);
+        }
+        
+        // =============================================
+        // FILTROS DO GRID
+        // =============================================
+        function toggleFiltroCheck(el, tipo) {
+            var checkbox = el.querySelector('input[type="checkbox"]');
+            
+            if (tipo === 'receita') {
+                filtroReceita = !filtroReceita;
+                checkbox.checked = filtroReceita;
+            } else if (tipo === 'despesa') {
+                filtroDespesa = !filtroDespesa;
+                checkbox.checked = filtroDespesa;
+            } else if (tipo === 'pendente') {
+                filtroPendente = !filtroPendente;
+                checkbox.checked = filtroPendente;
+            } else if (tipo === 'baixado') {
+                filtroBaixado = !filtroBaixado;
+                checkbox.checked = filtroBaixado;
+            } else if (tipo === 'provisao') {
+                filtroProvisao = !filtroProvisao;
+                checkbox.checked = filtroProvisao;
+            } else if (tipo === 'real') {
+                filtroReal = !filtroReal;
+                checkbox.checked = filtroReal;
+            }
+            
+            el.classList.toggle('active', checkbox.checked);
+            filtrar();
+        }
+        
+        // =============================================
+        // LOOKUP PARCEIRO
+        // =============================================
+        function buscarParceiro(event) {
+            var termo = document.getElementById('buscaParc').value.trim();
+            
+            if (event.keyCode === 27) { fecharDropdown(); return; }
+            if (event.keyCode === 13) {
+                var primeiro = document.querySelector('.lookup-item');
+                if (primeiro) primeiro.click();
+                return;
+            }
+            
+            if (debounceTimer) clearTimeout(debounceTimer);
+            if (termo.length < 2) { fecharDropdown(); return; }
+            
+            debounceTimer = setTimeout(function() { executarBuscaParceiro(termo); }, DEBOUNCE_DELAY);
+        }
+        
+        function executarBuscaParceiro(termo) {
+            var dropdown = document.getElementById('lookupDropdown');
+            var loading = document.getElementById('lookupLoading');
+            var icon = document.getElementById('lookupIcon');
+            
+            icon.style.display = 'none';
+            loading.style.display = 'block';
+            
+            var isNumero = /^\d+$/.test(termo);
+            var sql;
+            var termoEscapado = termo.toUpperCase().replace(/'/g, "''");
+            
+            if (isNumero) {
+                sql = "SELECT CODPARC, NOMEPARC FROM TGFPAR WHERE ATIVO = 'S' AND (CODPARC = " + termo + " OR CAST(CODPARC AS VARCHAR(20)) LIKE '%" + termo + "%') ORDER BY CODPARC FETCH FIRST 15 ROWS ONLY";
+            } else {
+                if (tipoBuscaParceiro === 'exata') {
+                    sql = "SELECT CODPARC, NOMEPARC FROM TGFPAR WHERE ATIVO = 'S' AND UPPER(NOMEPARC) LIKE '" + termoEscapado + "%' ORDER BY NOMEPARC FETCH FIRST 15 ROWS ONLY";
+                } else {
+                    sql = "SELECT CODPARC, NOMEPARC FROM TGFPAR WHERE ATIVO = 'S' AND UPPER(NOMEPARC) LIKE '%" + termoEscapado + "%' ORDER BY NOMEPARC FETCH FIRST 15 ROWS ONLY";
+                }
+            }
+            
+            JX.consultar(sql).then(function(res) {
+                loading.style.display = 'none';
+                icon.style.display = 'block';
+                
+                if (!res || res.length === 0) {
+                    dropdown.innerHTML = '<div class="lookup-no-results">Nenhum parceiro</div>';
+                } else {
+                    var html = '';
+                    for (var i = 0; i < res.length; i++) {
+                        var p = res[i];
+                        html += '<div class="lookup-item" onclick="selecionarParceiro(' + p.CODPARC + ', \'' + escapeHtml(p.NOMEPARC) + '\')">';
+                        html += '<span class="lookup-item-code">' + p.CODPARC + '</span>';
+                        html += '<span class="lookup-item-name">' + escapeHtml(p.NOMEPARC) + '</span>';
+                        html += '</div>';
+                    }
+                    dropdown.innerHTML = html;
+                }
+                dropdown.classList.add('visible');
+            }).catch(function(e) {
+                loading.style.display = 'none';
+                icon.style.display = 'block';
+                dropdown.innerHTML = '<div class="lookup-no-results">Erro: ' + e + '</div>';
+                dropdown.classList.add('visible');
+            });
+        }
+        
+        function selecionarParceiro(codparc, nomeparc) {
+            parceiroFiltro = { CODPARC: codparc, NOMEPARC: nomeparc };
+            document.getElementById('buscaParc').style.display = 'none';
+            document.getElementById('buscaParc').value = '';
+            document.getElementById('parceiroSelecionado').style.display = 'block';
+            document.getElementById('parcSelCod').textContent = codparc;
+            document.getElementById('parcSelNome').textContent = nomeparc;
+            fecharDropdown();
+            if (dados.length > 0) filtrar();
+        }
+        
+        function limparParceiro() {
+            parceiroFiltro = null;
+            document.getElementById('buscaParc').style.display = 'block';
+            document.getElementById('parceiroSelecionado').style.display = 'none';
+            if (dados.length > 0) filtrar();
+        }
+        
+        function onFocusLookup() {
+            var termo = document.getElementById('buscaParc').value.trim();
+            if (termo.length >= 2) executarBuscaParceiro(termo);
+        }
+        
+        function fecharDropdown() {
+            document.getElementById('lookupDropdown').classList.remove('visible');
+        }
+        
+        // =============================================
+        // FILTROS
+        // =============================================
+        function toggleDtVenc() {
+            var on = document.getElementById('usarDtVenc').checked;
+            document.getElementById('dtVencArea').style.opacity = on ? 1 : 0.4;
+            document.getElementById('dtVencArea').style.pointerEvents = on ? 'auto' : 'none';
+        }
+        
+        // =============================================
+        // CONSULTA PRINCIPAL
+        // =============================================
+        function consultar() {
+            var usaDt = document.getElementById('usarDtVenc').checked;
+            var di = document.getElementById('dtIni').value;
+            var df = document.getElementById('dtFim').value;
+            
+            document.getElementById('tbody').innerHTML = '<tr><td colspan="' + (COLUNAS.length + 1) + '" class="loading-text">⏳ Carregando...</td></tr>';
+            document.getElementById('contadorFlutuante').classList.remove('visible');
+            
+            var sql = "SELECT NUFIN, NUNOTA, CODPARC, NOMEPARC, DTNEG, DTVENC, VLRDESDOB, " +
+                     "RECDESP, DHBAIXA, PROVISAO, DTALTER, CODTIPVENDA, DESCRTIPVENDA, " +
+                     "CODTIPTIT, DESCRTIPTIT, CODCTABCOINT, DESCRICAO_CTA, NURENEG, " +
+                     "CAB_AD_OBS, CAB_VLRFRETE " +
+                     "FROM AVC_TGFFIN_COMP WHERE CODEMP = 1 AND RECDESP <> 0 ";
+            
+            if (usaDt && di && df && di.trim() !== '' && df.trim() !== '') {
+                var diOracle = dtOracle(di);
+                var dfOracle = dtOracle(df);
+                if (diOracle && dfOracle) {
+                    sql += "AND DTVENC BETWEEN TO_DATE('" + diOracle + "','DD/MM/YYYY') AND TO_DATE('" + dfOracle + "','DD/MM/YYYY') ";
+                }
+            }
+            
+            if (parceiroFiltro) {
+                sql += "AND CODPARC = " + parceiroFiltro.CODPARC + " ";
+            }
+            
+            sql += "ORDER BY DTALTER DESC FETCH FIRST " + LIMITE_REGISTROS + " ROWS ONLY";
+            
+            JX.consultar(sql).then(function(res) {
+                if (!res || !res.length) {
+                    document.getElementById('tbody').innerHTML = '<tr><td colspan="' + (COLUNAS.length + 1) + '" class="loading-text">Nenhum registro encontrado.</td></tr>';
+                    atualizarContador(0);
+                    dados = []; filtrados = []; return;
+                }
+                dados = res; 
+                filtrosColunas = {};
+                atualizarBotoesFiltro();
+                filtrar();
+                
+                var msg = res.length + ' registros carregados';
+                if (res.length >= LIMITE_REGISTROS) msg += ' (limite)';
+                status('✓ ' + msg, 'sucesso');
+            }).catch(function(e) {
+                document.getElementById('tbody').innerHTML = '<tr><td colspan="' + (COLUNAS.length + 1) + '" class="loading-text" style="color:#D32F2F">Erro: ' + e + '</td></tr>';
+                status('Erro: ' + e, 'erro');
+            });
+        }
+        
+        // =============================================
+        // CONTADOR FLUTUANTE
+        // =============================================
+        function atualizarContador(qtd) {
+            var contador = document.getElementById('contadorFlutuante');
+            contador.textContent = qtd + ' registros';
+            contador.classList.toggle('visible', qtd > 0);
+        }
+        
+        // =============================================
+        // FILTRO COMBINADO
+        // =============================================
+        // =============================================
+        // FILTRO COMBINADO
+        // =============================================
+        function filtrar() {
+            filtrados = dados.filter(function(r) {
+                var st = getStatus(r), tp = getTipo(r), prov = getProvisao(r);
+                
+                if (tp === 'receber' && !filtroReceita) return false;
+                if (tp === 'pagar' && !filtroDespesa) return false;
+                if (st === 'pendente' && !filtroPendente) return false;
+                if (st === 'baixado' && !filtroBaixado) return false;
+                
+                // Lógica corrigida: Se for provisão e o filtro estiver DESLIGADO, esconde.
+                if (prov === 'provisao' && !filtroProvisao) return false;
+                // Lógica corrigida: Se for real e o filtro estiver DESLIGADO, esconde.
+                if (prov === 'real' && !filtroReal) return false;
+                
+                for (var campo in filtrosColunas) {
+                    var valoresPermitidos = filtrosColunas[campo];
+                    var valorRegistro = String(obterValorExibicao(r, campo));
+                    if (!valoresPermitidos.has(valorRegistro)) return false;
+                }
+                
+                return true;
+            });
+            
+            render();
+            atualizarContador(filtrados.length);
+        }
+        
+        function limparTudo() {
+            limparParceiro();
+            filtrosColunas = {};
+            atualizarBotoesFiltro();
+            
+            filtroReceita = true;
+            filtroDespesa = true;
+            filtroPendente = true;
+            filtroBaixado = true;
+            filtroProvisao = false;
+            filtroReal = false;
+            
+            document.querySelectorAll('.filtros-grid .filtro-check').forEach(function(el) {
+                var checkbox = el.querySelector('input');
+                if (el.classList.contains('receita') || el.classList.contains('despesa') || 
+                    el.classList.contains('pendente') || el.classList.contains('baixado')) {
+                    checkbox.checked = true;
+                    el.classList.add('active');
+                } else {
+                    checkbox.checked = false;
+                    el.classList.remove('active');
+                }
+            });
+            
+            filtrados = dados.slice();
+            render();
+            atualizarContador(filtrados.length);
+        }
+        
+        // =============================================
+        // RENDERIZAÇÃO
+        // =============================================
+        function render() {
+            var html = '';
+            for (var i = 0; i < filtrados.length; i++) {
+                var r = filtrados[i], st = getStatus(r), tp = getTipo(r);
+                
+                var rowClass = st === 'pendente' ? 'row-pendente' : 'row-baixado';
+                var textoClass = tp === 'receber' ? 'texto-receita' : 'texto-despesa';
+                var valorExibicao = fmtMoedaComSinal(r.VLRDESDOB, tp);
+                var valorReal = tp === 'pagar' ? -Math.abs(parseFloat(r.VLRDESDOB) || 0) : Math.abs(parseFloat(r.VLRDESDOB) || 0);
+                
+                html += '<tr data-i="' + i + '" class="' + rowClass + '">';
+                html += '<td><input type="checkbox" class="cb item" data-v="' + valorReal + '" data-tipo="' + tp + '" onchange="calcSel()"></td>';
+                
+                for (var j = 0; j < COLUNAS.length; j++) {
+                    var col = COLUNAS[j];
+                    html += renderizarCelula(r, col, textoClass, st, tp, valorExibicao, i);
+                }
+                
+                html += '</tr>';
+            }
+            
+            document.getElementById('tbody').innerHTML = html || '<tr><td colspan="' + (COLUNAS.length + 1) + '" class="loading-text">Nenhum registro.</td></tr>';
+        }
+        
+        function renderizarCelula(r, col, textoClass, st, tp, valorExibicao, indice) {
+            var campo = col.campo;
+            
+            switch(campo) {
+                case 'ORIGEM':
+                    if (r.NUNOTA) {
+                        return '<td style="text-align:center;"><span class="origem-btn" onclick="abrirPopupOrigem(' + indice + ')" title="Ver nota ' + r.NUNOTA + '">📄</span></td>';
+                    } else {
+                        return '<td style="text-align:center;"><span class="origem-btn disabled" title="Sem nota">📄</span></td>';
+                    }
+                    
+                case 'NUFIN':
+                    return '<td class="nufin-bold ' + textoClass + '">' + r.NUFIN + '</td>';
+                case 'NUNOTA':
+                    return '<td class="' + textoClass + '">' + (r.NUNOTA || '-') + '</td>';
+                case 'CODPARC':
+                    return '<td class="' + textoClass + '">' + r.CODPARC + '</td>';
+                case 'NOMEPARC':
+                    return '<td class="' + textoClass + '" title="' + escapeHtml(r.NOMEPARC) + '">' + (r.NOMEPARC || '').substring(0, 20) + '</td>';
+                case 'DTNEG':
+                    return '<td class="' + textoClass + '">' + fmtData(r.DTNEG) + '</td>';
+                case 'DTVENC':
+                    return '<td class="' + textoClass + '"><span class="dtvenc-destaque"><span class="calendario-emoji">📅</span>' + fmtData(r.DTVENC) + '</span></td>';
+                case 'VLRDESDOB':
+                    return '<td class="' + textoClass + '" style="font-weight:600;">' + valorExibicao + '</td>';
+                case 'CODTIPVENDA':
+                    return '<td class="' + textoClass + '">' + (r.CODTIPVENDA || '-') + '</td>';
+                case 'DESCRTIPVENDA':
+                    return '<td class="' + textoClass + '" title="' + escapeHtml(r.DESCRTIPVENDA) + '">' + (r.DESCRTIPVENDA || '-').substring(0, 15) + '</td>';
+                case 'CODTIPTIT':
+                    return '<td class="' + textoClass + '">' + (r.CODTIPTIT || '-') + '</td>';
+                case 'DESCRTIPTIT':
+                    return '<td class="' + textoClass + '" title="' + escapeHtml(r.DESCRTIPTIT) + '">' + (r.DESCRTIPTIT || '-').substring(0, 15) + '</td>';
+                case 'CODCTABCOINT':
+                    return '<td class="' + textoClass + '">' + (r.CODCTABCOINT || '-') + '</td>';
+                case 'DESCRICAO_CTA':
+                    return '<td class="' + textoClass + '" title="' + escapeHtml(r.DESCRICAO_CTA) + '">' + (r.DESCRICAO_CTA || '-').substring(0, 15) + '</td>';
+                case 'NURENEG':
+                    return '<td class="' + textoClass + '">' + (r.NURENEG || '-') + '</td>';
+                case 'RECDESP':
+                    return '<td class="' + textoClass + '">' + (tp === 'receber' ? 'Receita' : 'Despesa') + '</td>';
+                case 'STATUS':
+                    if (st === 'pendente') {
+                        return '<td><span class="status-tag pendente">→ Pendente</span></td>';
+                    } else {
+                        return '<td><span class="status-tag baixado">↓ Baixado</span></td>';
+                    }
+                case 'PROVISAO':
+                    var isProvisao = r.PROVISAO === 'S';
+                    if (isProvisao) {
+                        return '<td><span class="natureza-texto provisao">⏳ Provisão</span></td>';
+                    } else {
+                        return '<td><span class="natureza-texto real">✓ Real</span></td>';
+                    }
+                case 'DTALTER':
+                    return '<td class="' + textoClass + '">' + fmtDataHora(r.DTALTER) + '</td>';
+                case 'CAB_AD_OBS':
+                    return '<td class="' + textoClass + '" title="' + escapeHtml(r.CAB_AD_OBS) + '">' + truncar(r.CAB_AD_OBS, 20) + '</td>';
+                case 'CAB_VLRFRETE':
+                    return '<td class="' + textoClass + '">' + fmtMoeda(r.CAB_VLRFRETE) + '</td>';
+                default:
+                    return '<td>' + (r[campo] || '-') + '</td>';
+            }
+        }
+        
+        // =============================================
+        // SELEÇÃO
+        // =============================================
+        function selecionarTodos() {
+            var chk = document.getElementById('chkAll').checked;
+            document.querySelectorAll('.item').forEach(function(c){ c.checked = chk; });
+            calcSel();
+        }
+        
+        function calcSel() {
+            var cks = document.querySelectorAll('.item:checked');
+            var total = 0;
+            
+            cks.forEach(function(c) {
+                total += parseFloat(c.getAttribute('data-v')) || 0;
+            });
+            
+            document.getElementById('qtdSelTop').textContent = cks.length;
+            
+            var valEl = document.getElementById('valSelTop');
+            if (total < 0) {
+                valEl.textContent = '- R$ ' + Math.abs(total).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+                valEl.classList.add('negativo');
+            } else {
+                valEl.textContent = 'R$ ' + total.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+                valEl.classList.remove('negativo');
+            }
+            
+            document.querySelectorAll('#tbody tr').forEach(function(tr){
+                var c = tr.querySelector('.item');
+                if(c) tr.classList.toggle('selected', c.checked);
+            });
+        }
+        
+        // =============================================
+        // AÇÕES
+        // =============================================
+        function baixar() {
+            var n = document.querySelectorAll('.item:checked').length;
+            if (!n) { status('Selecione pelo menos um item.', 'erro'); return; }
+            if (confirm('Baixar ' + n + ' título(s)?')) {
+                status('Processando baixa...', '');
+            }
+        }
+        
+        function estornar() {
+            var n = document.querySelectorAll('.item:checked').length;
+            if (!n) { status('Selecione pelo menos um item.', 'erro'); return; }
+            if (confirm('Estornar ' + n + ' título(s)?')) {
+                status('Processando estorno...', '');
+            }
+        }
+        
+        function exportarCSV() {
+            if (!filtrados.length) { status('Não há dados.', 'erro'); return; }
+            
+            var cabecalho = COLUNAS.filter(function(c) { return c.campo !== 'ORIGEM'; }).map(function(c) { return c.campo; }).join(';');
+            var csv = cabecalho + '\n';
+            
+            filtrados.forEach(function(r) {
+                var linha = COLUNAS.filter(function(c) { return c.campo !== 'ORIGEM'; }).map(function(col) {
+                    var valor = r[col.campo];
+                    if (col.campo === 'VLRDESDOB') {
+                        var tp = getTipo(r);
+                        valor = tp === 'pagar' ? -Math.abs(valor) : Math.abs(valor);
+                    } else if (col.campo === 'STATUS') {
+                        valor = getStatus(r);
+                    } else if (col.campo === 'RECDESP') {
+                        valor = getTipo(r);
+                    } else if (col.campo === 'PROVISAO') {
+                        valor = r.PROVISAO === 'S' ? 'Provisao' : 'Real';
+                    } else if (col.tipo === 'data' || col.tipo === 'dtvenc') {
+                        valor = fmtData(valor);
+                    } else if (col.tipo === 'datahora') {
+                        valor = fmtDataHora(valor);
+                    }
+                    return String(valor || '').replace(/;/g, ',');
+                }).join(';');
+                csv += linha + '\n';
+            });
+            
+            var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'financeiro_' + new Date().toISOString().split('T')[0] + '.csv';
+            a.click();
+            status('CSV exportado!', 'sucesso');
+        }
+		// =============================================
+// CADASTRO RÁPIDO DE PARCEIRO
+var cidadeSelecionadaObj = null;
+var logradouroSelecionadoObj = null;
+var debounceTimerCidade = null;
+var debounceTimerEnd = null;
+
+// =============================================
+// FUNÇÕES DO NOVO MODAL FINANCEIRO (AÇÃO 131)
+// =============================================
+function abrirModalCadastroParceiro() {
+    // Limpa os campos
+    document.getElementById('cadNome').value = '';
+    document.getElementById('cadCPF').value = '';
+    document.getElementById('cadTelefone').value = '';
+    document.getElementById('cadCEP').value = '';
+    document.getElementById('cadCidadeInput').value = '';
+    document.getElementById('cadCODCID').value = '';
+    document.getElementById('cadEndInput').value = '';
+    document.getElementById('cadCODEND').value = '';
+    document.getElementById('cadLogradouro').value = '';
+    document.getElementById('cadBairro').value = '';
+    document.getElementById('cadNumero').value = '';
+    
+    // Limpa as variáveis de controle (se as funções existirem abaixo)
+    if(typeof limparCidade === 'function') limparCidade();
+    if(typeof limparLogradouro === 'function') limparLogradouro();
+    
+    // Abre o modal
+    document.getElementById('modalCadastroParceiro').classList.add('visible');
+    
+    // Foca no primeiro campo
+    setTimeout(function() { 
+        document.getElementById('cadNome').focus(); 
+    }, 100);
+}
+
+function fecharModalCadastroParceiro(event) {
+    if (event.target.classList.contains('modal-overlay')) fecharModalCadastro();
+}
+
+function fecharModalCadastro() {
+    document.getElementById('modalCadastroParceiro').classList.remove('visible');
+}
+
+
+// =========================================================
+    // LÓGICA DAS LUPAS (LOOKUPS) COM NAVEGAÇÃO POR TECLADO
+    // =========================================================
+
+    // Variáveis globais para controle de navegação
+    var currentFocus = -1;
+
+    // Função Genérica para configurar inputs de lookup (Search + Teclado)
+    function setupLookupInput(inputId, dropId, searchFunction) {
+        var input = document.getElementById(inputId);
+        if (!input) return;
+
+        // Evento de Digitação (Debounce)
+        var debounceTimer;
+        input.addEventListener('keyup', function(e) {
+            // Ignora teclas de navegação
+            if (['ArrowDown', 'ArrowUp', 'Enter', 'Escape'].includes(e.key)) return;
+
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(function() {
+                searchFunction(e);
+            }, 300);
+        });
+
+        // Evento de Navegação (Imediato)
+        input.addEventListener('keydown', function(e) {
+            var drop = document.getElementById(dropId);
+            var items = drop.getElementsByClassName('lookup-item');
+            
+            if (e.key === 'ArrowDown') {
+                currentFocus++;
+                addActive(items);
+                // Scroll automático
+                if (items[currentFocus]) items[currentFocus].scrollIntoView({block: 'nearest'});
+            } 
+            else if (e.key === 'ArrowUp') {
+                currentFocus--;
+                addActive(items);
+                if (items[currentFocus]) items[currentFocus].scrollIntoView({block: 'nearest'});
+            } 
+            else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (currentFocus > -1) {
+                    if (items[currentFocus]) items[currentFocus].click();
+                } else if (items.length > 0) {
+                    // Se der enter sem selecionar nada, seleciona o primeiro
+                    items[0].click(); 
+                }
+            }
+            else if (e.key === 'Escape') {
+                drop.classList.remove('visible');
+            }
+        });
+    }
+
+    // Auxiliar: Adiciona classe visual ao item navegado
+    function addActive(x) {
+        if (!x) return false;
+        removeActive(x);
+        if (currentFocus >= x.length) currentFocus = 0;
+        if (currentFocus < 0) currentFocus = (x.length - 1);
+        x[currentFocus].classList.add("active");
+    }
+
+    // Auxiliar: Remove classe visual
+    function removeActive(x) {
+        for (var i = 0; i < x.length; i++) {
+            x[i].classList.remove("active");
+        }
+    }
+
+    // --- FUNÇÃO GENÉRICA PARA RENDERIZAR LISTA ---
+    function renderLookup(idDrop, dados, campoCod, campoNome, funcSelect) {
+        var drop = document.getElementById(idDrop);
+        
+        if(!dados || dados.length === 0) {
+            drop.innerHTML = '<div class="lookup-no-results">Nenhum resultado</div>';
+            drop.classList.add('visible');
+            return;
+        }
+        
+        var html = '';
+        dados.forEach(function(r) {
+            // Escapa aspas simples para não quebrar o HTML
+            var nomeSafe = (r[campoNome] || '').replace(/'/g, "\\'"); 
+            html += '<div class="lookup-item" onclick="' + funcSelect + '(' + r[campoCod] + ', \'' + nomeSafe + '\')">';
+            html += '<span class="lookup-item-code">' + r[campoCod] + '</span>';
+            html += '<span class="lookup-item-name">' + (r[campoNome] || '') + '</span>';
+            html += '</div>';
+        });
+        
+        drop.innerHTML = html;
+        drop.classList.add('visible');
+    }
+
+    // --- 1. BUSCA DE PARCEIRO (MODAL FINANCEIRO) ---
+    // Inicializa
+    setTimeout(function(){ setupLookupInput('finBuscaParc', 'finDropParc', buscarParceiroFin); }, 500);
+
+    function buscarParceiroFin(e) {
+        var termo = e.target.value.trim();
+        var drop = document.getElementById('finDropParc');
+        
+        if (termo.length < 2) { drop.classList.remove('visible'); return; }
+        
+        var load = document.getElementById('finLoadParc');
+        load.style.display = 'block';
+        currentFocus = -1; // Reseta navegação
+        
+        var termoUpper = termo.toUpperCase();
+        var sql = "SELECT CODPARC, NOMEPARC FROM TGFPAR WHERE ATIVO='S' AND CODPARC <> 0 ";
+        
+        if (!isNaN(termo) && termo !== '') {
+            sql += "AND (CODPARC = " + termo + " OR NOMEPARC LIKE '%" + termoUpper + "%') ";
+        } else {
+            sql += "AND NOMEPARC LIKE '%" + termoUpper + "%' ";
+        }
+        
+        sql += "ORDER BY NOMEPARC FETCH FIRST 10 ROWS ONLY";
+        
+        JX.consultar(sql).then(function(res) {
+            load.style.display = 'none';
+            renderLookup('finDropParc', res, 'CODPARC', 'NOMEPARC', 'selecionarParceiroFin');
+        });
+    }
+    
+    function selecionarParceiroFin(cod, nome) {
+        document.getElementById('finCODPARC').value = cod;
+        document.getElementById('finTxtParcCod').textContent = cod;
+        document.getElementById('finTxtParcNome').textContent = nome;
+        
+        document.getElementById('finBuscaParc').parentElement.style.display = 'none';
+        document.getElementById('finSelParc').style.display = 'block';
+        document.getElementById('finDropParc').classList.remove('visible');
+    }
+
+    function limparParceiroFin() {
+        document.getElementById('finCODPARC').value = '';
+        document.getElementById('finSelParc').style.display = 'none';
+        document.getElementById('finBuscaParc').parentElement.style.display = 'flex';
+        document.getElementById('finBuscaParc').value = '';
+        setTimeout(() => document.getElementById('finBuscaParc').focus(), 100);
+    }
+
+    // --- 2. BUSCA DE NATUREZA ---
+    setTimeout(function(){ setupLookupInput('finBuscaNat', 'finDropNat', buscarNatureza); }, 500);
+
+    function buscarNatureza(e) {
+        var termo = e.target.value.trim();
+        var drop = document.getElementById('finDropNat');
+        
+        if (termo.length < 2) { drop.classList.remove('visible'); return; }
+        
+        document.getElementById('finLoadNat').style.display = 'block';
+        currentFocus = -1;
+
+        var termoUpper = termo.toUpperCase();
+        var sql = "SELECT CODNAT, DESCRNAT FROM TGFNAT WHERE ANALITICA='S' AND CODNAT <> 0 ";
+
+        if (!isNaN(termo) && termo !== '') {
+            sql += "AND (CODNAT = " + termo + " OR UPPER(DESCRNAT) LIKE '%" + termoUpper + "%') ";
+        } else {
+            sql += "AND UPPER(DESCRNAT) LIKE '%" + termoUpper + "%' ";
+        }
+        
+        sql += "ORDER BY DESCRNAT ASC FETCH FIRST 10 ROWS ONLY";
+
+        JX.consultar(sql).then(function(res){
+            document.getElementById('finLoadNat').style.display = 'none';
+            renderLookup('finDropNat', res, 'CODNAT', 'DESCRNAT', 'selecionarNatureza');
+        });
+    }
+
+    function selecionarNatureza(cod, nome) {
+        document.getElementById('finCODNAT').value = cod;
+        document.getElementById('finTxtNatCod').textContent = cod;
+        document.getElementById('finTxtNatNome').textContent = nome;
+        document.getElementById('finBuscaNat').parentElement.style.display = 'none';
+        document.getElementById('finSelNat').style.display = 'block';
+        document.getElementById('finDropNat').classList.remove('visible');
+    }
+
+    function limparNatureza() {
+        document.getElementById('finCODNAT').value = '';
+        document.getElementById('finSelNat').style.display = 'none';
+        document.getElementById('finBuscaNat').parentElement.style.display = 'flex';
+        document.getElementById('finBuscaNat').value = '';
+        setTimeout(() => document.getElementById('finBuscaNat').focus(), 100);
+    }
+
+    // --- 3. BUSCA DE TIPO TÍTULO ---
+    setTimeout(function(){ setupLookupInput('finBuscaTit', 'finDropTit', buscarTipoTitulo); }, 500);
+
+    function buscarTipoTitulo(e) {
+        var termo = e.target.value.trim();
+        var drop = document.getElementById('finDropTit');
+
+        if (termo.length < 1) { drop.classList.remove('visible'); return; }
+        
+        document.getElementById('finLoadTit').style.display = 'block';
+        currentFocus = -1;
+
+        var termoUpper = termo.toUpperCase();
+        var sql = "SELECT CODTIPTIT, DESCRTIPTIT FROM TGFTIT WHERE CODTIPTIT <> 0 ";
+
+        if (!isNaN(termo) && termo !== '') {
+            sql += "AND (CODTIPTIT = " + termo + " OR UPPER(DESCRTIPTIT) LIKE '%" + termoUpper + "%') ";
+        } else {
+            sql += "AND UPPER(DESCRTIPTIT) LIKE '%" + termoUpper + "%' ";
+        }
+
+        sql += "ORDER BY DESCRTIPTIT FETCH FIRST 10 ROWS ONLY";
+
+        JX.consultar(sql).then(function(res){
+            document.getElementById('finLoadTit').style.display = 'none';
+            renderLookup('finDropTit', res, 'CODTIPTIT', 'DESCRTIPTIT', 'selecionarTipoTitulo');
+        });
+    }
+
+    function selecionarTipoTitulo(cod, nome) {
+        document.getElementById('finCODTIPTIT').value = cod;
+        document.getElementById('finTxtTitCod').textContent = cod;
+        document.getElementById('finTxtTitNome').textContent = nome;
+        document.getElementById('finBuscaTit').parentElement.style.display = 'none';
+        document.getElementById('finSelTit').style.display = 'block';
+        document.getElementById('finDropTit').classList.remove('visible');
+    }
+
+    function limparTipoTitulo() {
+        document.getElementById('finCODTIPTIT').value = '';
+        document.getElementById('finSelTit').style.display = 'none';
+        document.getElementById('finBuscaTit').parentElement.style.display = 'flex';
+        document.getElementById('finBuscaTit').value = '';
+        setTimeout(() => document.getElementById('finBuscaTit').focus(), 100);
+    }
+
+    // --- 4. BUSCA DE CONTA BANCÁRIA ---
+    setTimeout(function(){ setupLookupInput('finBuscaCta', 'finDropCta', buscarContaBancaria); }, 500);
+
+    function buscarContaBancaria(e) {
+        var termo = e.target.value.trim();
+        var drop = document.getElementById('finDropCta');
+
+        if (termo.length < 1) { drop.classList.remove('visible'); return; }
+        
+        document.getElementById('finLoadCta').style.display = 'block';
+        currentFocus = -1;
+
+        var termoUpper = termo.toUpperCase();
+        var sql = "SELECT CODCTABCOINT, DESCRICAO FROM TSICTA WHERE ATIVA='S' AND CODCTABCOINT <> 0 ";
+
+        if (!isNaN(termo) && termo !== '') {
+            sql += "AND (CODCTABCOINT = " + termo + " OR UPPER(DESCRICAO) LIKE '%" + termoUpper + "%') ";
+        } else {
+            sql += "AND UPPER(DESCRICAO) LIKE '%" + termoUpper + "%' ";
+        }
+
+        sql += "ORDER BY DESCRICAO FETCH FIRST 10 ROWS ONLY";
+
+        JX.consultar(sql).then(function(res){
+            document.getElementById('finLoadCta').style.display = 'none';
+            renderLookup('finDropCta', res, 'CODCTABCOINT', 'DESCRICAO', 'selecionarContaBancaria');
+        });
+    }
+
+    function selecionarContaBancaria(cod, nome) {
+        document.getElementById('finCODCTABCOINT').value = cod;
+        document.getElementById('finTxtCtaCod').textContent = cod;
+        document.getElementById('finTxtCtaNome').textContent = nome;
+        document.getElementById('finBuscaCta').parentElement.style.display = 'none';
+        document.getElementById('finSelCta').style.display = 'block';
+        document.getElementById('finDropCta').classList.remove('visible');
+    }
+
+    function limparContaBancaria() {
+        document.getElementById('finCODCTABCOINT').value = '';
+        document.getElementById('finSelCta').style.display = 'none';
+        document.getElementById('finBuscaCta').parentElement.style.display = 'flex';
+        document.getElementById('finBuscaCta').value = '';
+        setTimeout(() => document.getElementById('finBuscaCta').focus(), 100);
+    }
+
+    // --- 5. BUSCA DE TOP ---
+    setTimeout(function(){ setupLookupInput('finBuscaTop', 'finDropTop', buscarTop); }, 500);
+
+    function buscarTop(e) {
+        var termo = e.target.value.trim();
+        var drop = document.getElementById('finDropTop');
+
+        if (termo.length < 2) { drop.classList.remove('visible'); return; }
+        
+        document.getElementById('finLoadTop').style.display = 'block';
+        currentFocus = -1;
+
+        var termoUpper = termo.toUpperCase();
+        var sql = "SELECT CODTIPOPER, DESCROPER FROM TGFTOP WHERE DHALTER > (SYSDATE-3650) AND CODTIPOPER <> 0 ";
+
+        if (!isNaN(termo) && termo !== '') {
+            sql += "AND (CODTIPOPER = " + termo + " OR UPPER(DESCROPER) LIKE '%" + termoUpper + "%') ";
+        } else {
+            sql += "AND UPPER(DESCROPER) LIKE '%" + termoUpper + "%' ";
+        }
+
+        sql += "ORDER BY DESCROPER FETCH FIRST 10 ROWS ONLY";
+
+        JX.consultar(sql).then(function(res){
+            document.getElementById('finLoadTop').style.display = 'none';
+            renderLookup('finDropTop', res, 'CODTIPOPER', 'DESCROPER', 'selecionarTop');
+        });
+    }
+
+    function selecionarTop(cod, nome) {
+        document.getElementById('finCODTIPOPER').value = cod;
+        document.getElementById('finTxtTopCod').textContent = cod;
+        document.getElementById('finTxtTopNome').textContent = nome;
+        document.getElementById('finBuscaTop').parentElement.style.display = 'none';
+        document.getElementById('finSelTop').style.display = 'block';
+        document.getElementById('finDropTop').classList.remove('visible');
+    }
+
+    function limparTop() {
+        document.getElementById('finCODTIPOPER').value = '';
+        document.getElementById('finSelTop').style.display = 'none';
+        document.getElementById('finBuscaTop').parentElement.style.display = 'flex';
+        document.getElementById('finBuscaTop').value = '';
+        setTimeout(() => document.getElementById('finBuscaTop').focus(), 100);
+    }
+
+    // === SUBSTITUIÇÃO DA FUNÇÃO ANTIGA abrirModalLancamento ===
+    // (Apague a que já existe abaixo se houver, ou apenas deixe esta aqui que vai sobrescrever)
+    
+    function abrirModalLancamento() {
+        // 1. Limpa valores
+        document.getElementById('finRECDESP').value = '1';
+        document.getElementById('finVLRDESDOB').value = '';
+        document.getElementById('finHISTORICO').value = '';
+        
+        // 2. Reseta todas as Lupas
+        limparParceiroFin();
+        limparNatureza();
+        limparTipoTitulo();
+        limparContaBancaria();
+        limparTop();
+
+        // 3. Abre o modal
+        document.getElementById('modalLancamentoFin').classList.add('visible');
+    }
+function fecharModalLancamento(event) {
+    // Se o evento foi passado (clique fora), verifica se foi no overlay. Se não, fecha direto (botão cancelar).
+    if (event && !event.target.classList.contains('modal-overlay')) return;
+    document.getElementById('modalLancamentoFin').classList.remove('visible');
+}
+
+// LÓGICA DE SALVAMENTO (Adaptada do seu Debug Master validado)
+function salvarLancamentoFinanceiro() {
+    var btn = document.getElementById('btnSalvarFin');
+    var textoOriginal = btn.innerHTML;
+    
+    // 1. Coleta dos Dados usando os IDs do novo modal
+    var rawRecDesp = document.getElementById('finRECDESP').value;
+    var rawVlrDesdob = document.getElementById('finVLRDESDOB').value;
+    var rawCodParc = document.getElementById('finCODPARC').value;
+    var rawCodNat = document.getElementById('finCODNAT').value;
+    var rawCodTipTit = document.getElementById('finCODTIPTIT').value;
+    var rawCodCtaBcoInt = document.getElementById('finCODCTABCOINT').value;
+    var rawCodTipOper = document.getElementById('finCODTIPOPER').value;
+    var rawHistorico = document.getElementById('finHISTORICO').value.trim();
+
+    // 2. Validação simples de campos obrigatórios
+    if (!rawRecDesp || !rawVlrDesdob || !rawCodParc || !rawCodNat || 
+        !rawCodTipTit || !rawCodCtaBcoInt || !rawCodTipOper) {
+        alert("⚠️ Por favor, preencha todos os campos obrigatórios (*)");
+        return;
+    }
+
+    // 3. Feedback visual de carregamento
+    btn.innerHTML = '⏳ Processando...';
+    btn.disabled = true;
+
+    // 4. Construção do Objeto (Conversão de Tipos - CRÍTICO PARA O JAVA)
+    var params = {
+        RECDESP: parseInt(rawRecDesp),
+        VLRDESDOB: parseFloat(rawVlrDesdob),
+        CODPARC: parseInt(rawCodParc),
+        CODNAT: parseInt(rawCodNat),
+        CODTIPTIT: parseInt(rawCodTipTit),
+        CODCTABCOINT: parseInt(rawCodCtaBcoInt),
+        CODTIPOPER: parseInt(rawCodTipOper)
+    };
+
+    if (rawHistorico) {
+        params.HISTORICO = rawHistorico;
+    }
+
+    // 5. Configuração da Ação
+    var config = {
+        idBotao: 131, // ID validado nos seus testes
+        tipo: 'JAVA'
+    };
+
+    // 6. Execução via JX (Promise Padrão)
+    if (typeof JX === 'undefined') {
+        alert("Erro crítico: Biblioteca JX não carregada.");
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
+        return;
+    }
+
+    JX.acionarBotao(params, config)
+        .then(function(resultado) {
+            console.log('✅ Sucesso:', resultado);
+            
+            // Tratamento de mensagem de sucesso (Decodificação base64 se necessário)
+            var msg = "Lançamento realizado com sucesso!";
+            if(resultado && resultado.statusMessage) {
+                try {
+                    // Tenta decodificar se vier em base64 (comum no Sankhya)
+                    var decoded = atob(resultado.statusMessage);
+                    // Verifica se o decode resultou em caracteres legíveis
+                    if (/[\x00-\x1F\x80-\xFF]/.test(decoded)) { 
+                         msg = resultado.statusMessage; 
+                    } else {
+                         msg = decoded;
+                    }
+                } catch(e) {
+                    msg = resultado.statusMessage;
+                }
+            }
+            
+            alert('✅ ' + msg);
+            fecharModalLancamento(); // Fecha a janela
+            consultar(); // Atualiza o grid do dashboard para mostrar o novo lançamento
+        })
+        .catch(function(erro) {
+            console.error('❌ Erro:', erro);
+            var msgErro = String(erro);
+            
+            if (erro && erro.statusMessage) {
+                try {
+                    msgErro = atob(erro.statusMessage);
+                } catch(e) {
+                    msgErro = erro.statusMessage;
+                }
+            }
+            
+            alert('❌ Falha ao lançar: ' + msgErro);
+        })
+        .finally(function() {
+            // Restaura o botão independente de sucesso ou erro
+            btn.innerHTML = textoOriginal;
+            btn.disabled = false;
+        });
+}
+    </script>
+</body>
+</html>

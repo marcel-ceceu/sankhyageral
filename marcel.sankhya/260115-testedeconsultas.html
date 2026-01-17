@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Sankhya</title>
+    <script src="https://cdn.jsdelivr.net/gh/wansleynery/SankhyaJX@main/jx.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; min-height: 100vh; padding: 20px; color: #fff; }
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        .header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e63946; }
+        .header h1 { font-size: 20px; }
+        .header-actions { margin-left: auto; display: flex; gap: 10px; }
+
+        .status-bar { display: flex; gap: 20px; margin-bottom: 20px; padding: 10px 15px; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 13px; flex-wrap: wrap; }
+        .status-item { display: flex; align-items: center; gap: 8px; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; }
+        .status-dot.ok { background: #4ade80; }
+        .status-dot.error { background: #ef4444; }
+
+        .metrics { display: flex; gap: 15px; margin-left: auto; font-size: 11px; color: #9ca3af; }
+        .metric { background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 4px; }
+        .metric b { color: #4ade80; }
+
+        .main { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .panel { background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; }
+        .panel-header { background: rgba(255,255,255,0.1); padding: 12px 15px; font-size: 14px; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .panel-body { padding: 15px; }
+
+        textarea { width: 100%; height: 350px; background: #0d1117; border: 1px solid #30363d; border-radius: 8px; color: #c9d1d9; font-family: 'Consolas', monospace; font-size: 13px; padding: 12px; resize: vertical; line-height: 1.5; }
+        textarea:focus { outline: none; border-color: #e63946; }
+
+        .output { width: 100%; height: 350px; background: #0d1117; border: 1px solid #30363d; border-radius: 8px; color: #c9d1d9; font-family: 'Consolas', monospace; font-size: 12px; padding: 12px; overflow-y: auto; }
+        .log { margin-bottom: 4px; padding: 4px 8px; border-radius: 4px; }
+        .log-time { color: #6b7280; font-size: 10px; margin-right: 8px; }
+        .log-success { background: rgba(74, 222, 128, 0.1); border-left: 3px solid #4ade80; color: #4ade80; }
+        .log-error { background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; color: #fca5a5; }
+        .log-warn { background: rgba(251, 191, 36, 0.1); border-left: 3px solid #fbbf24; color: #fbbf24; }
+        .log-info { background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; color: #93c5fd; }
+        .log-data { background: rgba(255, 255, 255, 0.05); border-left: 3px solid #9ca3af; white-space: pre-wrap; word-break: break-all; }
+        .log-danger { background: rgba(239, 68, 68, 0.2); border-left: 3px solid #ef4444; color: #fca5a5; font-weight: 600; }
+
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-sm { padding: 6px 12px; font-size: 11px; }
+        .btn-primary { background: #e63946; color: white; }
+        .btn-primary:hover { background: #c1121f; }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: white; }
+        .btn-secondary:hover { background: rgba(255,255,255,0.2); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s linear infinite; margin-right: 8px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .toast { position: fixed; bottom: 20px; right: 20px; background: #4ade80; color: #000; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; opacity: 0; transition: opacity 0.3s; z-index: 1000; }
+        .toast.show { opacity: 1; }
+
+        /* DataGrid */
+        .datagrid-panel { margin-top: 20px; }
+        .datagrid-container { width: 100%; max-height: 400px; overflow: auto; background: #0d1117; border: 1px solid #30363d; border-radius: 8px; }
+        .datagrid { width: 100%; border-collapse: collapse; font-family: 'Consolas', monospace; font-size: 12px; }
+        .datagrid th { position: sticky; top: 0; background: #161b22; color: #58a6ff; padding: 10px 12px; text-align: left; border-bottom: 2px solid #30363d; font-weight: 600; white-space: nowrap; }
+        .datagrid td { padding: 8px 12px; border-bottom: 1px solid #21262d; color: #c9d1d9; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .datagrid tr:hover td { background: rgba(56, 139, 253, 0.1); }
+        .datagrid-empty { padding: 40px; text-align: center; color: #6b7280; }
+        .datagrid-info { font-size: 11px; color: #9ca3af; }
+
+        /* Toolbar do codigo */
+        .code-toolbar { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; flex-wrap: wrap; }
+        .code-toolbar select { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; padding: 6px 10px; font-size: 12px; cursor: pointer; }
+        .code-toolbar select:focus { outline: none; border-color: #e63946; }
+        .code-toolbar select option { background: #0d1117; }
+        .code-toolbar select optgroup { color: #58a6ff; font-weight: 600; }
+
+        /* Historico */
+        .historico-nav { display: flex; align-items: center; gap: 5px; }
+        .historico-nav button { background: rgba(255,255,255,0.1); border: none; color: white; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .historico-nav button:hover { background: rgba(255,255,255,0.2); }
+        .historico-nav button:disabled { opacity: 0.3; cursor: not-allowed; }
+        .historico-nav span { font-size: 11px; color: #9ca3af; min-width: 50px; text-align: center; }
+
+        /* Docs Panel */
+        .docs-panel { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; margin-bottom: 20px; overflow: hidden; }
+        .docs-header { background: rgba(255,255,255,0.1); padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .docs-header:hover { background: rgba(255,255,255,0.15); }
+        .docs-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .docs-content.open { max-height: 400px; }
+        .docs-body { padding: 15px; font-size: 12px; overflow-y: auto; max-height: 350px; }
+        .docs-section { margin-bottom: 15px; }
+        .docs-section h4 { color: #58a6ff; margin-bottom: 8px; font-size: 13px; }
+        .docs-section pre { background: #0d1117; padding: 10px; border-radius: 6px; overflow-x: auto; margin: 5px 0; }
+        .docs-section code { color: #4ade80; }
+        .docs-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        .docs-table th, .docs-table td { padding: 6px 10px; border: 1px solid #30363d; text-align: left; }
+        .docs-table th { background: #161b22; color: #58a6ff; }
+
+        /* Dropdown export */
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content { display: none; position: absolute; right: 0; top: 100%; background: #161b22; border: 1px solid #30363d; border-radius: 6px; min-width: 120px; z-index: 100; overflow: hidden; }
+        .dropdown-content button { display: block; width: 100%; padding: 8px 12px; background: none; border: none; color: #c9d1d9; text-align: left; cursor: pointer; font-size: 12px; }
+        .dropdown-content button:hover { background: rgba(255,255,255,0.1); }
+        .dropdown:hover .dropdown-content { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Teste Sankhya JX</h1>
+            <div class="header-actions">
+                <button class="btn btn-secondary btn-sm" onclick="toggleDocs()">Docs</button>
+            </div>
+        </div>
+
+        <!-- Painel de Documentacao -->
+        <div class="docs-panel" id="docsPanel">
+            <div class="docs-header" onclick="toggleDocs()">
+                <span>Documentacao Rapida JX</span>
+                <span id="docsToggleIcon">+</span>
+            </div>
+            <div class="docs-content" id="docsContent">
+                <div class="docs-body">
+                    <div class="docs-section">
+                        <h4>Metodos Disponiveis</h4>
+                        <table class="docs-table">
+                            <tr><th>Metodo</th><th>Descricao</th><th>Retorno</th></tr>
+                            <tr><td><code>JX.consultar(sql)</code></td><td>Executa SELECT</td><td>Promise&lt;Array&gt;</td></tr>
+                            <tr><td><code>JX.salvar(dados, instancia, [pks])</code></td><td>INSERT (pk vazia) ou UPDATE (pk preenchida)</td><td>Promise</td></tr>
+                            <tr><td><code>JX.deletar(instancia, [pks])</code></td><td>Remove registros</td><td>Promise</td></tr>
+                        </table>
+                    </div>
+                    <div class="docs-section">
+                        <h4>Exemplos</h4>
+                        <pre><code>// SELECT
+return await JX.consultar('SELECT * FROM TGFPRO WHERE ROWNUM <= 10');
+
+// INSERT (chave vazia)
+await JX.salvar({DESCRPROD: 'Novo'}, 'Produto', [{}]);
+
+// UPDATE (chave preenchida)
+await JX.salvar({DESCRPROD: 'Alterado'}, 'Produto', [{CODPROD: 123}]);
+
+// DELETE
+await JX.deletar('Produto', [{CODPROD: 123}]);</code></pre>
+                    </div>
+                    <div class="docs-section">
+                        <h4>Instancias Comuns</h4>
+                        <table class="docs-table">
+                            <tr><th>Instancia</th><th>Tabela</th><th>PK</th></tr>
+                            <tr><td>Produto</td><td>TGFPRO</td><td>CODPROD</td></tr>
+                            <tr><td>Parceiro</td><td>TGFPAR</td><td>CODPARC</td></tr>
+                            <tr><td>MarcaProduto</td><td>TGFMAR</td><td>CODMARCA</td></tr>
+                            <tr><td>GrupoProduto</td><td>TGFGRU</td><td>CODGRUPOPROD</td></tr>
+                            <tr><td>Empresa</td><td>TSIEMP</td><td>CODEMP</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-dot" id="statusJX"></div>
+                <span id="statusJXText">Verificando JX...</span>
+            </div>
+            <div class="status-item">
+                <div class="status-dot" id="statusDB"></div>
+                <span id="statusDBText">Verificando Banco...</span>
+            </div>
+            <div class="metrics" id="metrics">
+                <span class="metric">Tempo: <b id="metricTime">-</b></span>
+                <span class="metric">Registros: <b id="metricCount">-</b></span>
+                <span class="metric">Tamanho: <b id="metricSize">-</b></span>
+                <span class="metric">Tipo: <b id="metricType">-</b></span>
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="panel">
+                <div class="panel-header">
+                    <span>Codigo (Ctrl+Enter)</span>
+                    <div class="historico-nav">
+                        <button onclick="historicoAnterior()" id="btnHistAnt" disabled title="Anterior">&larr;</button>
+                        <span id="historicoPos">0/0</span>
+                        <button onclick="historicoProximo()" id="btnHistProx" disabled title="Proximo">&rarr;</button>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div class="code-toolbar">
+                        <select id="snippetSelect" onchange="inserirSnippet()">
+                            <option value="">-- Snippets --</option>
+                            <optgroup label="Consultas">
+                                <option value="select_basico">SELECT basico</option>
+                                <option value="select_where">SELECT com WHERE</option>
+                                <option value="estrutura_tabela">Estrutura da tabela</option>
+                                <option value="campos_obrigatorios">Campos obrigatorios</option>
+                                <option value="constraints">Constraints/FKs</option>
+                            </optgroup>
+                            <optgroup label="Manipulacao">
+                                <option value="jx_insert">JX.salvar (INSERT)</option>
+                                <option value="jx_update">JX.salvar (UPDATE)</option>
+                                <option value="jx_delete">JX.deletar</option>
+                            </optgroup>
+                            <optgroup label="Utilitarios">
+                                <option value="buscar_fk">Buscar FK valida</option>
+                                <option value="verificar_existe">Verificar se existe</option>
+                                <option value="contar">Contar registros</option>
+                                <option value="metodos_jx">Listar metodos JX</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <textarea id="code" placeholder="// Use await para retornar valores:
+return await JX.consultar('SELECT CODPROD, DESCRPROD FROM TGFPRO WHERE ROWNUM <= 5');
+
+// Ou com console.log:
+const r = await JX.consultar('SELECT * FROM TGFPRO WHERE ROWNUM <= 5');
+console.log(r);
+return r;" onkeydown="handleKeydown(event)"></textarea>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="btnExecutar" onclick="executar()">Executar</button>
+                        <button class="btn btn-secondary" onclick="limpar()">Limpar</button>
+                        <button class="btn btn-secondary" onclick="limparHistorico()">Limpar Historico</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <span>Output</span>
+                    <div>
+                        <button class="btn btn-secondary btn-sm" onclick="copiar()">Copiar</button>
+                        <div class="dropdown">
+                            <button class="btn btn-secondary btn-sm">Exportar ▾</button>
+                            <div class="dropdown-content">
+                                <button onclick="exportar('json')">JSON</button>
+                                <button onclick="exportar('csv')">CSV</button>
+                                <button onclick="exportar('sql')">SQL INSERT</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div class="output" id="output"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel datagrid-panel">
+            <div class="panel-header">
+                <span>Resultado (DataGrid)</span>
+                <span class="datagrid-info"><span id="gridRowCount">0 registros</span> | <span id="gridColCount">0 colunas</span></span>
+            </div>
+            <div class="panel-body" style="padding: 0;">
+                <div class="datagrid-container" id="datagridContainer">
+                    <div class="datagrid-empty">Nenhum resultado para exibir</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ========================================
+        // VARIAVEIS GLOBAIS
+        // ========================================
+        let ultimoResultado = null;
+        let historico = [];
+        let historicoIndex = -1;
+        const HISTORICO_MAX = 50;
+        const HISTORICO_KEY = 'jx_historico';
+
+        // ========================================
+        // SNIPPETS / TEMPLATES
+        // ========================================
+        const snippets = {
+            select_basico: `// SELECT basico com limite
+return await JX.consultar('SELECT * FROM TABELA WHERE ROWNUM <= 10');`,
+
+            select_where: `// SELECT com filtro
+const valor = 'FILTRO';
+return await JX.consultar(\`SELECT * FROM TABELA WHERE CAMPO = '\${valor}'\`);`,
+
+            estrutura_tabela: `// Estrutura completa da tabela
+return await JX.consultar(\`
+  SELECT COLUMN_NAME, DATA_TYPE, DATA_LENGTH, NULLABLE,
+         CASE WHEN DATA_DEFAULT IS NOT NULL THEN 'SIM' ELSE 'NAO' END AS TEM_DEFAULT
+  FROM USER_TAB_COLUMNS
+  WHERE TABLE_NAME = 'TABELA'
+  ORDER BY COLUMN_ID
+\`);`,
+
+            campos_obrigatorios: `// Campos obrigatorios (NOT NULL sem DEFAULT)
+return await JX.consultar(\`
+  SELECT COLUMN_NAME, DATA_TYPE, DATA_LENGTH
+  FROM USER_TAB_COLUMNS
+  WHERE TABLE_NAME = 'TABELA'
+  AND NULLABLE = 'N'
+  AND DATA_DEFAULT IS NULL
+  ORDER BY COLUMN_ID
+\`);`,
+
+            constraints: `// Constraints da tabela (PK, FK, UK)
+return await JX.consultar(\`
+  SELECT C.CONSTRAINT_NAME, C.CONSTRAINT_TYPE, CC.COLUMN_NAME,
+         C.R_CONSTRAINT_NAME AS FK_REFERENCIA
+  FROM USER_CONSTRAINTS C
+  JOIN USER_CONS_COLUMNS CC ON C.CONSTRAINT_NAME = CC.CONSTRAINT_NAME
+  WHERE C.TABLE_NAME = 'TABELA'
+  ORDER BY C.CONSTRAINT_TYPE, CC.POSITION
+\`);`,
+
+            jx_insert: `// INSERT usando JX.salvar (chave vazia = novo registro)
+const dados = {
+  CAMPO1: 'valor1',
+  CAMPO2: 'valor2'
+};
+
+try {
+  const resultado = await JX.salvar(dados, 'Instancia', [{}]);
+  console.log('INSERT OK:', resultado);
+  return resultado;
+} catch(e) {
+  return 'Erro: ' + e.message;
+}`,
+
+            jx_update: `// UPDATE usando JX.salvar (chave preenchida = atualizar)
+const dados = {
+  CAMPO1: 'novo_valor'
+};
+const chave = { CODPK: 123 };
+
+try {
+  const resultado = await JX.salvar(dados, 'Instancia', [chave]);
+  console.log('UPDATE OK:', resultado);
+  return resultado;
+} catch(e) {
+  return 'Erro: ' + e.message;
+}`,
+
+            jx_delete: `// DELETE usando JX.deletar
+const chaves = [
+  { CODPK: 123 }
+];
+
+try {
+  const resultado = await JX.deletar('Instancia', chaves);
+  console.log('DELETE OK:', resultado);
+  return resultado;
+} catch(e) {
+  return 'Erro: ' + e.message;
+}`,
+
+            buscar_fk: `// Buscar valor valido para FK
+const fk = await JX.consultar('SELECT MIN(CODIGO) AS COD FROM TABELA_FK WHERE ATIVO = \\\'S\\\'');
+console.log('FK encontrada:', fk[0]?.COD);
+return fk;`,
+
+            verificar_existe: `// Verificar se registro existe
+const codigo = 123;
+const existe = await JX.consultar(\`SELECT COUNT(*) AS QTD FROM TABELA WHERE CODIGO = \${codigo}\`);
+const encontrou = existe[0]?.QTD > 0;
+console.log(encontrou ? 'Registro existe' : 'Registro NAO existe');
+return existe;`,
+
+            contar: `// Contar registros
+return await JX.consultar('SELECT COUNT(*) AS TOTAL FROM TABELA');`,
+
+            metodos_jx: `// Listar todos os metodos disponiveis no JX
+const metodos = Object.keys(JX).filter(k => typeof JX[k] === 'function');
+console.log('Metodos:', metodos);
+return { metodos, total: metodos.length };`
+        };
+
+        // ========================================
+        // INICIALIZACAO
+        // ========================================
+        window.onload = function() {
+            verificarJX();
+            setTimeout(verificarBanco, 500);
+            carregarHistorico();
+            carregarEstadoDocs();
+        };
+
+        function handleKeydown(event) {
+            if (event.ctrlKey && event.key === 'Enter') {
+                executar();
+            }
+        }
+
+        // ========================================
+        // VERIFICACOES DE STATUS
+        // ========================================
+        function verificarJX() {
+            const dot = document.getElementById('statusJX');
+            const text = document.getElementById('statusJXText');
+
+            if (typeof JX !== 'undefined') {
+                dot.classList.add('ok');
+                text.textContent = 'JX OK';
+                log('JX carregado', 'success');
+            } else {
+                dot.classList.add('error');
+                text.textContent = 'JX erro';
+                log('JX nao disponivel', 'error');
+            }
+        }
+
+        function verificarBanco() {
+            const dot = document.getElementById('statusDB');
+            const text = document.getElementById('statusDBText');
+
+            if (typeof JX === 'undefined') {
+                dot.classList.add('error');
+                text.textContent = 'Sem JX';
+                return;
+            }
+
+            JX.consultar('SELECT 1 FROM DUAL')
+                .then(() => {
+                    dot.classList.add('ok');
+                    text.textContent = 'Banco OK';
+                    log('Banco conectado', 'success');
+                })
+                .catch(err => {
+                    dot.classList.add('error');
+                    text.textContent = 'Banco erro';
+                    log('Erro banco: ' + err, 'error');
+                });
+        }
+
+        // ========================================
+        // DOCUMENTACAO
+        // ========================================
+        function toggleDocs() {
+            const content = document.getElementById('docsContent');
+            const icon = document.getElementById('docsToggleIcon');
+            const isOpen = content.classList.toggle('open');
+            icon.textContent = isOpen ? '-' : '+';
+            localStorage.setItem('jx_docs_open', isOpen ? '1' : '0');
+        }
+
+        function carregarEstadoDocs() {
+            const isOpen = localStorage.getItem('jx_docs_open') === '1';
+            if (isOpen) {
+                document.getElementById('docsContent').classList.add('open');
+                document.getElementById('docsToggleIcon').textContent = '-';
+            }
+        }
+
+        // ========================================
+        // SNIPPETS
+        // ========================================
+        function inserirSnippet() {
+            const select = document.getElementById('snippetSelect');
+            const key = select.value;
+            if (!key || !snippets[key]) return;
+
+            const textarea = document.getElementById('code');
+            const codigo = snippets[key];
+
+            // Se textarea vazio, substitui. Senao, insere na posicao do cursor
+            if (!textarea.value.trim()) {
+                textarea.value = codigo;
+            } else {
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const antes = textarea.value.substring(0, start);
+                const depois = textarea.value.substring(end);
+                textarea.value = antes + '\n\n' + codigo + '\n\n' + depois;
+                textarea.selectionStart = textarea.selectionEnd = start + codigo.length + 4;
+            }
+
+            textarea.focus();
+            select.value = '';
+            toast('Snippet inserido');
+        }
+
+        // ========================================
+        // HISTORICO
+        // ========================================
+        function carregarHistorico() {
+            try {
+                const saved = localStorage.getItem(HISTORICO_KEY);
+                if (saved) {
+                    historico = JSON.parse(saved);
+                    historicoIndex = historico.length;
+                }
+            } catch(e) {
+                historico = [];
+                historicoIndex = -1;
+            }
+            atualizarHistoricoUI();
+        }
+
+        function salvarHistorico() {
+            try {
+                localStorage.setItem(HISTORICO_KEY, JSON.stringify(historico));
+            } catch(e) {
+                // localStorage cheio, remove itens antigos
+                if (historico.length > 10) {
+                    historico = historico.slice(-10);
+                    localStorage.setItem(HISTORICO_KEY, JSON.stringify(historico));
+                }
+            }
+        }
+
+        function adicionarAoHistorico(codigo, sucesso, tempoMs) {
+            // Nao adiciona duplicatas consecutivas
+            if (historico.length > 0 && historico[historico.length - 1].codigo === codigo) {
+                return;
+            }
+
+            const item = {
+                id: Date.now(),
+                codigo: codigo,
+                dataHora: new Date().toISOString(),
+                sucesso: sucesso,
+                tempoMs: tempoMs
+            };
+
+            historico.push(item);
+
+            // Limita tamanho
+            if (historico.length > HISTORICO_MAX) {
+                historico = historico.slice(-HISTORICO_MAX);
+            }
+
+            historicoIndex = historico.length;
+            salvarHistorico();
+            atualizarHistoricoUI();
+        }
+
+        function atualizarHistoricoUI() {
+            const pos = document.getElementById('historicoPos');
+            const btnAnt = document.getElementById('btnHistAnt');
+            const btnProx = document.getElementById('btnHistProx');
+
+            const total = historico.length;
+            const atual = historicoIndex < total ? historicoIndex + 1 : total;
+
+            pos.textContent = total > 0 ? atual + '/' + total : '0/0';
+            btnAnt.disabled = historicoIndex <= 0;
+            btnProx.disabled = historicoIndex >= total;
+        }
+
+        function historicoAnterior() {
+            if (historicoIndex > 0) {
+                historicoIndex--;
+                document.getElementById('code').value = historico[historicoIndex].codigo;
+                atualizarHistoricoUI();
+            }
+        }
+
+        function historicoProximo() {
+            if (historicoIndex < historico.length - 1) {
+                historicoIndex++;
+                document.getElementById('code').value = historico[historicoIndex].codigo;
+            } else if (historicoIndex === historico.length - 1) {
+                historicoIndex = historico.length;
+                // Mantem o codigo atual ou limpa
+            }
+            atualizarHistoricoUI();
+        }
+
+        function limparHistorico() {
+            if (confirm('Limpar todo o historico de execucoes?')) {
+                historico = [];
+                historicoIndex = -1;
+                localStorage.removeItem(HISTORICO_KEY);
+                atualizarHistoricoUI();
+                toast('Historico limpo');
+            }
+        }
+
+        // ========================================
+        // LOG E OUTPUT
+        // ========================================
+        function log(msg, type) {
+            type = type || 'info';
+            const output = document.getElementById('output');
+            const time = new Date().toLocaleTimeString('pt-BR');
+            const div = document.createElement('div');
+            div.className = 'log log-' + type;
+            div.innerHTML = '<span class="log-time">[' + time + ']</span>' + escapeHtml(String(msg));
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function limpar() {
+            document.getElementById('output').innerHTML = '';
+            resetMetrics();
+            ultimoResultado = null;
+            renderDatagrid(null);
+            log('Limpo', 'info');
+        }
+
+        function resetMetrics() {
+            document.getElementById('metricTime').textContent = '-';
+            document.getElementById('metricCount').textContent = '-';
+            document.getElementById('metricSize').textContent = '-';
+            document.getElementById('metricType').textContent = '-';
+        }
+
+        function updateMetrics(tempo, resultado) {
+            const timeEl = document.getElementById('metricTime');
+            const countEl = document.getElementById('metricCount');
+            const sizeEl = document.getElementById('metricSize');
+            const typeEl = document.getElementById('metricType');
+
+            timeEl.textContent = tempo + 'ms';
+            timeEl.style.color = tempo < 100 ? '#4ade80' : tempo < 500 ? '#fbbf24' : '#ef4444';
+
+            let tipo = '-';
+            let count = '-';
+
+            if (resultado === null) {
+                tipo = 'null';
+            } else if (resultado === undefined) {
+                tipo = 'undefined';
+            } else if (Array.isArray(resultado)) {
+                tipo = 'Array';
+                count = resultado.length;
+            } else if (typeof resultado === 'object') {
+                tipo = 'Object';
+                count = Object.keys(resultado).length + ' props';
+            } else {
+                tipo = typeof resultado;
+            }
+
+            typeEl.textContent = tipo;
+            countEl.textContent = count;
+
+            const json = JSON.stringify(resultado);
+            const bytes = new Blob([json]).size;
+            if (bytes < 1024) {
+                sizeEl.textContent = bytes + ' B';
+            } else if (bytes < 1024 * 1024) {
+                sizeEl.textContent = (bytes / 1024).toFixed(2) + ' KB';
+            } else {
+                sizeEl.textContent = (bytes / 1024 / 1024).toFixed(2) + ' MB';
+            }
+        }
+
+        // ========================================
+        // DATAGRID
+        // ========================================
+        function renderDatagrid(data) {
+            const container = document.getElementById('datagridContainer');
+            const rowCountEl = document.getElementById('gridRowCount');
+            const colCountEl = document.getElementById('gridColCount');
+
+            if (!Array.isArray(data) || data.length === 0) {
+                container.innerHTML = '<div class="datagrid-empty">Nenhum resultado para exibir</div>';
+                rowCountEl.textContent = '0 registros';
+                colCountEl.textContent = '0 colunas';
+                return;
+            }
+
+            const colunas = Object.keys(data[0]);
+
+            rowCountEl.textContent = data.length + ' registro' + (data.length !== 1 ? 's' : '');
+            colCountEl.textContent = colunas.length + ' coluna' + (colunas.length !== 1 ? 's' : '');
+
+            let html = '<table class="datagrid">';
+
+            html += '<thead><tr>';
+            for (let i = 0; i < colunas.length; i++) {
+                html += '<th>' + escapeHtml(colunas[i]) + '</th>';
+            }
+            html += '</tr></thead>';
+
+            html += '<tbody>';
+            for (let i = 0; i < data.length; i++) {
+                html += '<tr>';
+                for (let j = 0; j < colunas.length; j++) {
+                    const valor = data[i][colunas[j]];
+                    const valorStr = valor === null ? 'NULL' : valor === undefined ? '' : String(valor);
+                    html += '<td title="' + escapeHtml(valorStr) + '">' + escapeHtml(valorStr) + '</td>';
+                }
+                html += '</tr>';
+            }
+            html += '</tbody></table>';
+
+            container.innerHTML = html;
+        }
+
+        // ========================================
+        // VALIDACAO DE OPERACOES PERIGOSAS
+        // ========================================
+        function verificarOperacaoPerigosa(code) {
+            const alertas = [];
+
+            // SQL direto - DANGER
+            const upper = code.toUpperCase();
+            const sqlDanger = ['TRUNCATE ', 'DROP '];
+            for (const op of sqlDanger) {
+                if (upper.includes(op)) {
+                    alertas.push({ nivel: 'danger', msg: 'SQL ' + op.trim() + ' detectado!' });
+                }
+            }
+
+            // SQL direto - WARN
+            const sqlWarn = ['DELETE ', 'UPDATE ', 'ALTER '];
+            for (const op of sqlWarn) {
+                if (upper.includes(op)) {
+                    alertas.push({ nivel: 'warn', msg: 'SQL ' + op.trim() + ' detectado' });
+                }
+            }
+
+            // JX.deletar
+            if (/JX\.deletar\s*\(/i.test(code)) {
+                alertas.push({ nivel: 'warn', msg: 'JX.deletar detectado - registros serao removidos' });
+            }
+
+            // JX.salvar com PK preenchida (UPDATE)
+            if (/JX\.salvar\s*\([^)]+,\s*[^)]+,\s*\[\s*\{[^}]+\}\s*\]/i.test(code)) {
+                alertas.push({ nivel: 'info', msg: 'JX.salvar com PK (UPDATE) detectado' });
+            }
+
+            // JX.salvar com PK vazia (INSERT)
+            if (/JX\.salvar\s*\([^)]+,\s*[^)]+,\s*\[\s*\{\s*\}\s*\]/i.test(code)) {
+                alertas.push({ nivel: 'info', msg: 'JX.salvar sem PK (INSERT) detectado' });
+            }
+
+            return alertas;
+        }
+
+        // ========================================
+        // TOAST
+        // ========================================
+        function toast(msg) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 2000);
+        }
+
+        // ========================================
+        // COPIAR E EXPORTAR
+        // ========================================
+        function copiar() {
+            if (!ultimoResultado) {
+                toast('Nada para copiar');
+                return;
+            }
+            const texto = typeof ultimoResultado === 'object'
+                ? JSON.stringify(ultimoResultado, null, 2)
+                : String(ultimoResultado);
+
+            navigator.clipboard.writeText(texto).then(() => {
+                toast('Copiado!');
+            }).catch(() => {
+                toast('Erro ao copiar');
+            });
+        }
+
+        function exportar(formato) {
+            if (!ultimoResultado) {
+                toast('Nada para exportar');
+                return;
+            }
+
+            let texto, tipo, extensao;
+
+            switch(formato) {
+                case 'csv':
+                    if (!Array.isArray(ultimoResultado) || ultimoResultado.length === 0) {
+                        toast('CSV requer array de objetos');
+                        return;
+                    }
+                    texto = arrayParaCSV(ultimoResultado);
+                    tipo = 'text/csv;charset=utf-8';
+                    extensao = 'csv';
+                    break;
+
+                case 'sql':
+                    if (!Array.isArray(ultimoResultado) || ultimoResultado.length === 0) {
+                        toast('SQL requer array de objetos');
+                        return;
+                    }
+                    const tabela = prompt('Nome da tabela para INSERT:', 'TABELA');
+                    if (!tabela) return;
+                    texto = arrayParaSQL(ultimoResultado, tabela);
+                    tipo = 'text/plain;charset=utf-8';
+                    extensao = 'sql';
+                    break;
+
+                default: // json
+                    texto = typeof ultimoResultado === 'object'
+                        ? JSON.stringify(ultimoResultado, null, 2)
+                        : String(ultimoResultado);
+                    tipo = 'application/json';
+                    extensao = 'json';
+            }
+
+            // BOM para UTF-8 (ajuda Excel)
+            const bom = formato === 'csv' ? '\uFEFF' : '';
+            const blob = new Blob([bom + texto], { type: tipo });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'resultado_' + Date.now() + '.' + extensao;
+            a.click();
+            URL.revokeObjectURL(url);
+            toast('Exportado como ' + extensao.toUpperCase());
+        }
+
+        function arrayParaCSV(dados) {
+            const colunas = Object.keys(dados[0]);
+            const linhas = [];
+
+            // Header
+            linhas.push(colunas.join(';'));
+
+            // Dados
+            for (const row of dados) {
+                const valores = colunas.map(col => {
+                    let val = row[col];
+                    if (val === null || val === undefined) return '';
+                    val = String(val);
+                    // Escapa aspas e valores com ; ou quebra de linha
+                    if (val.includes(';') || val.includes('"') || val.includes('\n')) {
+                        val = '"' + val.replace(/"/g, '""') + '"';
+                    }
+                    return val;
+                });
+                linhas.push(valores.join(';'));
+            }
+
+            return linhas.join('\n');
+        }
+
+        function arrayParaSQL(dados, tabela) {
+            const colunas = Object.keys(dados[0]);
+            const inserts = [];
+
+            for (const row of dados) {
+                const valores = colunas.map(col => {
+                    const val = row[col];
+                    if (val === null || val === undefined) return 'NULL';
+                    if (typeof val === 'number') return val;
+                    // String - escapa aspas simples
+                    return "'" + String(val).replace(/'/g, "''") + "'";
+                });
+                inserts.push(`INSERT INTO ${tabela} (${colunas.join(', ')}) VALUES (${valores.join(', ')});`);
+            }
+
+            return inserts.join('\n');
+        }
+
+        // ========================================
+        // EXECUTAR CODIGO
+        // ========================================
+        async function executar() {
+            const code = document.getElementById('code').value.trim();
+            const btn = document.getElementById('btnExecutar');
+
+            if (!code) {
+                log('Digite um codigo', 'error');
+                return;
+            }
+
+            // Verifica operacoes perigosas
+            const alertas = verificarOperacaoPerigosa(code);
+            for (const alerta of alertas) {
+                log('ATENCAO: ' + alerta.msg, alerta.nivel);
+            }
+
+            // Confirmacao para operacoes DANGER
+            const temDanger = alertas.some(a => a.nivel === 'danger');
+            if (temDanger) {
+                if (!confirm('ATENCAO: Operacao perigosa detectada (TRUNCATE/DROP)!\n\nTem certeza que deseja executar?')) {
+                    log('Execucao cancelada pelo usuario', 'warn');
+                    return;
+                }
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>Executando...';
+            resetMetrics();
+
+            log('=== EXECUTANDO ===', 'info');
+            const inicio = performance.now();
+
+            const originalLog = console.log;
+            const originalError = console.error;
+
+            console.log = function() {
+                originalLog.apply(console, arguments);
+                for (let i = 0; i < arguments.length; i++) {
+                    const arg = arguments[i];
+                    if (typeof arg === 'object') {
+                        log(JSON.stringify(arg, null, 2), 'data');
+                    } else {
+                        log(String(arg), 'data');
+                    }
+                }
+            };
+
+            console.error = function() {
+                originalError.apply(console, arguments);
+                for (let i = 0; i < arguments.length; i++) {
+                    log(String(arguments[i]), 'error');
+                }
+            };
+
+            let sucesso = false;
+            let tempo = 0;
+
+            try {
+                const resultado = await eval('(async () => { ' + code + ' })()');
+                tempo = Math.round(performance.now() - inicio);
+                sucesso = true;
+
+                ultimoResultado = resultado;
+
+                if (resultado !== undefined) {
+                    updateMetrics(tempo, resultado);
+                    log('Retorno (' + tempo + 'ms):', 'info');
+                    if (typeof resultado === 'object') {
+                        log(JSON.stringify(resultado, null, 2), 'data');
+                    } else {
+                        log(String(resultado), 'data');
+                    }
+                    if (Array.isArray(resultado)) {
+                        renderDatagrid(resultado);
+                    } else {
+                        renderDatagrid(null);
+                    }
+                } else {
+                    document.getElementById('metricTime').textContent = tempo + 'ms';
+                    document.getElementById('metricType').textContent = 'void';
+                    renderDatagrid(null);
+                }
+
+                log('=== FINALIZADO (' + tempo + 'ms) ===', 'success');
+
+            } catch (err) {
+                tempo = Math.round(performance.now() - inicio);
+                log('ERRO (' + tempo + 'ms): ' + err.message, 'error');
+                document.getElementById('metricTime').textContent = tempo + 'ms';
+                document.getElementById('metricTime').style.color = '#ef4444';
+                document.getElementById('metricType').textContent = 'Error';
+                renderDatagrid(null);
+            } finally {
+                console.log = originalLog;
+                console.error = originalError;
+                btn.disabled = false;
+                btn.innerHTML = 'Executar';
+
+                // Adiciona ao historico
+                adicionarAoHistorico(code, sucesso, tempo);
+            }
+        }
+    </script>
+</body>
+</html>

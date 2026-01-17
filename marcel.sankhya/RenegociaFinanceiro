@@ -1,0 +1,495 @@
+package br.com.apesp.renegociarfinanceiro;
+import br.com.sankhya.extensions.actionbutton.AcaoRotinaJava;
+import br.com.sankhya.extensions.actionbutton.ContextoAcao;
+import br.com.sankhya.extensions.actionbutton.Registro;
+import br.com.sankhya.jape.EntityFacade;
+import br.com.sankhya.jape.core.JapeSession;
+import br.com.sankhya.jape.dao.JdbcWrapper;
+import br.com.sankhya.jape.sql.NativeSql;
+import br.com.sankhya.jape.vo.DynamicVO;
+import br.com.sankhya.jape.wrapper.JapeFactory;
+import br.com.sankhya.jape.wrapper.JapeWrapper;
+import br.com.sankhya.jape.wrapper.fluid.FluidCreateVO;
+import br.com.sankhya.modelcore.auth.AuthenticationInfo;
+import br.com.sankhya.modelcore.util.EntityFacadeFactory;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.sql.ResultSet;
+import java.sql.Timestamp;
+import java.util.Calendar;
+/**
+ * Renegociação de Títulos Financeiros - Sankhya ERP
+ * 
+ * CORREÇÕES v3.0:
+ * 1. Arredondamento de parcelas (última parcela recebe a diferença)
+ * 2. TGFREN com campos CODUSU e DHALTER
+ * 3. TGFFIN com campos CODUSU, DTALTER, SEQUENCIA, TIPJURO, TIPMULTA
+ * 
+ * @author Marcel
+ * @version 3.0 - Correções baseadas em análise de log
+ * @date 20/12/2024
+ */
+public class RenegociaFinanceiro implements AcaoRotinaJava {
+    @Override
+    public void doAction(ContextoAcao contexto) throws Exception {
+        
+        DebugRenegociacao.iniciarSecao("RENEGOCIAÇÃO DE TÍTULOS - INÍCIO v3.0");
+        
+        JapeSession.SessionHandle hnd = null;
+        JdbcWrapper jdbc = null;
+        
+        try {
+            // ══════════════════════════════════════════════════════════════
+            // ETAPA 1: VALIDAR CONTEXTO
+            // ══════════════════════════════════════════════════════════════
+            
+            DebugRenegociacao.subSecao("Validando títulos selecionados");
+            
+            Registro[] linhas = contexto.getLinhas();
+            
+            if (linhas == null || linhas.length == 0) {
+                DebugRenegociacao.alerta("Nenhum título foi selecionado!");
+                contexto.setMensagemRetorno("❌ Nenhum título selecionado!");
+                return;
+            }
+            
+            DebugRenegociacao.sucesso("Títulos selecionados: " + linhas.length);
+            
+            // ══════════════════════════════════════════════════════════════
+            // ETAPA 2: OBTER USUÁRIO LOGADO
+            // ══════════════════════════════════════════════════════════════
+            
+            DebugRenegociacao.subSecao("Obtendo usuário logado");
+            
+            BigDecimal codUsuLogado = obterUsuarioLogado();
+            DebugRenegociacao.valor("Código do usuário", codUsuLogado);
+            
+         // ══════════════════════════════════════════════════════════════
+         // ETAPA 3: CAPTURAR PARÂMETROS DO POPUP
+         // ══════════════════════════════════════════════════════════════
+         DebugRenegociacao.subSecao("Capturando parâmetros do popup");
+         // Capturar parâmetros informados pelo usuário
+         Object paramParcelas = contexto.getParam("NUMPARCELAS");
+         Object paramIntervalo = contexto.getParam("INTERVALO");
+         // Validar e converter NUMPARCELAS
+         int numeroParcelas;
+         if (paramParcelas == null) {
+             throw new Exception("Informe o número de parcelas!");
+         }
+         if (paramParcelas instanceof BigDecimal) {
+             numeroParcelas = ((BigDecimal) paramParcelas).intValue();
+         } else if (paramParcelas instanceof Integer) {
+             numeroParcelas = (Integer) paramParcelas;
+         } else {
+             numeroParcelas = Integer.parseInt(paramParcelas.toString());
+         }
+         // Validar e converter INTERVALO
+         int intervaloDias;
+         if (paramIntervalo == null) {
+             throw new Exception("Informe o intervalo entre parcelas!");
+         }
+         if (paramIntervalo instanceof BigDecimal) {
+             intervaloDias = ((BigDecimal) paramIntervalo).intValue();
+         } else if (paramIntervalo instanceof Integer) {
+             intervaloDias = (Integer) paramIntervalo;
+         } else {
+             intervaloDias = Integer.parseInt(paramIntervalo.toString());
+         }
+      // Capturar CODTIPVENDA
+         Object paramTipVenda = contexto.getParam("CODTIPVENDA");
+         if (paramTipVenda == null) {
+             throw new Exception("Informe o Tipo de Venda!");
+         }
+         BigDecimal codTipVenda;
+         if (paramTipVenda instanceof BigDecimal) {
+             codTipVenda = (BigDecimal) paramTipVenda;
+         } else {
+             codTipVenda = new BigDecimal(paramTipVenda.toString());
+         }
+         DebugRenegociacao.valor("CODTIPVENDA informado", codTipVenda);
+         // Buscar configuração na AD_TPVTIPTIT
+         BigDecimal codCtaBcoInt = null;
+         BigDecimal codTipTit = null;
+         JapeWrapper tpvTipTitDAO = JapeFactory.dao("AD_TPVTIPTIT");
+         DynamicVO configVO = tpvTipTitDAO.findOne("CODTIPVENDA = ?", codTipVenda);
+         if (configVO == null) {
+             throw new Exception("Configuração não encontrada para CODTIPVENDA = " + codTipVenda);
+         }
+         codCtaBcoInt = configVO.asBigDecimal("CODCTABCOINT");
+         codTipTit = configVO.asBigDecimal("CODTIPTIT");
+         DebugRenegociacao.valor("CODCTABCOINT (da tabela)", codCtaBcoInt);
+         DebugRenegociacao.valor("CODTIPTIT (da tabela)", codTipTit);
+            
+            // ══════════════════════════════════════════════════════════════
+            // ETAPA 4: ABRIR RECURSOS
+            // ══════════════════════════════════════════════════════════════
+            
+            DebugRenegociacao.subSecao("Abrindo recursos do sistema");
+            
+            hnd = JapeSession.open();
+            EntityFacade dwfFacade = EntityFacadeFactory.getDWFFacade();
+            jdbc = dwfFacade.getJdbcWrapper();
+            jdbc.openSession();
+            
+            JapeWrapper finDAO = JapeFactory.dao("Financeiro");
+            JapeWrapper renDAO = JapeFactory.dao("Renegociacao");
+            
+            DebugRenegociacao.sucesso("Recursos abertos com sucesso");
+            
+            // ══════════════════════════════════════════════════════════════
+            // ETAPA 5: GERAR NURENEG
+            // ══════════════════════════════════════════════════════════════
+            
+            DebugRenegociacao.subSecao("Gerando código de renegociação (NURENEG)");
+            
+            BigDecimal nureneg = obterProximoNureneg(jdbc);
+            DebugRenegociacao.valor("NURENEG gerado", nureneg);
+            
+            // ══════════════════════════════════════════════════════════════
+            // ETAPA 6: PROCESSAR CADA TÍTULO
+            // ══════════════════════════════════════════════════════════════
+            
+            int sucessos = 0;
+            int erros = 0;
+            StringBuilder mensagemFinal = new StringBuilder();
+            Timestamp dataHoraAtual = new Timestamp(System.currentTimeMillis());
+            
+            for (Registro linha : linhas) {
+                
+                BigDecimal nufinOriginal = null;
+                
+                try {
+                    nufinOriginal = (BigDecimal) linha.getCampo("NUFIN");
+                    
+                    DebugRenegociacao.iniciarSecao("PROCESSANDO NUFIN: " + nufinOriginal);
+                    
+                    // ══════════════════════════════════════════════════════
+                    // PASSO 1: BUSCAR E VALIDAR
+                    // ══════════════════════════════════════════════════════
+                    
+                    DynamicVO tituloOriginal = finDAO.findByPK(nufinOriginal);
+                    
+                    if (tituloOriginal == null) {
+                        throw new Exception("NUFIN " + nufinOriginal + " não encontrado!");
+                    }
+                    
+                    // Validações
+                    BigDecimal nurenegExistente = tituloOriginal.asBigDecimal("NURENEG");
+                    if (nurenegExistente != null && nurenegExistente.compareTo(BigDecimal.ZERO) > 0) {
+                        throw new Exception("Título já renegociado! NURENEG: " + nurenegExistente);
+                    }
+                    
+                    Timestamp dhbaixa = tituloOriginal.asTimestamp("DHBAIXA");
+                    if (dhbaixa != null) {
+                        throw new Exception("Título já baixado em: " + dhbaixa);
+                    }
+                    
+                    BigDecimal recDespOriginal = tituloOriginal.asBigDecimal("RECDESP");
+                    if (recDespOriginal == null || recDespOriginal.compareTo(BigDecimal.ZERO) == 0) {
+                        throw new Exception("RECDESP inválido: " + recDespOriginal);
+                    }
+                    
+                    DebugRenegociacao.sucesso("Validações OK");
+                    
+                    // ══════════════════════════════════════════════════════
+                    // PASSO 2: EXTRAIR DADOS DO TÍTULO ORIGINAL
+                    // ══════════════════════════════════════════════════════
+                    
+                    DebugRenegociacao.subSecao("Extraindo dados do título original");
+                    
+                    // Campos NUMBER obrigatórios
+                    BigDecimal codemp = tituloOriginal.asBigDecimal("CODEMP");
+                    BigDecimal numnota = tituloOriginal.asBigDecimal("NUMNOTA");
+                    BigDecimal codparc = tituloOriginal.asBigDecimal("CODPARC");
+                    BigDecimal codtipoper = tituloOriginal.asBigDecimal("CODTIPOPER");
+                    BigDecimal codbco = tituloOriginal.asBigDecimal("CODBCO");
+                    BigDecimal codnat = tituloOriginal.asBigDecimal("CODNAT");
+                    BigDecimal codcencus = tituloOriginal.asBigDecimal("CODCENCUS");
+                    BigDecimal codvend = tituloOriginal.asBigDecimal("CODVEND");
+                    BigDecimal codmoeda = tituloOriginal.asBigDecimal("CODMOEDA");
+                    BigDecimal codtiptit = tituloOriginal.asBigDecimal("CODTIPTIT");
+                    
+                    // Campos NUMBER opcionais
+                    BigDecimal codctabcoint = tituloOriginal.asBigDecimal("CODCTABCOINT");
+                    BigDecimal codproj = tituloOriginal.asBigDecimal("CODPROJ");
+                    
+                    // Campos FLOAT
+                    BigDecimal vlrdesdob = tituloOriginal.asBigDecimal("VLRDESDOB");
+                    BigDecimal vlrjuronegoc = tituloOriginal.asBigDecimal("VLRJURONEGOC");
+                    BigDecimal vlrmultanegoc = tituloOriginal.asBigDecimal("VLRMULTANEGOC");
+                    BigDecimal vlrvendor = tituloOriginal.asBigDecimal("VLRVENDOR");
+                    
+                    // Campos VARCHAR2
+                    String serienota = tituloOriginal.asString("SERIENOTA");
+                    String tipjuro = tituloOriginal.asString("TIPJURO");     // NOVO
+                    String tipmulta = tituloOriginal.asString("TIPMULTA");   // NOVO
+                    
+                    // Campos DATE
+                    Timestamp dtneg = tituloOriginal.asTimestamp("DTNEG");
+                    Timestamp dhtipoper = tituloOriginal.asTimestamp("DHTIPOPER");
+                    
+                    DebugRenegociacao.sucesso("Dados extraídos com sucesso");
+                    
+                    // ══════════════════════════════════════════════════════
+                    // PASSO 3: UPDATE TÍTULO ORIGINAL
+                    // ══════════════════════════════════════════════════════
+                    
+                    DebugRenegociacao.subSecao("Atualizando título original");
+                    
+                    String sqlUpdate = "UPDATE TGFFIN SET DTALTER = ?, NURENEG = ?, RECDESP = ? WHERE NUFIN = ?";
+                    java.sql.PreparedStatement pstmt = null;
+                    
+                    try {
+                        pstmt = jdbc.getPreparedStatement(sqlUpdate);
+                        pstmt.setTimestamp(1, dataHoraAtual);
+                        pstmt.setBigDecimal(2, nureneg);
+                        pstmt.setBigDecimal(3, BigDecimal.ZERO);
+                        pstmt.setBigDecimal(4, nufinOriginal);
+                        
+                        int linhasAfetadas = pstmt.executeUpdate();
+                        
+                        if (linhasAfetadas == 0) {
+                            throw new Exception("UPDATE não afetou nenhum registro!");
+                        }
+                        
+                        DebugRenegociacao.sucesso("Título original atualizado");
+                        
+                    } finally {
+                        if (pstmt != null) {
+                            try { pstmt.close(); } catch (Exception e) { }
+                        }
+                    }
+                    
+                    // ══════════════════════════════════════════════════════
+                    // PASSO 4: CALCULAR PARCELAS (COM ARREDONDAMENTO CORRETO)
+                    // ══════════════════════════════════════════════════════
+                    
+                    DebugRenegociacao.subSecao("Calculando parcelas com arredondamento correto");
+                    
+                    // Calcular valor base da parcela
+                    BigDecimal vlrParcelaBase = vlrdesdob.divide(
+                        BigDecimal.valueOf(numeroParcelas), 
+                        2, 
+                        RoundingMode.DOWN  // Arredondar para baixo nas parcelas normais
+                    );
+                    
+                    // Calcular soma das parcelas normais (todas menos a última)
+                    BigDecimal somaParcelasNormais = vlrParcelaBase.multiply(
+                        BigDecimal.valueOf(numeroParcelas - 1)
+                    );
+                    
+                    // Última parcela recebe a diferença para fechar o valor total
+                    BigDecimal vlrUltimaParcela = vlrdesdob.subtract(somaParcelasNormais);
+                    
+                    DebugRenegociacao.valor("Valor original", vlrdesdob);
+                    DebugRenegociacao.valor("Valor parcela base", vlrParcelaBase);
+                    DebugRenegociacao.valor("Soma parcelas normais", somaParcelasNormais);
+                    DebugRenegociacao.valor("Valor última parcela", vlrUltimaParcela);
+                    DebugRenegociacao.valor("VERIFICAÇÃO: " + somaParcelasNormais + " + " + vlrUltimaParcela + " = " + 
+                        somaParcelasNormais.add(vlrUltimaParcela), "");
+                    
+                    // ══════════════════════════════════════════════════════
+                    // PASSO 5: CRIAR NOVOS TÍTULOS (PARCELAS)
+                    // ══════════════════════════════════════════════════════
+                    
+                    DebugRenegociacao.subSecao("Criando parcelas renegociadas");
+                    
+                    Timestamp dataHoje = new Timestamp(System.currentTimeMillis());
+                    
+                    for (int parcela = 1; parcela <= numeroParcelas; parcela++) {
+                        
+                        DebugRenegociacao.info("Criando parcela " + parcela + "/" + numeroParcelas);
+                        
+                        try {
+                            // Calcular vencimento
+                            Calendar cal = Calendar.getInstance();
+                            cal.setTime(dataHoje);
+                            cal.add(Calendar.DAY_OF_MONTH, intervaloDias * parcela);
+                            Timestamp dtVenc = new Timestamp(cal.getTimeInMillis());
+                            
+                            // Definir valor da parcela (última recebe diferença)
+                            BigDecimal vlrParcela = (parcela == numeroParcelas) 
+                                ? vlrUltimaParcela 
+                                : vlrParcelaBase;
+                            
+                            FluidCreateVO novoTitulo = finDAO.create();
+                            
+                            novoTitulo
+                                // Campos NUMBER obrigatórios
+                                .set("CODEMP", codemp)
+                                .set("NUMNOTA", numnota)
+                                .set("CODPARC", codparc)
+                                .set("CODTIPOPER", codtipoper)
+                                .set("CODBCO", codbco)
+                                .set("CODCTABCOINT", codCtaBcoInt)   // linha 284 - variável da AD_TPVTIPTIT
+                                .set("CODNAT", codnat)
+                                .set("CODCENCUS", codcencus)
+                                .set("CODPROJ", codproj)
+                                .set("CODVEND", codvend)
+                                .set("CODMOEDA", codmoeda)
+                                .set("CODTIPTIT", codTipTit)         // linha 290 - variável da AD_TPVTIPTIT
+                                .set("CODUSU", codUsuLogado)              // NOVO - usuário logado
+                                
+                                // Campos VARCHAR2
+                                .set("SERIENOTA", serienota)
+                                .set("DESDOBRAMENTO", String.valueOf(parcela))
+                                .set("AUTORIZADO", "N")
+                                .set("PROVISAO", "N")
+                                .set("ORIGEM", "F")
+                                .set("HISTORICO", "Par. " + parcela + "/" + numeroParcelas)
+                                .set("PARCRENEG", parcela + "/" + numeroParcelas)
+                                .set("TIPJURO", tipjuro != null ? tipjuro : "I")    // NOVO
+                                .set("TIPMULTA", tipmulta != null ? tipmulta : "1") // NOVO
+                                
+                                // Datas
+                                .set("DTNEG", dtneg)
+                                .set("DHMOV", dataHoje)
+                                .set("DTVENCINIC", dtVenc)
+                                .set("DTVENC", dtVenc)
+                                .set("DHTIPOPER", dhtipoper)
+                                .set("DTALTER", dataHoraAtual)            // NOVO
+                                
+                                // Valores FLOAT
+                                .set("VLRDESDOB", vlrParcela)
+                                .set("VLRJURONEGOC", vlrjuronegoc != null ? vlrjuronegoc : BigDecimal.ZERO)
+                                .set("VLRMULTANEGOC", vlrmultanegoc != null ? vlrmultanegoc : BigDecimal.ZERO)
+                                .set("VLRVENDOR", vlrvendor != null ? vlrvendor : BigDecimal.ZERO)
+                                
+                                // Campos de renegociação
+                                .set("RECDESP", recDespOriginal)
+                                .set("NURENEG", nureneg)
+                                .set("SEQUENCIA", BigDecimal.valueOf(parcela)) // NOVO
+                                
+                                .save();
+                            
+                            DebugRenegociacao.sucesso("✓ Parcela " + parcela + " criada - Valor: " + vlrParcela + " - Venc: " + dtVenc);
+                            
+                        } catch (Exception e) {
+                            throw new Exception("Falha ao criar parcela " + parcela + ": " + e.getMessage(), e);
+                        }
+                    }
+                    
+                    // ══════════════════════════════════════════════════════
+                    // PASSO 6: INSERIR NA TGFREN (COM CAMPOS OBRIGATÓRIOS)
+                    // ══════════════════════════════════════════════════════
+                    
+                    DebugRenegociacao.subSecao("Inserindo registro na TGFREN");
+                    
+                    try {
+                        FluidCreateVO novaReneg = renDAO.create();
+                        
+                        novaReneg
+                            .set("NURENEG", nureneg)
+                            .set("NUFIN", nufinOriginal)
+                            .set("NURENEGORIG", BigDecimal.ZERO)    // CORRIGIDO: era null, agora é 0
+                            .set("CODUSU", codUsuLogado)           // NOVO - obrigatório
+                            .set("DHALTER", dataHoraAtual)         // NOVO - obrigatório
+                            .save();
+                        
+                        DebugRenegociacao.sucesso("Registro TGFREN criado!");
+                        DebugRenegociacao.valor("NURENEG", nureneg);
+                        DebugRenegociacao.valor("NUFIN original", nufinOriginal);
+                        DebugRenegociacao.valor("CODUSU", codUsuLogado);
+                        DebugRenegociacao.valor("DHALTER", dataHoraAtual);
+                        
+                    } catch (Exception e) {
+                        throw new Exception("Falha ao inserir TGFREN: " + e.getMessage(), e);
+                    }
+                    
+                    // ══════════════════════════════════════════════════════
+                    // SUCESSO
+                    // ══════════════════════════════════════════════════════
+                    
+                    sucessos++;
+                    mensagemFinal.append("✅ NUFIN " + nufinOriginal + " renegociado com sucesso\n");
+                    
+                    DebugRenegociacao.sucesso("NUFIN " + nufinOriginal + " PROCESSADO COM SUCESSO!");
+                    
+                } catch (Exception e) {
+                    erros++;
+                    String diagnostico = DebugRenegociacao.analisarErro(e, "Processamento do título", nufinOriginal);
+                    mensagemFinal.append(diagnostico);
+                }
+            }
+            
+            // ══════════════════════════════════════════════════════════════
+            // RESULTADO FINAL
+            // ══════════════════════════════════════════════════════════════
+            
+            DebugRenegociacao.iniciarSecao("RESULTADO FINAL");
+            DebugRenegociacao.valor("NURENEG utilizado", nureneg);
+            DebugRenegociacao.valor("Sucessos", sucessos);
+            DebugRenegociacao.valor("Erros", erros);
+            
+            mensagemFinal.insert(0, 
+                "═══════════════════════════════════\n" +
+                "RENEGOCIAÇÃO CONCLUÍDA (v3.0)\n" +
+                "═══════════════════════════════════\n\n" +
+                "NURENEG: " + nureneg + "\n" +
+                "Parcelas: " + numeroParcelas + "\n" +
+                "Intervalo: " + intervaloDias + " dias\n\n");
+            mensagemFinal.append("\n═══════════════════════════════════\n");
+            mensagemFinal.append("✅ Sucessos: " + sucessos + "\n");
+            mensagemFinal.append("❌ Erros: " + erros + "\n");
+            mensagemFinal.append("═══════════════════════════════════");
+            
+            contexto.setMensagemRetorno(mensagemFinal.toString());
+            
+        } catch (Exception e) {
+            DebugRenegociacao.analisarErro(e, "Processo geral de renegociação", null);
+            contexto.setMensagemRetorno("❌ ERRO CRÍTICO: " + e.getMessage());
+            throw e;
+            
+        } finally {
+            if (jdbc != null) {
+                try { JdbcWrapper.closeSession(jdbc); } catch (Exception e) { }
+            }
+            if (hnd != null) {
+                try { JapeSession.close(hnd); } catch (Exception e) { }
+            }
+        }
+    }
+    
+    /**
+     * Obtém o código do usuário logado
+     */
+    private BigDecimal obterUsuarioLogado() throws Exception {
+        try {
+            AuthenticationInfo authInfo = AuthenticationInfo.getCurrent();
+            if (authInfo != null) {
+                return authInfo.getUserID();
+            }
+            // Fallback: usuário padrão
+            return BigDecimal.ONE;
+        } catch (Exception e) {
+            DebugRenegociacao.alerta("Não foi possível obter usuário logado, usando padrão (1)");
+            return BigDecimal.ONE;
+        }
+    }
+    
+    /**
+     * Obtém o próximo NURENEG usando MAX + 1
+     */
+    private BigDecimal obterProximoNureneg(JdbcWrapper jdbc) throws Exception {
+        NativeSql sql = new NativeSql(jdbc);
+        sql.appendSql("SELECT NVL(MAX(NURENEG), 0) + 1 AS PROXIMO FROM TGFFIN");
+        
+        ResultSet rs = sql.executeQuery();
+        
+        try {
+            if (rs.next()) {
+                BigDecimal proximo = rs.getBigDecimal("PROXIMO");
+                if (proximo == null) {
+                    throw new Exception("Query retornou NULL para NURENEG!");
+                }
+                return proximo;
+            } else {
+                throw new Exception("Query não retornou nenhum resultado!");
+            }
+        } finally {
+            if (rs != null) {
+                try { rs.close(); } catch (Exception e) { }
+            }
+        }
+    }
+}

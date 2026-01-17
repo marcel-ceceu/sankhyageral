@@ -1,0 +1,1678 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conciliação Bancária v3 - Auto Peças São Paulo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --azul-principal: #1E3A8A;
+            --azul-claro: #3B82F6;
+            --azul-hover: #2563EB;
+            --vermelho: #DC2626;
+            --vermelho-claro: #FEE2E2;
+            --vermelho-borda: #FECACA;
+            --verde: #16A34A;
+            --verde-claro: #DCFCE7;
+            --verde-borda: #86EFAC;
+            --amarelo: #D97706;
+            --amarelo-claro: #FEF3C7;
+            --amarelo-borda: #FCD34D;
+            --cinza-bg: #F8FAFC;
+            --cinza-borda: #E2E8F0;
+            --cinza-texto: #64748B;
+            --branco: #FFFFFF;
+            --texto: #1E293B;
+        }
+        
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            background: var(--cinza-bg);
+            color: var(--texto);
+            font-size: 12px;
+        }
+        
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 10px;
+            gap: 10px;
+        }
+        
+        /* ===== HEADER ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--branco);
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header-title {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header-title h1 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--azul-principal);
+        }
+        
+        .header-title .subtitle {
+            font-size: 11px;
+            color: var(--cinza-texto);
+        }
+        
+        .header-center {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .filtro-grupo {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--cinza-bg);
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--cinza-borda);
+        }
+        
+        .filtro-grupo label {
+            font-size: 11px;
+            color: var(--cinza-texto);
+            font-weight: 500;
+        }
+        
+        .filtro-grupo input[type="date"] {
+            border: 1px solid var(--cinza-borda);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            width: 120px;
+        }
+        
+        .filtro-grupo select {
+            border: 1px solid var(--cinza-borda);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            min-width: 200px;
+            max-width: 300px;
+        }
+        
+        .header-right {
+            display: flex;
+            gap: 8px;
+        }
+        
+        /* ===== BOTÕES ===== */
+        .btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-primary {
+            background: var(--azul-principal);
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: var(--azul-hover);
+        }
+        
+        .btn-success {
+            background: var(--verde);
+            color: white;
+        }
+        
+        .btn-success:hover:not(:disabled) {
+            background: #15803D;
+        }
+        
+        .btn-danger {
+            background: var(--vermelho);
+            color: white;
+        }
+        
+        .btn-danger:hover:not(:disabled) {
+            background: #B91C1C;
+        }
+        
+        .btn-secondary {
+            background: var(--cinza-bg);
+            color: var(--texto);
+            border: 1px solid var(--cinza-borda);
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--cinza-borda);
+        }
+        
+        /* ===== GRID PRINCIPAL ===== */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            flex: 1;
+            min-height: 0;
+        }
+        
+        /* ===== PAINÉIS ===== */
+        .panel {
+            background: var(--branco);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: var(--azul-principal);
+            color: white;
+        }
+        
+        .panel-header h2 {
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .panel-header .badge {
+            background: rgba(255,255,255,0.2);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+        }
+        
+        .panel-body {
+            flex: 1;
+            overflow: hidden;
+            padding: 10px;
+        }
+        
+        /* ===== COLUNA ESQUERDA (STACKED) - CORREÇÃO ALTURA ===== */
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow: hidden;
+        }
+        
+        .panel-half {
+            flex: 1;
+            min-height: 0;
+            max-height: 50%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .panel-half .panel-body {
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .panel-half .tabela-container {
+            height: 100%;
+            max-height: 100%;
+            overflow: auto;
+        }
+        
+        /* ===== TOOLBAR DE SUGESTÕES ===== */
+        .sugestoes-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: var(--amarelo-claro);
+            border-bottom: 1px solid var(--amarelo-borda);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .filtros-grupo {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .filtro-label {
+            font-weight: 600;
+            font-size: 10px;
+            color: #666;
+            margin-right: 5px;
+        }
+        
+        .filtro-check {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        
+        .filtro-check input[type="checkbox"] {
+            cursor: pointer;
+            width: 14px;
+            height: 14px;
+        }
+        
+        .filtro-divider {
+            width: 1px;
+            height: 24px;
+            background: var(--amarelo-borda);
+        }
+        
+        .toggle-group {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .toggle-btn {
+            padding: 5px 12px;
+            border: 1px solid var(--cinza-borda);
+            background: var(--branco);
+            border-radius: 4px;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .toggle-btn.active {
+            background: var(--azul-principal);
+            color: white;
+            border-color: var(--azul-principal);
+        }
+        
+        .toggle-btn:hover:not(.active) {
+            background: var(--cinza-bg);
+        }
+        
+        /* ===== TABELAS ===== */
+        .tabela-container {
+            overflow: auto;
+            height: 100%;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+        
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        th {
+            background: var(--cinza-bg);
+            padding: 8px 10px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--cinza-borda);
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+        
+        th:hover {
+            background: var(--cinza-borda);
+        }
+        
+        th .sort-icon {
+            opacity: 0.3;
+            margin-left: 4px;
+        }
+        
+        th.sorted .sort-icon {
+            opacity: 1;
+            color: var(--azul-principal);
+        }
+        
+        /* ===== REDIMENSIONAMENTO DE COLUNAS ===== */
+        th .resize-handle {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 5px;
+            height: 100%;
+            cursor: col-resize;
+            background: transparent;
+        }
+        
+        th .resize-handle:hover {
+            background: var(--azul-claro);
+        }
+        
+        /* ===== FILTRO POR COLUNA ===== */
+        th .col-filter {
+            display: block;
+            width: calc(100% - 10px);
+            margin-top: 4px;
+            padding: 2px 4px;
+            font-size: 10px;
+            font-weight: normal;
+            border: 1px solid var(--cinza-borda);
+            border-radius: 3px;
+        }
+        
+        th .col-filter:focus {
+            outline: none;
+            border-color: var(--azul-claro);
+        }
+        
+        th .th-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        td {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--cinza-borda);
+            vertical-align: middle;
+        }
+        
+        tr:hover {
+            background: #F1F5F9;
+        }
+        
+        tr.selected {
+            background: #DBEAFE !important;
+        }
+        
+        .col-check {
+            width: 35px;
+            text-align: center;
+        }
+        
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        
+        .truncate {
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* ===== TAGS ===== */
+        .tag {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        .tag-entrada {
+            background: var(--verde-claro);
+            color: var(--verde);
+        }
+        
+        .tag-saida {
+            background: var(--vermelho-claro);
+            color: var(--vermelho);
+        }
+        
+        .tag-vinculado {
+            background: #DBEAFE;
+            color: var(--azul-principal);
+        }
+        
+        .tag-pendente {
+            background: var(--amarelo-claro);
+            color: var(--amarelo);
+        }
+        
+        /* ===== SCORES (SEM 90) ===== */
+        .score {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 35px;
+            text-align: center;
+        }
+        
+        .score-100 {
+            background: var(--verde);
+            color: white;
+        }
+        
+        .score-70 {
+            background: var(--amarelo);
+            color: white;
+        }
+        
+        .score-40 {
+            background: var(--vermelho);
+            color: white;
+        }
+        
+        /* ===== VALORES ===== */
+        .valor {
+            font-weight: 600;
+            font-family: 'Consolas', monospace;
+        }
+        
+        .valor-entrada { color: var(--verde); }
+        .valor-saida { color: var(--vermelho); }
+        
+        /* ===== DIFF DIAS ===== */
+        .diff-dias {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        .diff-zero {
+            background: var(--verde-claro);
+            color: var(--verde);
+        }
+        
+        .diff-alerta {
+            background: var(--amarelo-claro);
+            color: var(--amarelo);
+        }
+        
+        /* ===== ACTIONS BAR ===== */
+        .actions-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: var(--cinza-bg);
+            border-top: 1px solid var(--cinza-borda);
+        }
+        
+        .actions-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .actions-right {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .selection-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: var(--amarelo-claro);
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--amarelo);
+        }
+        
+        .selection-info.hidden {
+            display: none;
+        }
+        
+        /* ===== STATUS BAR ===== */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 15px;
+            background: var(--branco);
+            border-radius: 6px;
+            font-size: 11px;
+            color: var(--cinza-texto);
+        }
+        
+        /* ===== TOAST ===== */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .toast {
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .toast-success { background: var(--verde); color: white; }
+        .toast-error { background: var(--vermelho); color: white; }
+        .toast-warning { background: var(--amarelo); color: white; }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* ===== LOADING ===== */
+        .loading-row td {
+            text-align: center;
+            padding: 30px;
+            color: var(--cinza-texto);
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--cinza-borda);
+            border-top-color: var(--azul-principal);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px !important;
+            color: var(--cinza-texto);
+        }
+        
+        .empty-state .icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        /* ===== LINK CLICÁVEL ===== */
+        .link-nubco {
+            color: var(--azul-claro);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
+        .link-nubco:hover {
+            color: var(--azul-principal);
+        }
+        
+        /* ===== SEPARAÇÃO VISUAL BANCO/SANKHYA NA TABELA SUGESTÕES ===== */
+        .col-separador {
+            border-left: 3px solid var(--azul-principal) !important;
+        }
+        
+        .col-banco {
+            background: #FFF9E6;
+        }
+        
+        .col-sankhya {
+            background: #E6F0FF;
+        }
+        
+        #tblSugestoes thead th.col-banco {
+            background: #FFF3CD;
+        }
+        
+        #tblSugestoes thead th.col-sankhya {
+            background: #CCE0FF;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app">
+    
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-left">
+            <div class="header-title">
+                <h1>🏦 Conciliação Bancária</h1>
+                <span class="subtitle">v3.0 - Auto Peças São Paulo</span>
+            </div>
+        </div>
+        
+        <div class="header-center">
+            <div class="filtro-grupo">
+                <label>Conta:</label>
+                <select id="selConta">
+                    <option value="">Carregando...</option>
+                </select>
+            </div>
+            
+            <div class="filtro-grupo">
+                <label>De:</label>
+                <input type="date" id="dtIni">
+            </div>
+            
+            <div class="filtro-grupo">
+                <label>Até:</label>
+                <input type="date" id="dtFim">
+            </div>
+        </div>
+        
+        <div class="header-right">
+            <button class="btn btn-secondary" onclick="exportarCSV()">📥 Exportar</button>
+            <button class="btn btn-primary" onclick="carregarDados()">🔄 Atualizar</button>
+        </div>
+    </header>
+    
+    <!-- GRID PRINCIPAL -->
+    <div class="main-grid">
+        
+        <!-- COLUNA ESQUERDA: BANCO + SISTEMA (STACKED) -->
+        <div class="left-column">
+            
+            <!-- PAINEL BANCO -->
+            <div class="panel panel-half">
+                <div class="panel-header">
+                    <h2>📄 Extrato Bancário</h2>
+                    <span class="badge" id="badgeBanco">0</span>
+                </div>
+                <div class="panel-body">
+                    <div class="tabela-container">
+                        <table id="tblBanco">
+                            <thead>
+                                <tr>
+                                    <th class="col-check"><input type="checkbox" id="checkAllBanco" onclick="toggleAllBanco()"></th>
+                                    <th data-col="NUVINC">
+                                        <div class="th-content" onclick="ordenar('banco', 'NUVINC')">ID <span class="sort-icon">⇅</span></div>
+                                        <input type="text" class="col-filter" data-tabela="banco" data-col="NUVINC" placeholder="Filtrar..." oninput="filtrarColuna('banco')">
+                                        <div class="resize-handle" onmousedown="initResize(event, this)"></div>
+                                    </th>
+                                    <th data-col="DATA">
+                                        <div class="th-content" onclick="ordenar('banco', 'DATA')">Data <span class="sort-icon">⇅</span></div>
+                                        <input type="text" class="col-filter" data-tabela="banco" data-col="DATA" placeholder="Filtrar..." oninput="filtrarColuna('banco')">
+                                        <div class="resize-handle" onmousedown="initResize(event, this)"></div>
+                                    </th>
+                                    <th data-col="VLR_REAL">
+                                        <div class="th-content" onclick="ordenar('banco', 'VLR_REAL')">Valor <span class="sort-icon">⇅</span></div>
+                                        <input type="text" class="col-filter" data-tabela="banco" data-col="VLR" placeholder="Filtrar..." oninput="filtrarColuna('banco')">
+                                        <div class="resize-handle" onmousedown="initResize(event, this)"></div>
+                                    </th>
+                                    <th data-col="DESCRMOV">
+                                        <div class="th-content">Descrição</div>
+                                        <input type="text" class="col-filter" data-tabela="banco" data-col="DESCRMOV" placeholder="Filtrar..." oninput="filtrarColuna('banco')">
+                                        <div class="resize-handle" onmousedown="initResize(event, this)"></div>
+                                    </th>
+                                    <th data-col="RECDESP">
+                                        <div class="th-content" onclick="ordenar('banco', 'RECDESP')">Tipo <span class="sort-icon">⇅</span></div>
+                                        <input type="text" class="col-filter" data-tabela="banco" data-col="RECDESP" placeholder="Filtrar..." oninput="filtrarColuna('banco')">
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyBanco">
+                                <tr class="loading-row"><td colspan="6"><span class="spinner"></span>Carregando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- PAINEL SISTEMA -->
+            <div class="panel panel-half">
+                <div class="panel-header">
+                    <h2>💻 Sistema (MBC)</h2>
+                    <span class="badge" id="badgeSistema">0</span>
+                </div>
+                <div class="panel-body">
+                    <div class="tabela-container">
+                        <table id="tblSistema">
+                            <thead>
+                                <tr>
+                                    <th class="col-check"><input type="checkbox" id="checkAllSistema" onclick="toggleAllSistema()"></th>
+                                    <th data-col="NUBCO">
+                                        <div class="th-content" onclick="ordenar('sistema', 'NUBCO')">NUBCO <span class="sort-icon">⇅</span></div>
+                                        <input type="text" class="col-filter" data-tabela="sistema" data-col="NUBCO" placeholder="Filtrar..." oninput="filtrarColuna('sistema')">
+                                        <div class="resize-handle" onmousedown="initResize(event, this)"></div>
+                                    </th>
+                                    <th data-col="DTLANC">
+                                        <div class="th-content" onclick="ordenar('sistema', 'DTLANC')">Data <span class="sort-icon">⇅</span></div>
+                                        <input type="text" class="col-filter" data-tabela="sistema" data-col="DTLANC" placeholder="Filtrar..." oninput="filtrarColuna('sistema')">
+                                        <div class="resize-handle" onmousedown="initResize(event, this)"></div>
+                                    </th>
+                                    <th data-col="VLR_REAL">
+                                        <div class="th-content" onclick="ordenar('sistema', 'VLR_REAL')">Valor <span class="sort-icon">⇅</span></div>
+                                        <input type="text" class="col-filter" data-tabela="sistema" data-col="VLRLANC" placeholder="Filtrar..." oninput="filtrarColuna('sistema')">
+                                        <div class="resize-handle" onmousedown="initResize(event, this)"></div>
+                                    </th>
+                                    <th data-col="HISTORICO">
+                                        <div class="th-content">Histórico</div>
+                                        <input type="text" class="col-filter" data-tabela="sistema" data-col="HISTORICO" placeholder="Filtrar..." oninput="filtrarColuna('sistema')">
+                                        <div class="resize-handle" onmousedown="initResize(event, this)"></div>
+                                    </th>
+                                    <th data-col="RECDESP">
+                                        <div class="th-content" onclick="ordenar('sistema', 'RECDESP')">Tipo <span class="sort-icon">⇅</span></div>
+                                        <input type="text" class="col-filter" data-tabela="sistema" data-col="RECDESP" placeholder="Filtrar..." oninput="filtrarColuna('sistema')">
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodySistema">
+                                <tr class="loading-row"><td colspan="6"><span class="spinner"></span>Carregando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        
+        <!-- COLUNA DIREITA: SUGESTÕES -->
+        <div class="panel panel-sugestoes">
+            <div class="panel-header">
+                <h2>🎯 Sugestões de Vínculo</h2>
+                <span class="badge" id="badgeSugestoes">0 matches</span>
+            </div>
+            
+            <!-- TOOLBAR COM FILTROS EXCLUSIVOS DA TELA 3 -->
+            <div class="sugestoes-toolbar">
+                <div class="filtros-grupo">
+                    <span class="filtro-label">Compatibilidade:</span>
+                    <label class="filtro-check">
+                        <input type="checkbox" id="filtroScore100" checked onchange="aplicarFiltrosSugestoes()">
+                        <span class="score score-100">100%</span>
+                    </label>
+                    <label class="filtro-check">
+                        <input type="checkbox" id="filtroScore70" checked onchange="aplicarFiltrosSugestoes()">
+                        <span class="score score-70">70%</span>
+                    </label>
+                    <label class="filtro-check">
+                        <input type="checkbox" id="filtroScore40" checked onchange="aplicarFiltrosSugestoes()">
+                        <span class="score score-40">40%</span>
+                    </label>
+                </div>
+                
+                <div class="filtro-divider"></div>
+                
+                <div class="filtros-grupo">
+                    <span class="filtro-label">Status:</span>
+                    <div class="toggle-group">
+                        <button class="toggle-btn active" id="btnPendentes" onclick="setFiltroStatus('P')">📋 Pendentes</button>
+                        <button class="toggle-btn" id="btnVinculados" onclick="setFiltroStatus('V')">🔗 Vinculados</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel-body">
+                <div class="tabela-container">
+                    <table id="tblSugestoes">
+                        <thead>
+                            <tr>
+                                <th class="col-check"><input type="checkbox" id="checkAllSugestoes" onclick="toggleAllSugestoes()"></th>
+                                <th data-col="SCORE_MATCH" onclick="ordenar('sugestoes', 'SCORE_MATCH')">Score <span class="sort-icon">⇅</span></th>
+                                <th class="col-banco">📄 Dt Banco</th>
+                                <th class="col-banco" data-col="VLR_BANCO_REAL" onclick="ordenar('sugestoes', 'VLR_BANCO_REAL')">Vlr Banco <span class="sort-icon">⇅</span></th>
+                                <th class="col-sankhya col-separador">💻 Dt Sankhya</th>
+                                <th class="col-sankhya" data-col="VLR_SISTEMA_REAL" onclick="ordenar('sugestoes', 'VLR_SISTEMA_REAL')">Vlr Sankhya <span class="sort-icon">⇅</span></th>
+                                <th data-col="DIFF_DIAS" onclick="ordenar('sugestoes', 'DIFF_DIAS')">Diff <span class="sort-icon">⇅</span></th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodySugestoes">
+                            <tr class="loading-row"><td colspan="8"><span class="spinner"></span>Carregando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="actions-bar">
+                <div class="actions-left">
+                    <div class="selection-info hidden" id="selectionInfo">
+                        <span id="selectionCount">0 selecionados</span>
+                        <span>|</span>
+                        <span id="selectionTotal">R$ 0,00</span>
+                    </div>
+                </div>
+                <div class="actions-right">
+                    <button class="btn btn-danger" onclick="desvincularSelecionados()" id="btnDesvincular" style="display:none" disabled>✂️ Desvincular</button>
+                    <button class="btn btn-success" onclick="autoVincular()" id="btnAuto">⚡ Auto (100%)</button>
+                    <button class="btn btn-primary" onclick="vincularSelecionados()" id="btnVincular" disabled>🔗 Vincular</button>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+    <!-- STATUS BAR -->
+    <div class="status-bar" id="statusBar">
+        <span id="statusText">Aguardando...</span>
+        <span id="statusTime"></span>
+    </div>
+    
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/gh/wansleynery/SankhyaJX@main/jx.min.js"></script>
+
+<script>
+    // =============================================
+    // VARIÁVEIS GLOBAIS
+    // =============================================
+    var dadosBanco = [];
+    var dadosBancoFiltrados = [];
+    var dadosSistema = [];
+    var dadosSistemaFiltrados = [];
+    var dadosSugestoes = [];
+    var dadosSugestoesFiltrados = [];
+    var contaSelecionada = null;
+    var filtroStatus = 'P';
+    
+    var ordenacoes = {
+        banco: { col: 'DATA', dir: 'DESC' },
+        sistema: { col: 'DTLANC', dir: 'DESC' },
+        sugestoes: { col: 'SCORE_MATCH', dir: 'DESC' }
+    };
+    
+    // =============================================
+    // FUNÇÃO AUXILIAR: CALCULAR VALOR REAL COM SINAL
+    // =============================================
+    function calcularValorReal(valor, recdesp) {
+        var vlr = parseFloat(valor) || 0;
+        var isEntrada = Number(recdesp) === 1;
+        return isEntrada ? vlr : -vlr;
+    }
+    
+    // =============================================
+    // INICIALIZAÇÃO
+    // =============================================
+    document.addEventListener('DOMContentLoaded', function() {
+        var hoje = new Date();
+        var ini = new Date();
+        ini.setDate(hoje.getDate() - 30);
+        
+        document.getElementById('dtIni').value = formatDateInput(ini);
+        document.getElementById('dtFim').value = formatDateInput(hoje);
+        
+        carregarContas();
+    });
+    
+    // =============================================
+    // FUNÇÕES AUXILIARES
+    // =============================================
+    function formatDateInput(d) {
+        return d.toISOString().split('T')[0];
+    }
+    
+    function formatDateOracle(dateStr) {
+        if (!dateStr) return '';
+        var parts = dateStr.split('-');
+        return parts[2] + '/' + parts[1] + '/' + parts[0];
+    }
+    
+    function fmtData(val) {
+        if (!val) return '-';
+        
+        // Trata formato "14112025 00:00:00" ou "14112025"
+        var str = String(val).trim();
+        if (/^\d{8}/.test(str)) {
+            var dia = str.substring(0, 2);
+            var mes = str.substring(2, 4);
+            var ano = str.substring(4, 8);
+            return dia + '/' + mes + '/' + ano;
+        }
+        
+        // Trata formato ISO ou Date object
+        var d = new Date(val);
+        if (isNaN(d.getTime())) return val;
+        return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth()+1)).slice(-2) + '/' + d.getFullYear();
+    }
+    
+    function fmtMoeda(val) {
+        if (val == null) return '0,00';
+        return parseFloat(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    
+    function status(msg, tipo) {
+        document.getElementById('statusText').textContent = msg;
+        document.getElementById('statusTime').textContent = new Date().toLocaleTimeString('pt-BR');
+    }
+    
+    function toast(msg, tipo) {
+        var container = document.getElementById('toastContainer');
+        var div = document.createElement('div');
+        div.className = 'toast toast-' + (tipo || 'success');
+        div.textContent = msg;
+        container.appendChild(div);
+        
+        setTimeout(function() {
+            div.style.opacity = '0';
+            setTimeout(function() { div.remove(); }, 300);
+        }, 3000);
+    }
+    
+    // =============================================
+    // REDIMENSIONAMENTO DE COLUNAS
+    // =============================================
+    var resizeState = { th: null, startX: 0, startWidth: 0 };
+    
+    function initResize(e, handle) {
+        e.stopPropagation();
+        resizeState.th = handle.parentElement;
+        resizeState.startX = e.pageX;
+        resizeState.startWidth = resizeState.th.offsetWidth;
+        
+        document.addEventListener('mousemove', doResize);
+        document.addEventListener('mouseup', stopResize);
+    }
+    
+    function doResize(e) {
+        if (!resizeState.th) return;
+        var newWidth = resizeState.startWidth + (e.pageX - resizeState.startX);
+        if (newWidth > 40) {
+            resizeState.th.style.width = newWidth + 'px';
+            resizeState.th.style.minWidth = newWidth + 'px';
+        }
+    }
+    
+    function stopResize() {
+        resizeState.th = null;
+        document.removeEventListener('mousemove', doResize);
+        document.removeEventListener('mouseup', stopResize);
+    }
+    
+    // =============================================
+    // FILTRO POR COLUNA
+    // =============================================
+    function filtrarColuna(tabela) {
+        var inputs = document.querySelectorAll('.col-filter[data-tabela="' + tabela + '"]');
+        var filtros = {};
+        
+        inputs.forEach(function(input) {
+            var val = input.value.trim().toLowerCase();
+            if (val) {
+                filtros[input.dataset.col] = val;
+            }
+        });
+        
+        if (tabela === 'banco') {
+            dadosBancoFiltrados = dadosBanco.filter(function(r) {
+                for (var col in filtros) {
+                    var cellVal = String(r[col] || '').toLowerCase();
+                    if (col === 'DATA') cellVal = fmtData(r[col]).toLowerCase();
+                    if (col === 'VLR') cellVal = fmtMoeda(Math.abs(r.VLR_REAL)).toLowerCase();
+                    if (cellVal.indexOf(filtros[col]) === -1) return false;
+                }
+                return true;
+            });
+            renderizarBanco();
+        } else if (tabela === 'sistema') {
+            dadosSistemaFiltrados = dadosSistema.filter(function(r) {
+                for (var col in filtros) {
+                    var cellVal = String(r[col] || '').toLowerCase();
+                    if (col === 'DTLANC') cellVal = fmtData(r[col]).toLowerCase();
+                    if (col === 'VLRLANC') cellVal = fmtMoeda(Math.abs(r.VLR_REAL)).toLowerCase();
+                    if (cellVal.indexOf(filtros[col]) === -1) return false;
+                }
+                return true;
+            });
+            renderizarSistema();
+        }
+    }
+    
+    // =============================================
+    // CARREGAR CONTAS
+    // =============================================
+    function carregarContas() {
+        var sql = "SELECT CODCTABCOINT, DESCRICAO FROM TSICTA WHERE ATIVA = 'S' ORDER BY CODCTABCOINT";
+        
+        JX.consultar(sql).then(function(res) {
+            var sel = document.getElementById('selConta');
+            sel.innerHTML = '<option value="">-- Selecione --</option>';
+            
+            if (res && res.length > 0) {
+                res.forEach(function(c) {
+                    var opt = document.createElement('option');
+                    opt.value = c.CODCTABCOINT;
+                    var codigo = String(c.CODCTABCOINT).padStart(3, '0');
+                    opt.textContent = codigo + ' - ' + c.DESCRICAO;
+                    sel.appendChild(opt);
+                });
+                
+                sel.value = res[0].CODCTABCOINT;
+                contaSelecionada = res[0].CODCTABCOINT;
+                carregarDados();
+            }
+            
+            sel.onchange = function() {
+                contaSelecionada = this.value;
+                if (contaSelecionada) carregarDados();
+            };
+        }).catch(function(e) {
+            status('Erro ao carregar contas: ' + e, 'erro');
+            toast('❌ Erro ao carregar contas', 'error');
+        });
+    }
+    
+    // =============================================
+    // CARREGAR DADOS
+    // =============================================
+    function carregarDados() {
+        var dtIni = document.getElementById('dtIni').value;
+        var dtFim = document.getElementById('dtFim').value;
+        
+        if (!contaSelecionada) {
+            toast('⚠️ Selecione uma conta bancária', 'warning');
+            return;
+        }
+        
+        if (!dtIni || !dtFim) {
+            toast('⚠️ Informe o período', 'warning');
+            return;
+        }
+        
+        var diOracle = formatDateOracle(dtIni);
+        var dfOracle = formatDateOracle(dtFim);
+        
+        status('⏳ Carregando dados...', '');
+        
+        document.getElementById('tbodyBanco').innerHTML = '<tr class="loading-row"><td colspan="6"><span class="spinner"></span>Carregando...</td></tr>';
+        document.getElementById('tbodySistema').innerHTML = '<tr class="loading-row"><td colspan="6"><span class="spinner"></span>Carregando...</td></tr>';
+        document.getElementById('tbodySugestoes').innerHTML = '<tr class="loading-row"><td colspan="8"><span class="spinner"></span>Carregando...</td></tr>';
+        
+        Promise.all([
+            carregarBanco(diOracle, dfOracle),
+            carregarSistema(diOracle, dfOracle),
+            carregarSugestoes(diOracle, dfOracle)
+        ]).then(function() {
+            status('✓ Dados carregados', 'sucesso');
+        }).catch(function(e) {
+            status('Erro: ' + e, 'erro');
+            toast('❌ Erro ao carregar: ' + e, 'error');
+        });
+    }
+    
+    // =============================================
+    // CARREGAR EXTRATO BANCÁRIO
+    // =============================================
+    function carregarBanco(dtIni, dtFim) {
+        var sql = "SELECT NUVINC, CODCTABCOINT, DATA, VLR, DESCRMOV, RECDESP, OBS, VINC, NUBCO " +
+                  "FROM AD_VINCULOBANCARIO " +
+                  "WHERE CODCTABCOINT = " + contaSelecionada + " " +
+                  "AND DATA BETWEEN TO_DATE('" + dtIni + "', 'DD/MM/YYYY') AND TO_DATE('" + dtFim + "', 'DD/MM/YYYY') " +
+                  "AND (VINC IS NULL OR VINC = 'N') " +
+                  "ORDER BY DATA DESC, VLR DESC " +
+                  "FETCH FIRST 500 ROWS ONLY";
+        
+        return JX.consultar(sql).then(function(res) {
+            dadosBanco = (res || []).map(function(r) {
+                // Adiciona campo VLR_REAL para ordenação correta
+                r.VLR_REAL = calcularValorReal(r.VLR, r.RECDESP);
+                return r;
+            });
+            dadosBancoFiltrados = dadosBanco.slice();
+            renderizarBanco();
+            document.getElementById('badgeBanco').textContent = dadosBanco.length;
+        });
+    }
+    
+    function renderizarBanco() {
+        var tbody = document.getElementById('tbodyBanco');
+        var dados = dadosBancoFiltrados;
+        
+        if (dados.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="icon">📭</div>Nenhum registro pendente</td></tr>';
+            return;
+        }
+        
+        var html = '';
+        dados.forEach(function(r) {
+            var isEntrada = Number(r.RECDESP) === 1;
+            var tipoClass = isEntrada ? 'entrada' : 'saida';
+            var tipoLabel = isEntrada ? 'Entrada' : 'Saída';
+            var valorDisplay = isEntrada ? 'R$ ' + fmtMoeda(r.VLR) : '-R$ ' + fmtMoeda(r.VLR);
+            
+            html += '<tr data-nuvinc="' + r.NUVINC + '">';
+            html += '<td class="text-center"><input type="checkbox" class="check-banco" value="' + r.NUVINC + '" onchange="atualizarSelecao()"></td>';
+            html += '<td>' + r.NUVINC + '</td>';
+            html += '<td>' + fmtData(r.DATA) + '</td>';
+            html += '<td class="valor valor-' + tipoClass + ' text-right">' + valorDisplay + '</td>';
+            html += '<td class="truncate" title="' + escapeHtml(r.DESCRMOV) + '">' + escapeHtml(r.DESCRMOV) + '</td>';
+            html += '<td><span class="tag tag-' + tipoClass + '">' + tipoLabel + '</span></td>';
+            html += '</tr>';
+        });
+        
+        tbody.innerHTML = html;
+    }
+    
+    // =============================================
+    // CARREGAR SISTEMA (MBC)
+    // =============================================
+function carregarSistema(dtIni, dtFim) {
+    var sql = "SELECT NUBCO, CODCTABCOINT, DTLANC, VLRLANC, HISTORICO, RECDESP " +
+              "FROM TGFMBC M " +
+              "WHERE M.CODCTABCOINT = " + contaSelecionada + " " +
+              "AND M.DTLANC BETWEEN TO_DATE('" + dtIni + "', 'DD/MM/YYYY') AND TO_DATE('" + dtFim + "', 'DD/MM/YYYY') " +
+              "AND NOT EXISTS ( " +
+              "    SELECT 1 FROM AD_VINCULOBANCARIO V " +
+              "    WHERE V.NUBCO = M.NUBCO " +
+              "    AND V.VINC = 'S' " +
+              ") " +
+              "ORDER BY M.DTLANC DESC, M.VLRLANC DESC " +
+              "FETCH FIRST 500 ROWS ONLY";
+        
+        return JX.consultar(sql).then(function(res) {
+            dadosSistema = (res || []).map(function(r) {
+                // Adiciona campo VLR_REAL para ordenação correta
+                r.VLR_REAL = calcularValorReal(r.VLRLANC, r.RECDESP);
+                return r;
+            });
+            dadosSistemaFiltrados = dadosSistema.slice();
+            renderizarSistema();
+            document.getElementById('badgeSistema').textContent = dadosSistema.length;
+        });
+    }
+    
+    function renderizarSistema() {
+        var tbody = document.getElementById('tbodySistema');
+        var dados = dadosSistemaFiltrados;
+        
+        if (dados.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="icon">📭</div>Nenhum registro encontrado</td></tr>';
+            return;
+        }
+        
+        var html = '';
+        dados.forEach(function(r) {
+            var isEntrada = Number(r.RECDESP) === 1;
+            var tipoClass = isEntrada ? 'entrada' : 'saida';
+            var tipoLabel = isEntrada ? 'Entrada' : 'Saída';
+            var valorDisplay = isEntrada ? 'R$ ' + fmtMoeda(r.VLRLANC) : '-R$ ' + fmtMoeda(r.VLRLANC);
+            
+            html += '<tr data-nubco="' + r.NUBCO + '">';
+            html += '<td class="text-center"><input type="checkbox" class="check-sistema" value="' + r.NUBCO + '" onchange="atualizarSelecao()"></td>';
+            html += '<td><span class="link-nubco" onclick="abrirMBC(' + r.NUBCO + ')">' + r.NUBCO + '</span></td>';
+            html += '<td>' + fmtData(r.DTLANC) + '</td>';
+            html += '<td class="valor valor-' + tipoClass + ' text-right">' + valorDisplay + '</td>';
+            html += '<td class="truncate" title="' + escapeHtml(r.HISTORICO) + '">' + escapeHtml(r.HISTORICO) + '</td>';
+            html += '<td><span class="tag tag-' + tipoClass + '">' + tipoLabel + '</span></td>';
+            html += '</tr>';
+        });
+        
+        tbody.innerHTML = html;
+    }
+    
+    // =============================================
+    // CARREGAR SUGESTÕES
+    // =============================================
+    function carregarSugestoes(dtIni, dtFim) {
+        var condicaoVinc = filtroStatus === 'P' 
+            ? "(V.VINC IS NULL OR V.VINC = 'N')" 
+            : "V.VINC = 'S'";
+        
+        var sql = "SELECT " +
+                  "V.NUVINC, V.DATA AS DATA_BANCO, V.VLR AS VLR_BANCO, V.DESCRMOV, V.RECDESP AS TIPO_BANCO, " +
+                  "V.VINC, V.NUBCO AS NUBCO_VINC, " +
+                  "M.NUBCO, M.DTLANC AS DATA_SISTEMA, M.VLRLANC AS VLR_SISTEMA, M.HISTORICO, M.RECDESP AS TIPO_SISTEMA, " +
+                  "CASE " +
+                  "  WHEN TRUNC(V.DATA) = TRUNC(M.DTLANC) AND V.VLR = M.VLRLANC AND V.RECDESP = M.RECDESP THEN 100 " +
+                  "  WHEN V.VLR = M.VLRLANC AND V.RECDESP = M.RECDESP AND TRUNC(ABS(V.DATA - M.DTLANC)) BETWEEN 1 AND 3 THEN 70 " +
+                  "  WHEN V.VLR = M.VLRLANC THEN 40 " +
+                  "  ELSE 0 " +
+                  "END AS SCORE_MATCH, " +
+                  "TRUNC(ABS(V.DATA - M.DTLANC)) AS DIFF_DIAS " +
+                  "FROM AD_VINCULOBANCARIO V " +
+                  "INNER JOIN TGFMBC M ON V.CODCTABCOINT = M.CODCTABCOINT " +
+                  "  AND V.VLR = M.VLRLANC " +
+                  "  AND TRUNC(ABS(V.DATA - M.DTLANC)) <= 5 " +
+                  "WHERE V.CODCTABCOINT = " + contaSelecionada + " " +
+                  "AND V.DATA BETWEEN TO_DATE('" + dtIni + "', 'DD/MM/YYYY') AND TO_DATE('" + dtFim + "', 'DD/MM/YYYY') " +
+                  "AND " + condicaoVinc + " " +
+                  "ORDER BY SCORE_MATCH DESC, V.DATA DESC " +
+                  "FETCH FIRST 500 ROWS ONLY";
+        
+        return JX.consultar(sql).then(function(res) {
+            dadosSugestoes = (res || []).map(function(r) {
+                // Adiciona campos VLR_REAL para ordenação correta
+                r.VLR_BANCO_REAL = calcularValorReal(r.VLR_BANCO, r.TIPO_BANCO);
+                r.VLR_SISTEMA_REAL = calcularValorReal(r.VLR_SISTEMA, r.TIPO_SISTEMA);
+                return r;
+            });
+            aplicarFiltrosSugestoes();
+        });
+    }
+    
+    // =============================================
+    // FILTROS DE SUGESTÕES
+    // =============================================
+    function aplicarFiltrosSugestoes() {
+        var f100 = document.getElementById('filtroScore100').checked;
+        var f70 = document.getElementById('filtroScore70').checked;
+        var f40 = document.getElementById('filtroScore40').checked;
+        
+        dadosSugestoesFiltrados = dadosSugestoes.filter(function(r) {
+            var score = parseInt(r.SCORE_MATCH);
+            if (score === 100 && f100) return true;
+            if (score === 70 && f70) return true;
+            if (score === 40 && f40) return true;
+            return false;
+        });
+        
+        renderizarSugestoes();
+        atualizarBadgeSugestoes();
+        atualizarBotoesAcao();
+    }
+    
+    function atualizarBadgeSugestoes() {
+        var count100 = dadosSugestoesFiltrados.filter(function(r) { return parseInt(r.SCORE_MATCH) === 100; }).length;
+        var total = dadosSugestoesFiltrados.length;
+        
+        document.getElementById('badgeSugestoes').textContent = total + ' matches (' + count100 + ' perfeitos)';
+    }
+    
+    function atualizarBotoesAcao() {
+        var count100 = dadosSugestoesFiltrados.filter(function(r) { return parseInt(r.SCORE_MATCH) === 100; }).length;
+        
+        if (filtroStatus === 'V') {
+            document.getElementById('btnVincular').style.display = 'none';
+            document.getElementById('btnAuto').style.display = 'none';
+            document.getElementById('btnDesvincular').style.display = '';
+        } else {
+            document.getElementById('btnVincular').style.display = '';
+            document.getElementById('btnAuto').style.display = '';
+            document.getElementById('btnDesvincular').style.display = 'none';
+            
+            document.getElementById('btnAuto').disabled = count100 === 0;
+        }
+    }
+    
+    function setFiltroStatus(status) {
+        filtroStatus = status;
+        
+        document.getElementById('btnPendentes').classList.toggle('active', status === 'P');
+        document.getElementById('btnVinculados').classList.toggle('active', status === 'V');
+        
+        var dtIni = document.getElementById('dtIni').value;
+        var dtFim = document.getElementById('dtFim').value;
+        
+        if (contaSelecionada && dtIni && dtFim) {
+            var diOracle = formatDateOracle(dtIni);
+            var dfOracle = formatDateOracle(dtFim);
+            
+            document.getElementById('tbodySugestoes').innerHTML = '<tr class="loading-row"><td colspan="8"><span class="spinner"></span>Carregando...</td></tr>';
+            
+            carregarSugestoes(diOracle, dfOracle).then(function() {
+                atualizarSelecao();
+            });
+        }
+    }
+    
+    // =============================================
+    // RENDERIZAR SUGESTÕES
+    // =============================================
+    function renderizarSugestoes() {
+        var tbody = document.getElementById('tbodySugestoes');
+        
+        if (dadosSugestoesFiltrados.length === 0) {
+            var msg = filtroStatus === 'P' ? 'Nenhuma sugestão pendente encontrada' : 'Nenhum registro vinculado encontrado';
+            tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><div class="icon">🔍</div>' + msg + '</td></tr>';
+            return;
+        }
+        
+        var html = '';
+        dadosSugestoesFiltrados.forEach(function(r) {
+            var score = parseInt(r.SCORE_MATCH);
+            var scoreClass = 'score-40';
+            if (score === 100) scoreClass = 'score-100';
+            else if (score === 70) scoreClass = 'score-70';
+            
+            var isEntradaBanco = Number(r.TIPO_BANCO) === 1;
+            var isEntradaSistema = Number(r.TIPO_SISTEMA) === 1;
+            var tipoClassBanco = isEntradaBanco ? 'entrada' : 'saida';
+            var tipoClassSistema = isEntradaSistema ? 'entrada' : 'saida';
+            var valorDisplayBanco = isEntradaBanco ? 'R$ ' + fmtMoeda(r.VLR_BANCO) : '-R$ ' + fmtMoeda(r.VLR_BANCO);
+            var valorDisplaySistema = isEntradaSistema ? 'R$ ' + fmtMoeda(r.VLR_SISTEMA) : '-R$ ' + fmtMoeda(r.VLR_SISTEMA);
+            var diffDias = Math.round(parseFloat(r.DIFF_DIAS) || 0);
+            var diffClass = diffDias === 0 ? 'diff-zero' : 'diff-alerta';
+            var diffText = diffDias === 0 ? '✓ 0d' : diffDias + 'd';
+            
+            var isVinculado = r.VINC === 'S';
+            var statusTag = isVinculado 
+                ? '<span class="tag tag-vinculado">Vinculado</span>' 
+                : '<span class="tag tag-pendente">Pendente</span>';
+            
+            html += '<tr data-nuvinc="' + r.NUVINC + '" data-nubco="' + r.NUBCO + '" data-score="' + score + '" data-vinculado="' + (isVinculado ? '1' : '0') + '">';
+            html += '<td class="text-center"><input type="checkbox" class="check-sugestao" value="' + r.NUVINC + '_' + r.NUBCO + '" onchange="atualizarSelecao()"></td>';
+            html += '<td><span class="score ' + scoreClass + '">' + score + '%</span></td>';
+            html += '<td class="col-banco">' + fmtData(r.DATA_BANCO) + '</td>';
+            html += '<td class="col-banco valor valor-' + tipoClassBanco + ' text-right">' + valorDisplayBanco + '</td>';
+            html += '<td class="col-sankhya col-separador">' + fmtData(r.DATA_SISTEMA) + '</td>';
+            html += '<td class="col-sankhya valor valor-' + tipoClassSistema + ' text-right">' + valorDisplaySistema + '</td>';
+            html += '<td class="text-center"><span class="diff-dias ' + diffClass + '">' + diffText + '</span></td>';
+            html += '<td>' + statusTag + '</td>';
+            html += '</tr>';
+        });
+        
+        tbody.innerHTML = html;
+        
+        tbody.querySelectorAll('tr').forEach(function(row) {
+            row.addEventListener('click', function(e) {
+                if (e.target.type === 'checkbox') return;
+                
+                var nuvinc = this.dataset.nuvinc;
+                var nubco = this.dataset.nubco;
+                
+                document.querySelectorAll('.selected').forEach(function(r) { r.classList.remove('selected'); });
+                
+                this.classList.add('selected');
+                
+                var rowBanco = document.querySelector('#tbodyBanco tr[data-nuvinc="' + nuvinc + '"]');
+                if (rowBanco) {
+                    rowBanco.classList.add('selected');
+                    rowBanco.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                
+                var rowSistema = document.querySelector('#tbodySistema tr[data-nubco="' + nubco + '"]');
+                if (rowSistema) {
+                    rowSistema.classList.add('selected');
+                    rowSistema.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        });
+    }
+    
+    // =============================================
+    // ORDENAÇÃO - CORRIGIDA PARA VALORES COM SINAL
+    // =============================================
+    function ordenar(tabela, coluna) {
+        var ord = ordenacoes[tabela];
+        
+        if (ord.col === coluna) {
+            ord.dir = ord.dir === 'ASC' ? 'DESC' : 'ASC';
+        } else {
+            ord.col = coluna;
+            ord.dir = 'ASC';
+        }
+        
+        var dados;
+        if (tabela === 'banco') dados = dadosBancoFiltrados;
+        else if (tabela === 'sistema') dados = dadosSistemaFiltrados;
+        else dados = dadosSugestoesFiltrados;
+        
+        dados.sort(function(a, b) {
+            var va = a[coluna];
+            var vb = b[coluna];
+            
+            if (va == null && vb == null) return 0;
+            if (va == null) return 1;
+            if (vb == null) return -1;
+            
+            // Tentar converter para número (já considera sinal nos campos VLR_REAL)
+            var na = parseFloat(va);
+            var nb = parseFloat(vb);
+            
+            if (!isNaN(na) && !isNaN(nb)) {
+                return ord.dir === 'ASC' ? na - nb : nb - na;
+            }
+            
+            // Ordenação textual para strings
+            va = String(va).toLowerCase();
+            vb = String(vb).toLowerCase();
+            
+            if (va < vb) return ord.dir === 'ASC' ? -1 : 1;
+            if (va > vb) return ord.dir === 'ASC' ? 1 : -1;
+            return 0;
+        });
+        
+        if (tabela === 'banco') renderizarBanco();
+        else if (tabela === 'sistema') renderizarSistema();
+        else renderizarSugestoes();
+        
+        // Atualizar indicador visual de ordenação
+        var tbl = tabela === 'banco' ? 'tblBanco' : (tabela === 'sistema' ? 'tblSistema' : 'tblSugestoes');
+        document.querySelectorAll('#' + tbl + ' th').forEach(function(th) {
+            th.classList.remove('sorted');
+            if (th.dataset.col === coluna) th.classList.add('sorted');
+        });
+    }
+    
+    // =============================================
+    // SELEÇÃO E CHECKBOXES
+    // =============================================
+    function toggleAllBanco() {
+        var checked = document.getElementById('checkAllBanco').checked;
+        document.querySelectorAll('.check-banco').forEach(function(cb) { cb.checked = checked; });
+        atualizarSelecao();
+    }
+    
+    function toggleAllSistema() {
+        var checked = document.getElementById('checkAllSistema').checked;
+        document.querySelectorAll('.check-sistema').forEach(function(cb) { cb.checked = checked; });
+        atualizarSelecao();
+    }
+    
+    function toggleAllSugestoes() {
+        var checked = document.getElementById('checkAllSugestoes').checked;
+        document.querySelectorAll('.check-sugestao').forEach(function(cb) { cb.checked = checked; });
+        atualizarSelecao();
+    }
+    
+    function atualizarSelecao() {
+        var checksSugestoes = document.querySelectorAll('.check-sugestao:checked');
+        var count = checksSugestoes.length;
+        
+        var total = 0;
+        checksSugestoes.forEach(function(cb) {
+            var nuvinc = cb.value.split('_')[0];
+            var reg = dadosSugestoesFiltrados.find(function(r) { return String(r.NUVINC) === nuvinc; });
+            if (reg) total += reg.VLR_BANCO_REAL || 0;
+        });
+        
+        var info = document.getElementById('selectionInfo');
+        if (count > 0) {
+            info.classList.remove('hidden');
+            document.getElementById('selectionCount').textContent = count + ' selecionado' + (count > 1 ? 's' : '');
+            // Exibir valor absoluto com sinal apropriado
+            var sinal = total >= 0 ? '' : '-';
+            document.getElementById('selectionTotal').textContent = sinal + 'R$ ' + fmtMoeda(Math.abs(total));
+        } else {
+            info.classList.add('hidden');
+        }
+        
+        if (filtroStatus === 'P') {
+            document.getElementById('btnVincular').disabled = count === 0;
+        } else {
+            document.getElementById('btnDesvincular').disabled = count === 0;
+        }
+    }
+    
+    // =============================================
+    // VINCULAR SELECIONADOS
+    // =============================================
+    function vincularSelecionados() {
+        var checks = document.querySelectorAll('.check-sugestao:checked');
+        
+        if (checks.length === 0) {
+            toast('⚠️ Selecione ao menos uma sugestão', 'warning');
+            return;
+        }
+        
+        if (!confirm('Confirma vincular ' + checks.length + ' registro(s)?')) return;
+        
+        status('⏳ Vinculando...', '');
+        
+        var promises = [];
+        checks.forEach(function(cb) {
+            var parts = cb.value.split('_');
+            var nuvinc = parts[0];
+            var nubco = parts[1];
+            
+            var dados = { VINC: 'S', NUBCO: nubco };
+            var pk = { NUVINC: nuvinc };
+            
+            promises.push(JX.salvar(dados, 'AD_VINCULOBANCARIO', pk));
+        });
+        
+        Promise.all(promises).then(function() {
+            toast('✓ ' + checks.length + ' registro(s) vinculado(s)', 'success');
+            carregarDados();
+        }).catch(function(e) {
+            toast('❌ Erro ao vincular: ' + e, 'error');
+            status('Erro: ' + e, 'erro');
+        });
+    }
+    
+    // =============================================
+    // AUTO VINCULAR
+    // =============================================
+    function autoVincular() {
+        var perfeitos = dadosSugestoesFiltrados.filter(function(r) { return parseInt(r.SCORE_MATCH) === 100; });
+        
+        if (perfeitos.length === 0) {
+            toast('⚠️ Nenhum match 100% encontrado', 'warning');
+            return;
+        }
+        
+        if (!confirm('Vincular automaticamente ' + perfeitos.length + ' registro(s) com 100% de compatibilidade?')) return;
+        
+        status('⏳ Auto-vinculando...', '');
+        
+        var promises = [];
+        perfeitos.forEach(function(r) {
+            var dados = { VINC: 'S', NUBCO: r.NUBCO };
+            var pk = { NUVINC: r.NUVINC };
+            
+            promises.push(JX.salvar(dados, 'AD_VINCULOBANCARIO', pk));
+        });
+        
+        Promise.all(promises).then(function() {
+            toast('✓ ' + perfeitos.length + ' registro(s) auto-vinculado(s)', 'success');
+            carregarDados();
+        }).catch(function(e) {
+            toast('❌ Erro ao auto-vincular: ' + e, 'error');
+            status('Erro: ' + e, 'erro');
+        });
+    }
+    
+    // =============================================
+    // DESVINCULAR SELECIONADOS
+    // =============================================
+    function desvincularSelecionados() {
+        var checks = document.querySelectorAll('.check-sugestao:checked');
+        
+        if (checks.length === 0) {
+            toast('⚠️ Selecione ao menos um registro', 'warning');
+            return;
+        }
+        
+        if (!confirm('Confirma DESVINCULAR ' + checks.length + ' registro(s)?\n\nEssa ação irá remover o vínculo entre o extrato bancário e o lançamento do sistema.')) return;
+        
+        status('⏳ Desvinculando...', '');
+        
+        var promises = [];
+        checks.forEach(function(cb) {
+            var parts = cb.value.split('_');
+            var nuvinc = parts[0];
+            
+            var dados = { VINC: 'N', NUBCO: '' };
+            var pk = { NUVINC: nuvinc };
+            
+            promises.push(JX.salvar(dados, 'AD_VINCULOBANCARIO', pk));
+        });
+        
+        Promise.all(promises).then(function() {
+            toast('✓ ' + checks.length + ' registro(s) desvinculado(s)', 'success');
+            carregarDados();
+        }).catch(function(e) {
+            toast('❌ Erro ao desvincular: ' + e, 'error');
+            status('Erro: ' + e, 'erro');
+        });
+    }
+    
+    // =============================================
+    // ABRIR TELA MBC
+    // NOTA: resourceID precisa ser validado no ambiente Sankhya
+    // =============================================
+    function abrirMBC(nubco) {
+        if (typeof JX !== 'undefined' && JX.abrirPagina) {
+            // Tentar resourceID padrão da tela de Movimentação Bancária
+            JX.abrirPagina('br.com.sankhya.menu.financeiro.MovimentacaoBancaria', { NUBCO: nubco });
+        } else {
+            toast('NUBCO: ' + nubco + ' (JX.abrirPagina não disponível)', 'warning');
+        }
+    }
+    
+    // =============================================
+    // EXPORTAR CSV
+    // =============================================
+    function exportarCSV() {
+        if (dadosSugestoesFiltrados.length === 0) {
+            toast('⚠️ Nenhum dado para exportar', 'warning');
+            return;
+        }
+        
+        var csv = 'NUVINC;DATA_BANCO;VLR_BANCO;NUBCO;DATA_SISTEMA;VLR_SISTEMA;SCORE;DIFF_DIAS;STATUS\n';
+        
+        dadosSugestoesFiltrados.forEach(function(r) {
+            var isEntradaBanco = Number(r.TIPO_BANCO) === 1;
+            var isEntradaSistema = Number(r.TIPO_SISTEMA) === 1;
+            var vlrBancoExport = isEntradaBanco ? fmtMoeda(r.VLR_BANCO) : '-' + fmtMoeda(r.VLR_BANCO);
+            var vlrSistemaExport = isEntradaSistema ? fmtMoeda(r.VLR_SISTEMA) : '-' + fmtMoeda(r.VLR_SISTEMA);
+            
+            csv += r.NUVINC + ';';
+            csv += fmtData(r.DATA_BANCO) + ';';
+            csv += vlrBancoExport + ';';
+            csv += r.NUBCO + ';';
+            csv += fmtData(r.DATA_SISTEMA) + ';';
+            csv += vlrSistemaExport + ';';
+            csv += r.SCORE_MATCH + '%;';
+            csv += Math.round(parseFloat(r.DIFF_DIAS) || 0) + ';';
+            csv += (r.VINC === 'S' ? 'Vinculado' : 'Pendente') + '\n';
+        });
+        
+        var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'conciliacao_' + new Date().toISOString().split('T')[0] + '.csv';
+        a.click();
+        
+        toast('✓ CSV exportado com sucesso', 'success');
+    }
+</script>
+
+</body>
+</html>
