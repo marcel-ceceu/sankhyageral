@@ -1,1 +1,418 @@
+package br.com.sankhya.apesp;
+
+import br.com.sankhya.extensions.actionbutton.AcaoRotinaJava;
+import br.com.sankhya.extensions.actionbutton.ContextoAcao;
+import br.com.sankhya.extensions.actionbutton.Registro;
+import br.com.sankhya.jape.EntityFacade;
+import br.com.sankhya.jape.sql.NativeSql;
+import br.com.sankhya.jape.vo.DynamicVO;
+import br.com.sankhya.jape.vo.EntityVO;
+import br.com.sankhya.modelcore.util.EntityFacadeFactory;
+import java.io.OutputStream;
+import java.math.BigDecimal;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.sql.ResultSet;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class ConsultaScorePositivo2601 implements AcaoRotinaJava {
+  public void doAction(ContextoAcao contexto) throws Exception {
+    System.out.println("========================================");
+    System.out.println("INICIANDO CONSULTA SCORE POSITIVO");
+    System.out.println("========================================");
+    String cpf = (String)contexto.getParam("CPF_CONSULTA");
+    BigDecimal codParc = null;
+    if ((contexto.getLinhas()).length > 0) {
+      Registro linha = contexto.getLinhas()[0];
+      try {
+        codParc = (BigDecimal)linha.getCampo("CODPARC");
+        System.out.println("CODPARC encontrado: " + codParc);
+      } catch (Exception e) {
+        System.out.println("CODPARC nencontrado no contexto");
+      } 
+    } 
+    if (cpf == null || cpf.trim().isEmpty()) {
+      contexto.setMensagemRetorno("Por favor, informe o CPF para consulta.");
+      return;
+    } 
+    cpf = cpf.replaceAll("\\D", "");
+    System.out.println("CPF para consulta: " + cpf);
+    try {
+      System.out.println("\n--- ETAPA 1: AUTENTICA---");
+      String token = gerarTokenAcesso();
+      if (token == null) {
+        contexto.setMensagemRetorno("Erro de autenticana API Score Positivo.");
+        return;
+      } 
+      System.out.println("Token obtido com sucesso");
+      System.out.println("\n--- ETAPA 2: CONSULTA API ---");
+      String jsonRetorno = consultarRelatorio(cpf, token);
+      System.out.println("JSON Retornado:");
+      System.out.println(jsonRetorno);
+      System.out.println("\n--- ETAPA 3: EXTRAINDO DADOS ---");
+      String idApi = extrairValorJson(jsonRetorno, "\"id\"");
+      String createdAt = extrairValorJson(jsonRetorno, "\"created_at\"");
+      String reportId = extrairValorJson(jsonRetorno, "\"report_id\"");
+      String document = extrairValorJson(jsonRetorno, "\"document\"");
+      String status = extrairValorJson(jsonRetorno, "\"status\"");
+      String nome = extrairCampoReport(jsonRetorno, "\"name\"");
+      String scoreTexto = extrairScoreNumero(jsonRetorno);
+      String risco = extrairRiscoLevel(jsonRetorno);
+      String probabilidadeTexto = extrairProbabilidadeLevel(jsonRetorno);
+      String comportamento = extrairPaymentLevel(jsonRetorno);
+      String perfil = extrairProfileLevel(jsonRetorno);
+      System.out.println("ID API: " + idApi);
+      System.out.println("Created At: " + createdAt);
+      System.out.println("Nome: " + nome);
+      System.out.println("Score: " + scoreTexto);
+      System.out.println("Risco: " + risco);
+      System.out.println("Probabilidade: " + probabilidadeTexto);
+      System.out.println("Comportamento: " + comportamento);
+      System.out.println("Perfil: " + perfil);
+      BigDecimal scoreBigDecimal = BigDecimal.ZERO;
+      if (scoreTexto != null && !scoreTexto.isEmpty())
+        try {
+          scoreBigDecimal = new BigDecimal(scoreTexto);
+        } catch (Exception e) {
+          System.out.println("Erro ao converter score: " + scoreTexto);
+        }  
+      BigDecimal probabilidade = BigDecimal.ZERO;
+      if (probabilidadeTexto != null && !probabilidadeTexto.isEmpty())
+        try {
+          probabilidade = new BigDecimal(probabilidadeTexto);
+        } catch (Exception e) {
+          System.out.println("Erro ao converter probabilidade: " + probabilidadeTexto);
+        }  
+      System.out.println("\n--- ETAPA 4: GRAVANDO NO BANCO ---");
+      String mensagemBanco = "";
+      try {
+        salvarNoBanco(contexto, codParc, idApi, createdAt, reportId, cpf, status, 
+            nome, scoreBigDecimal, risco, probabilidade, 
+            comportamento, perfil, jsonRetorno);
+        mensagemBanco = "<br><small style='color:green'>Histsalvo com sucesso na tabela AD_CONSULTACPF</small>";
+        System.out.println("Gravaconclucom sucesso");
+      } catch (Exception dbEx) {
+        System.out.println("ERRO AO GRAVAR NO BANCO: " + dbEx.getMessage());
+        dbEx.printStackTrace();
+        mensagemBanco = "<br><small style='color:red'>Erro ao salvar hist" + dbEx.getMessage() + "</small>";
+      } 
+      System.out.println("\n--- ETAPA 5: MONTANDO MENSAGEM ---");
+      StringBuilder msg = new StringBuilder();
+      msg.append("<div style='font-family: Arial; font-size: 14px; padding: 10px;'>");
+      msg.append("<b style='font-size: 16px; color: #2c3e50;'>CONSULTA SCORE POSITIVO</b><hr>");
+      msg.append("<b>CPF:</b> " + formatarCPF(cpf) + "<br>");
+      msg.append("<b>Cliente:</b> " + ((nome != null) ? nome : "---") + "<br>");
+      msg.append("<b>Status:</b> <span style='color:green; font-weight:bold;'>" + ((status != null) ? status : "---") + "</span><br>");
+      if (scoreBigDecimal.compareTo(BigDecimal.ZERO) > 0) {
+        String cor = (scoreBigDecimal.compareTo(new BigDecimal(700)) >= 0) ? "#d4edda" : (
+          (scoreBigDecimal.compareTo(new BigDecimal(400)) >= 0) ? "#fff3cd" : "#f8d7da");
+        msg.append("<br><div style='background-color:" + cor + "; padding:10px; border-radius:5px; margin:10px 0;'>");
+        msg.append("<b style='font-size:14px;'>SCORE DE CR<span style='font-weight:bold; font-size:24px;'>" + scoreBigDecimal + "</span>/1000");
+        msg.append("</div>");
+        if (risco != null && !risco.isEmpty())
+          msg.append("<b>Nde Risco:</b> <span style='font-weight:bold; color:#e74c3c;'>" + risco + "</span><br>"); 
+        if (probabilidade.compareTo(BigDecimal.ZERO) > 0)
+          msg.append("<b>Probabilidade de Pagamento:</b> <span style='font-weight:bold; color:#27ae60;'>" + probabilidade + "%</span><br>"); 
+      } else {
+    	  msg.append("<br><b>SCORE:</b> Não disponível");      } 
+      if (comportamento != null && !comportamento.isEmpty())
+        msg.append("<br><b>Comportamento de Pagamento:</b> " + comportamento + "<br>"); 
+      if (perfil != null && !perfil.isEmpty())
+        msg.append("<b>Perfil do Cliente:</b> " + perfil + "<br>"); 
+      msg.append(mensagemBanco);
+      msg.append("</div>");
+      contexto.setMensagemRetorno(msg.toString());
+      System.out.println("\nConsulta conclucom sucesso!");
+    } catch (Exception e) {
+      System.out.println("\nERRO CR" + e.getMessage());
+      e.printStackTrace();
+      contexto.setMensagemRetorno("Erro t" + e.getMessage());
+    } 
+  }
+  
+  private void salvarNoBanco(ContextoAcao ctx, BigDecimal codParc, String idApi, String createdAt, String reportId, String cpf, String status, String nome, BigDecimal score, String risco, BigDecimal probabilidade, String comportamento, String perfil, String jsonCompleto) throws Exception {
+    try {
+      Timestamp dtConsulta;
+      System.out.println("=== GRAVANDO NO BANCO ===");
+      EntityFacade dwfFacade = EntityFacadeFactory.getDWFFacade();
+      BigDecimal proximoNucon = BigDecimal.ONE;
+      try {
+        NativeSql nativeSql = new NativeSql(dwfFacade.getJdbcWrapper());
+        nativeSql.appendSql("SELECT MAX(NUCON) FROM AD_CONSULTACPF");
+        ResultSet rs = nativeSql.executeQuery();
+        if (rs.next()) {
+          BigDecimal ultimo = rs.getBigDecimal(1);
+          if (ultimo != null)
+            proximoNucon = ultimo.add(BigDecimal.ONE); 
+        } 
+        rs.close();
+      } catch (Exception e) {
+        System.out.println("Primeira consulta, usando NUCON = 1");
+      } 
+      System.out.println("NUCON: " + proximoNucon);
+      System.out.println("CODPARC: " + codParc);
+      System.out.println("IDAPI: " + idApi);
+      System.out.println("CPF: " + cpf);
+      System.out.println("NOME: " + nome);
+      System.out.println("SCORE: " + score);
+      System.out.println("VAIPAGAR: " + probabilidade);
+      DynamicVO novoVO = (DynamicVO)dwfFacade.getDefaultValueObjectInstance("AD_CONSULTACPF");
+      novoVO.setProperty("NUCON", proximoNucon);
+      novoVO.setProperty("CODPARC", codParc);
+      novoVO.setProperty("SCORE", score);
+      novoVO.setProperty("VAIPAGAR", probabilidade);
+      novoVO.setProperty("IDAPI", idApi);
+      novoVO.setProperty("TIPO", reportId);
+      novoVO.setProperty("CPF", cpf);
+      novoVO.setProperty("STATUS", status);
+      novoVO.setProperty("NOMEPARC", nome);
+      novoVO.setProperty("RISCO", risco);
+      novoVO.setProperty("COMPORTAMENTO", comportamento);
+      novoVO.setProperty("PERFIL", perfil);
+      novoVO.setProperty("SEPROC", "");
+      if (createdAt != null && !createdAt.isEmpty()) {
+        try {
+          SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
+          Date date = sdf.parse(createdAt);
+          dtConsulta = new Timestamp(date.getTime());
+        } catch (Exception e) {
+          System.out.println("Erro ao converter data, usando data atual: " + e.getMessage());
+          dtConsulta = new Timestamp(System.currentTimeMillis());
+        } 
+      } else {
+        dtConsulta = new Timestamp(System.currentTimeMillis());
+      } 
+      novoVO.setProperty("DTCONSULTA", dtConsulta);
+      novoVO.setProperty("JSON_RETORNO", (jsonCompleto != null) ? jsonCompleto.toCharArray() : new char[0]);
+      dwfFacade.createEntity("AD_CONSULTACPF", (EntityVO)novoVO);
+      System.out.println("GRAVADO COM SUCESSO! NUCON = " + proximoNucon);
+    } catch (Exception e) {
+      System.out.println("ERRO AO GRAVAR: " + e.getMessage());
+      e.printStackTrace();
+      throw new Exception("Nfoi possgravar no hist" + e.getMessage());
+    } 
+  }
+  
+  private String gerarTokenAcesso() throws Exception {
+    String authUrl = "https://core.scorepositivo.com.br/oauth/token";
+    String jsonAuth = "{\"grant_type\":\"client_credentials\",\"client_id\":\"08696597000162\",\"client_secret\":\"6c495302-99e2-4a68-beed-678532712d8c\"}";
+    String resposta = enviarPost(authUrl, jsonAuth, null);
+    return extrairValorJson(resposta, "\"access_token\"");
+  }
+  
+  private String consultarRelatorio(String cpf, String token) throws Exception {
+    String reportUrl = "https://core.scorepositivo.com.br/api/report";
+    String trialPart = "";
+    String jsonReport = "{\"report_id\":\"cpf-score\",\"document\":\"" + cpf + "\"" + trialPart + "}";
+    return enviarPost(reportUrl, jsonReport, token);
+  }
+  
+  private String enviarPost(String urlDestino, String jsonBody, String tokenBearer) throws Exception {
+	    URL url = new URL(urlDestino);
+	    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+	    conn.setRequestMethod("POST");
+	    conn.setRequestProperty("Content-Type", "application/json");
+	    conn.setRequestProperty("Accept", "application/json");
+	    if (tokenBearer != null) {
+	        conn.setRequestProperty("Authorization", "Bearer " + tokenBearer);
+	    }
+	    conn.setDoOutput(true);
+	    
+	    OutputStream os = conn.getOutputStream();
+	    byte[] input = jsonBody.getBytes("utf-8");
+	    os.write(input, 0, input.length);
+	    os.close();
+	    
+	    int code = conn.getResponseCode();
+	    
+	    java.io.InputStream is;
+	    if (code >= 200 && code < 300) {
+	        is = conn.getInputStream();
+	    } else {
+	        is = conn.getErrorStream();
+	    }
+	    
+	    java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(is, "utf-8"));
+	    StringBuilder response = new StringBuilder();
+	    String responseLine;
+	    while ((responseLine = br.readLine()) != null) {
+	        response.append(responseLine.trim());
+	    }
+	    br.close();
+	    conn.disconnect();
+	    
+	    return response.toString();
+	}
+  
+  private String extrairValorJson(String json, String chave) {
+    try {
+      int valueEnd;
+      if (json == null)
+        return null; 
+      int start = json.indexOf(chave);
+      if (start == -1)
+        return null; 
+      int colon = json.indexOf(":", start);
+      int valueStart = colon + 1;
+      for (; valueStart < json.length() && Character.isWhitespace(json.charAt(valueStart)); valueStart++);
+      if (json.charAt(valueStart) == '"') {
+        valueStart++;
+        valueEnd = json.indexOf("\"", valueStart);
+      } else {
+        int virgula = json.indexOf(",", valueStart);
+        int fechaChave = json.indexOf("}", valueStart);
+        if (virgula == -1) {
+          valueEnd = fechaChave;
+        } else if (fechaChave == -1) {
+          valueEnd = virgula;
+        } else {
+          valueEnd = Math.min(virgula, fechaChave);
+        } 
+      } 
+      return json.substring(valueStart, valueEnd).trim();
+    } catch (Exception e) {
+      return null;
+    } 
+  }
+  
+  private String extrairCampoReport(String json, String chave) {
+    try {
+      int reportStart = json.indexOf("\"report\"");
+      if (reportStart == -1)
+        return null; 
+      int reportObjStart = json.indexOf("{", reportStart);
+      if (reportObjStart == -1)
+        return null; 
+      int nivel = 1;
+      int i = reportObjStart + 1;
+      int reportObjEnd = reportObjStart;
+      while (i < json.length() && nivel > 0) {
+        if (json.charAt(i) == '{') {
+          nivel++;
+        } else {
+          nivel--;
+          if (json.charAt(i) == '}' && nivel == 0)
+            reportObjEnd = i; 
+        } 
+        i++;
+      } 
+      String reportJson = json.substring(reportObjStart, reportObjEnd + 1);
+      return extrairValorJson(reportJson, chave);
+    } catch (Exception e) {
+      return null;
+    } 
+  }
+  
+  private String extrairScoreNumero(String json) {
+    try {
+      int reportStart = json.indexOf("\"report\"");
+      if (reportStart == -1)
+        return null; 
+      int scoreObjStart = json.indexOf("\"score\"", reportStart);
+      if (scoreObjStart == -1)
+        return null; 
+      int scoreStart = json.indexOf("{", scoreObjStart);
+      if (scoreStart == -1)
+        return null; 
+      int scoreValuePos = json.indexOf("\"score\":", scoreStart);
+      if (scoreValuePos == -1)
+        return null; 
+      int valorInicio = scoreValuePos + 8;
+      while (valorInicio < json.length() && Character.isWhitespace(json.charAt(valorInicio)))
+        valorInicio++; 
+      int valorFim = json.indexOf(",", valorInicio);
+      if (valorFim == -1)
+        valorFim = json.indexOf("}", valorInicio); 
+      return json.substring(valorInicio, valorFim).trim();
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    } 
+  }
+  
+  private String extrairRiscoLevel(String json) {
+    try {
+      int scoreStart = json.indexOf("\"score\"");
+      if (scoreStart == -1)
+        return null; 
+      int riskStart = json.indexOf("\"risk\"", scoreStart);
+      if (riskStart == -1)
+        return null; 
+      int riskObjStart = json.indexOf("{", riskStart);
+      if (riskObjStart == -1)
+        return null; 
+      int riskObjEnd = json.indexOf("}", riskObjStart);
+      String riskJson = json.substring(riskObjStart, riskObjEnd + 1);
+      return extrairValorJson(riskJson, "\"level\"");
+    } catch (Exception e) {
+      return null;
+    } 
+  }
+  
+  private String extrairProbabilidadeLevel(String json) {
+    try {
+      int scoreStart = json.indexOf("\"score\"");
+      if (scoreStart == -1)
+        return null; 
+      int probStart = json.indexOf("\"probability\"", scoreStart);
+      if (probStart == -1)
+        return null; 
+      int probObjStart = json.indexOf("{", probStart);
+      if (probObjStart == -1)
+        return null; 
+      int probObjEnd = json.indexOf("}", probObjStart);
+      String probJson = json.substring(probObjStart, probObjEnd + 1);
+      return extrairValorJson(probJson, "\"level\"");
+    } catch (Exception e) {
+      return null;
+    } 
+  }
+  
+  private String extrairPaymentLevel(String json) {
+    try {
+      int behaviorStart = json.indexOf("\"behavior\"");
+      if (behaviorStart == -1)
+        return null; 
+      int paymentStart = json.indexOf("\"payment\"", behaviorStart);
+      if (paymentStart == -1)
+        return null; 
+      int paymentObjStart = json.indexOf("{", paymentStart);
+      if (paymentObjStart == -1)
+        return null; 
+      int paymentObjEnd = json.indexOf("}", paymentObjStart);
+      String paymentJson = json.substring(paymentObjStart, paymentObjEnd + 1);
+      return extrairValorJson(paymentJson, "\"level\"");
+    } catch (Exception e) {
+      return null;
+    } 
+  }
+  
+  private String extrairProfileLevel(String json) {
+    try {
+      int behaviorStart = json.indexOf("\"behavior\"");
+      if (behaviorStart == -1)
+        return null; 
+      int profileStart = json.indexOf("\"profile\"", behaviorStart);
+      if (profileStart == -1)
+        return null; 
+      int profileObjStart = json.indexOf("{", profileStart);
+      if (profileObjStart == -1)
+        return null; 
+      int profileObjEnd = json.indexOf("}", profileObjStart);
+      String profileJson = json.substring(profileObjStart, profileObjEnd + 1);
+      return extrairValorJson(profileJson, "\"level\"");
+    } catch (Exception e) {
+      return null;
+    } 
+  }
+  
+  private String formatarCPF(String cpf) {
+    if (cpf == null || cpf.length() != 11)
+      return cpf; 
+    return String.valueOf(cpf.substring(0, 3)) + "." + cpf.substring(3, 6) + "." + 
+      cpf.substring(6, 9) + "-" + cpf.substring(9, 11);
+  }
+}
 
