@@ -1,0 +1,8 @@
+.wdr-ui-element {
+  box-shadow: none;
+}
+
+.wdr-header,
+.wdr-toolbar {
+  border-radius: 6px;
+}
