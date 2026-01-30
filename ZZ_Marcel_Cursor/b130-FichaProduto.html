@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ficha do Produto - Análise Completa</title>
+  <style>
+    :root {
+      --background: hsl(0 0% 100%);
+      --foreground: hsl(222.2 84% 4.9%);
+      --muted: hsl(210 40% 96.1%);
+      --muted-foreground: hsl(215.4 16.3% 46.9%);
+      --border: hsl(214.3 31.8% 91.4%);
+      --primary: hsl(221.2 83.2% 53.3%);
+      --primary-foreground: hsl(210 40% 98%);
+      --card: hsl(0 0% 100%);
+      --success: hsl(142 76% 36%);
+      --success-bg: hsl(142 76% 94%);
+      --warning: hsl(38 92% 50%);
+      --warning-bg: hsl(38 92% 94%);
+      --destructive: hsl(0 84% 60%);
+      --destructive-bg: hsl(0 84% 94%);
+      --info: hsl(221 83% 53%);
+      --info-bg: hsl(221 83% 94%);
+      --radius: 0.5rem;
+      --font-sans: ui-sans-serif, system-ui, sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--muted);
+      color: var(--foreground);
+      min-height: 100vh;
+    }
+
+    .hidden { display: none !important; }
+
+    /* ===== HEADER / BUSCA ===== */
+    .header {
+      background: linear-gradient(135deg, hsl(221 83% 53%) 0%, hsl(262 83% 58%) 100%);
+      padding: 1.5rem;
+      color: white;
+    }
+
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .header-title svg { width: 1.75rem; height: 1.75rem; }
+
+    .search-container {
+      display: flex;
+      gap: 0.75rem;
+      max-width: 600px;
+    }
+
+    .search-input {
+      flex: 1;
+      height: 2.75rem;
+      padding: 0 1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.95);
+      color: var(--foreground);
+    }
+
+    .search-input:focus {
+      outline: 3px solid rgba(255,255,255,0.5);
+    }
+
+    .search-input::placeholder { color: var(--muted-foreground); }
+
+    .btn-search {
+      height: 2.75rem;
+      padding: 0 1.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.2);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background 0.15s;
+    }
+
+    .btn-search:hover { background: rgba(255,255,255,0.3); }
+    .btn-search svg { width: 1.125rem; height: 1.125rem; }
+
+    /* ===== MAIN CONTAINER ===== */
+    .main-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+
+    .empty-state svg {
+      width: 4rem;
+      height: 4rem;
+      color: var(--muted-foreground);
+      margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+      font-size: 1.25rem;
+      color: var(--foreground);
+      margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+      color: var(--muted-foreground);
+      font-size: 0.875rem;
+    }
+
+    /* ===== PRODUCT HEADER ===== */
+    .product-header {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 1.5rem;
+      align-items: flex-start;
+    }
+
+    .product-avatar {
+      width: 5rem;
+      height: 5rem;
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .product-info { flex: 1; min-width: 0; }
+
+    .product-code {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+
+    .product-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--foreground);
+      margin-bottom: 0.5rem;
+      line-height: 1.2;
+    }
+
+    .product-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.875rem;
+      color: var(--muted-foreground);
+    }
+
+    .product-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+    }
+
+    .product-meta-item svg { width: 1rem; height: 1rem; }
+
+    .product-badges {
+      display: flex;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+
+    .badge-abc {
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .badge-abc-a { background: var(--success-bg); color: var(--success); }
+    .badge-abc-b { background: var(--warning-bg); color: hsl(38 92% 40%); }
+    .badge-abc-c { background: var(--destructive-bg); color: var(--destructive); }
+
+    .badge-rank {
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      background: var(--info-bg);
+      color: var(--info);
+    }
+
+    /* ===== KPI CARDS ===== */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .kpi-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .kpi-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      margin: 0 auto 0.75rem;
+      border-radius: calc(var(--radius) - 2px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .kpi-icon svg { width: 1.25rem; height: 1.25rem; }
+
+    .kpi-icon.blue { background: var(--info-bg); color: var(--info); }
+    .kpi-icon.green { background: var(--success-bg); color: var(--success); }
+    .kpi-icon.yellow { background: var(--warning-bg); color: var(--warning); }
+    .kpi-icon.red { background: var(--destructive-bg); color: var(--destructive); }
+    .kpi-icon.purple { background: hsl(262 83% 94%); color: hsl(262 83% 58%); }
+
+    .kpi-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--foreground);
+      margin-bottom: 0.25rem;
+    }
+
+    .kpi-label {
+      font-size: 0.6875rem;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ===== SECTION GRID ===== */
+    .section-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .section-header {
+      padding: 1rem 1.25rem;
+      background: var(--muted);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: var(--foreground);
+    }
+
+    .section-header svg { width: 1.125rem; height: 1.125rem; color: var(--primary); }
+
+    .section-body { padding: 1.25rem; }
+
+    .data-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .data-row:last-child { border-bottom: none; }
+
+    .data-label {
+      font-size: 0.8125rem;
+      color: var(--muted-foreground);
+    }
+
+    .data-value {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--foreground);
+      text-align: right;
+    }
+
+    .data-value.positive { color: var(--success); }
+    .data-value.negative { color: var(--destructive); }
+    .data-value.warning { color: var(--warning); }
+
+    /* ===== SIMILAR COMPARISON ===== */
+    .comparison-bar {
+      height: 0.5rem;
+      background: var(--muted);
+      border-radius: 9999px;
+      overflow: hidden;
+      margin-top: 0.5rem;
+    }
+
+    .comparison-bar-fill {
+      height: 100%;
+      border-radius: 9999px;
+      transition: width 0.3s ease;
+    }
+
+    .comparison-bar-fill.green { background: var(--success); }
+    .comparison-bar-fill.yellow { background: var(--warning); }
+    .comparison-bar-fill.red { background: var(--destructive); }
+
+    /* ===== FULL WIDTH SECTION ===== */
+    .section-full {
+      grid-column: span 2;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+
+    .info-item {
+      text-align: center;
+      padding: 1rem;
+      background: var(--muted);
+      border-radius: calc(var(--radius) - 2px);
+    }
+
+    .info-item-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--foreground);
+      margin-bottom: 0.25rem;
+    }
+
+    .info-item-label {
+      font-size: 0.6875rem;
+      color: var(--muted-foreground);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ===== LOADING & TOAST ===== */
+    #loadingOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    #loadingText {
+      background: var(--background);
+      border: 1px solid var(--border);
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      color: var(--foreground);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .spinner {
+      width: 1.25rem;
+      height: 1.25rem;
+      border: 2px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    #toastContainer {
+      position: fixed;
+      right: 1rem;
+      top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      z-index: 1100;
+    }
+
+    .toast {
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--background);
+      font-size: 0.8125rem;
+      color: var(--foreground);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .toast-info { border-color: hsl(221 83% 85%); background: var(--info-bg); color: var(--info); }
+    .toast-sucesso { border-color: hsl(142 76% 85%); background: var(--success-bg); color: var(--success); }
+    .toast-erro { border-color: hsl(0 84% 85%); background: var(--destructive-bg); color: var(--destructive); }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1024px) {
+      .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+      .section-grid { grid-template-columns: 1fr; }
+      .section-full { grid-column: span 1; }
+      .info-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .product-header { flex-direction: column; align-items: stretch; }
+      .product-badges { justify-content: flex-start; }
+      .search-container { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== HEADER COM BUSCA ===== -->
+  <header class="header">
+    <div class="header-content">
+      <h1 class="header-title">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 7h-9"/>
+          <path d="M14 17H5"/>
+          <circle cx="17" cy="17" r="3"/>
+          <circle cx="7" cy="7" r="3"/>
+        </svg>
+        Ficha do Produto
+      </h1>
+      <div class="search-container">
+        <input type="text" id="searchCodProd" class="search-input" placeholder="Digite o código do produto (CODPROD)..." autofocus>
+        <button class="btn-search" id="btnBuscar">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.3-4.3"/>
+          </svg>
+          Buscar
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== CONTEÚDO PRINCIPAL ===== -->
+  <main class="main-container">
+    
+    <!-- Estado vazio (antes de buscar) -->
+    <div id="emptyState" class="empty-state">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M20 7h-9"/>
+        <path d="M14 17H5"/>
+        <circle cx="17" cy="17" r="3"/>
+        <circle cx="7" cy="7" r="3"/>
+      </svg>
+      <h3>Nenhum produto selecionado</h3>
+      <p>Digite o código do produto no campo acima para visualizar a ficha completa</p>
+    </div>
+
+    <!-- Conteúdo do produto (inicialmente oculto) -->
+    <div id="productContent" class="hidden">
+      
+      <!-- Cabeçalho do Produto -->
+      <section class="product-header">
+        <div class="product-avatar" id="productAvatar">PR</div>
+        <div class="product-info">
+          <div class="product-code" id="productCode">SIS: 12345</div>
+          <h2 class="product-name" id="productName">Nome do Produto</h2>
+          <div class="product-meta">
+            <span class="product-meta-item">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
+                <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
+                <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
+              </svg>
+              <span id="productMarca">Marca</span>
+            </span>
+            <span class="product-meta-item">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2H2v10l9.29 9.29a1 1 0 0 0 1.42 0l6.58-6.58a1 1 0 0 0 0-1.42L12 6V2Z"/>
+                <path d="M7 7h.01"/>
+              </svg>
+              <span id="productGrupo">Grupo</span>
+            </span>
+            <span class="product-meta-item">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+              </svg>
+              <span id="productRef">Ref: XXX</span>
+            </span>
+          </div>
+        </div>
+        <div class="product-badges">
+          <span class="badge-abc" id="badgeABC">A</span>
+          <span class="badge-rank" id="badgeRank">#1</span>
+        </div>
+      </section>
+
+      <!-- KPIs Principais -->
+      <section class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon blue">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m7.5 4.27 9 5.15"/>
+              <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+              <path d="m3.3 7 8.7 5 8.7-5"/>
+              <path d="M12 22V12"/>
+            </svg>
+          </div>
+          <div class="kpi-value" id="kpiEstoque">0</div>
+          <div class="kpi-label">Estoque</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon green">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+              <path d="M3 6h18"/>
+              <path d="M16 10a4 4 0 0 1-8 0"/>
+            </svg>
+          </div>
+          <div class="kpi-value" id="kpiEstoqueSim">0</div>
+          <div class="kpi-label">Estoque Similar</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon yellow">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <div class="kpi-value" id="kpiDias">0</div>
+          <div class="kpi-label">Dias s/ Venda</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon green">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3v18h18"/>
+              <path d="m19 9-5 5-4-4-3 3"/>
+            </svg>
+          </div>
+          <div class="kpi-value" id="kpiMedia">0</div>
+          <div class="kpi-label">Média/Mês</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon purple">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          </div>
+          <div class="kpi-value" id="kpiCusto">R$ 0</div>
+          <div class="kpi-label">Último Custo</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon red">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <div class="kpi-value" id="kpiMarcas">0</div>
+          <div class="kpi-label">Marcas Cadastradas</div>
+        </div>
+      </section>
+
+      <!-- Seções de Detalhe -->
+      <div class="section-grid">
+        
+        <!-- Estoque -->
+        <section class="section-card">
+          <div class="section-header">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m7.5 4.27 9 5.15"/>
+              <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+            </svg>
+            Estoque
+          </div>
+          <div class="section-body">
+            <div class="data-row">
+              <span class="data-label">Estoque Original</span>
+              <span class="data-value" id="dataEstoqueOrig">0</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Estoque Similar Total</span>
+              <span class="data-value" id="dataEstoqueSim">0</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Marcas c/ Estoque</span>
+              <span class="data-value" id="dataMarcasEstoque">0</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Vendas -->
+        <section class="section-card">
+          <div class="section-header">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3v18h18"/>
+              <path d="m19 9-5 5-4-4-3 3"/>
+            </svg>
+            Performance de Vendas
+          </div>
+          <div class="section-body">
+            <div class="data-row">
+              <span class="data-label">Notas Venda (Original)</span>
+              <span class="data-value" id="dataVendasOrig">0</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Notas Venda (Similar)</span>
+              <span class="data-value" id="dataVendasSim">0</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Última Venda</span>
+              <span class="data-value" id="dataUltVenda">-</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Participação no Grupo</span>
+              <span class="data-value" id="dataParticipacao">0%</span>
+            </div>
+            <div class="comparison-bar">
+              <div class="comparison-bar-fill green" id="barParticipacao" style="width: 0%"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Compras -->
+        <section class="section-card">
+          <div class="section-header">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="8" cy="21" r="1"/>
+              <circle cx="19" cy="21" r="1"/>
+              <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+            </svg>
+            Última Compra
+          </div>
+          <div class="section-body">
+            <div class="data-row">
+              <span class="data-label">Quantidade Comprada</span>
+              <span class="data-value" id="dataQtdCompra">0</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Data da Compra</span>
+              <span class="data-value" id="dataDataCompra">-</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Fornecedor</span>
+              <span class="data-value" id="dataFornecedor">-</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Custo Unitário</span>
+              <span class="data-value" id="dataCusto">R$ 0,00</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Fornecedores Diferentes</span>
+              <span class="data-value" id="dataQtdFornec">0</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Similares -->
+        <section class="section-card">
+          <div class="section-header">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Análise de Similares
+          </div>
+          <div class="section-body">
+            <div class="data-row">
+              <span class="data-label">Ranking no Grupo</span>
+              <span class="data-value" id="dataRankSim">#1</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Outras Marcas Vendidas</span>
+              <span class="data-value" id="dataOutrasMarcas">0</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Total Marcas Cadastradas</span>
+              <span class="data-value" id="dataTotalMarcas">0</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Média Mensal (3 meses)</span>
+              <span class="data-value" id="dataMedia3m">0</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Identificação Completa -->
+        <section class="section-card section-full">
+          <div class="section-header">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+            </svg>
+            Identificação Completa
+          </div>
+          <div class="section-body">
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="info-item-value" id="infoSIS">-</div>
+                <div class="info-item-label">Código Sistema</div>
+              </div>
+              <div class="info-item">
+                <div class="info-item-value" id="infoREF">-</div>
+                <div class="info-item-label">Referência</div>
+              </div>
+              <div class="info-item">
+                <div class="info-item-value" id="infoORG">-</div>
+                <div class="info-item-label">Cód. Original</div>
+              </div>
+              <div class="info-item">
+                <div class="info-item-value" id="infoMARCA">-</div>
+                <div class="info-item-label">Marca</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Loading -->
+  <div id="loadingOverlay" class="hidden">
+    <div id="loadingText">
+      <div class="spinner"></div>
+      <span>Buscando produto...</span>
+    </div>
+  </div>
+  <div id="toastContainer"></div>
+
+  <!-- SankhyaJX -->
+  <script src="https://cdn.jsdelivr.net/gh/wansleynery/SankhyaJX/jx.min.js"></script>
+
+  <script>
+    // =============================================
+    // FICHA DO PRODUTO - ES5 COMPATÍVEL
+    // =============================================
+
+    var CONFIG = { DEBUG: true };
+
+    // Query SQL
+    var SQL_TEMPLATE = "WITH CTE1 AS ( " +
+      "SELECT " +
+      "PRO.CODPROD, PRO.COMPLDESC, PRO.REFFORN, PRO.CODIGO, PRO.MARCA, PRO.DESCRPROD, " +
+      "PRO.CODGRUPOPROD, PRO.DESCRGRUPOPROD, " +
+      "PEPETQ.ESTOQUE AS ETQORIG, PEPETQ.SIM_ESTQAT, PEPETQ.ESTQMARSIM, " +
+      "NVL(VENSIM.ORG_QTDVENLIQ_TT, 0) AS ORG_QTDVENLIQ_TT, " +
+      "NVL(VENSIM.SIM_QTDVENLIQ_TT, 0) AS SIM_QTDVENLIQ_TT, " +
+      "NVL(VENSIM.ORG_NOTAVENLIQ_TT, 0) AS ORG_NOTAVENLIQ_TT, " +
+      "NVL(VENSIM.SIM_NOTAVENLIQ_TT, 0) AS SIM_NOTAVENLIQ_TT, " +
+      "VENSIM.ORG_DTULTVEN, " +
+      "NVL(VENSIM.ORG_DIASULTVEN, 9999) AS ORG_DIASULTVEN, " +
+      "VENSIM.ORG_ABC_RANK, " +
+      "NVL(VENSIM.ORG_ABC_CLASS, 'C') AS ORG_ABC_CLASS, " +
+      "NVL(VENSIM.QTDDIFSIM, 0) AS QTDDIFSIM, " +
+      "VENSIM.RANKVENSIM, " +
+      "NVL(VENSIM.PARTCODSIM, 0) AS PARTCODSIM, " +
+      "NVL(VENSIM.SIM_QTDMARCATT, 0) AS SIM_QTDMARCATT, " +
+      "CASE WHEN NVL(MED3.QTDVEN3MES, 0) / 3 >= 1 THEN ROUND(MED3.QTDVEN3MES / 3, 2) " +
+      "WHEN NVL(VENSIM.ORG_QTDVENLIQ_TT, 0) > 1 THEN 1 ELSE 0 END AS MED3MES, " +
+      "COMSIM.COM_QTDCOMPRA_ORIG, COMSIM.COM_ULTDT, COMSIM.COM_ULTPARC, PAR.NOMEPARC, " +
+      "COMSIM.COM_ULTCUSTO, COMSIM.COM_QTDPARCDIF " +
+      "FROM AE1_2601_PEPETQSIM PEPETQ " +
+      "LEFT JOIN AE1_2601_PEPVENSIMTT VENSIM ON VENSIM.CODPROD = PEPETQ.CODPROD " +
+      "LEFT JOIN AE1_2601_PEPCOMSIMTT COMSIM ON COMSIM.CODPROD = PEPETQ.CODPROD " +
+      "LEFT JOIN TGFPAR PAR ON PAR.CODPARC = COMSIM.COM_ULTPARC " +
+      "LEFT JOIN AVW_PRODUTOCOMPLETO PRO ON PRO.CODPROD = PEPETQ.CODPROD " +
+      "LEFT JOIN ( " +
+      "SELECT ITE.CODPROD, " +
+      "SUM(CASE WHEN MOV.MOVOFICIAL = 'PEDIDO_VENDA' THEN ITE.QTDNEG ELSE 0 END) - " +
+      "SUM(CASE WHEN MOV.MOVOFICIAL = 'DEVOLUCAO_VENDA' THEN ITE.QTDNEG ELSE 0 END) AS QTDVEN3MES " +
+      "FROM TGFCAB CAB JOIN TGFITE ITE ON ITE.NUNOTA = CAB.NUNOTA " +
+      "JOIN AE0_TOPMOVGER MOV ON MOV.CODTIPOPER = CAB.CODTIPOPER " +
+      "WHERE MOV.MOVOFICIAL IN ('PEDIDO_VENDA', 'DEVOLUCAO_VENDA') " +
+      "AND CAB.DTNEG >= ADD_MONTHS(TRUNC(SYSDATE), -3) GROUP BY ITE.CODPROD " +
+      ") MED3 ON MED3.CODPROD = PEPETQ.CODPROD " +
+      ") " +
+      "SELECT CODPROD as SIS, COMPLDESC AS REF, REFFORN AS ORG, MARCA, DESCRPROD, " +
+      "DESCRGRUPOPROD AS GRUPO, ETQORIG AS O_ETQ, SIM_ESTQAT AS S_ETQ, ESTQMARSIM AS QTD_SETQ, " +
+      "COM_QTDCOMPRA_ORIG AS O_QTDCOM, COM_ULTDT AS O_ULTCOM, NOMEPARC AS ULTPARC, " +
+      "COM_ULTCUSTO AS ULTCUS, COM_QTDPARCDIF AS QTDPAR, " +
+      "ORG_NOTAVENLIQ_TT AS O_VENTT, SIM_NOTAVENLIQ_TT AS S_VENTT, " +
+      "ORG_DTULTVEN AS O_ULTVEN, ORG_DIASULTVEN AS DIAS, ORG_ABC_RANK AS RNK, ORG_ABC_CLASS AS ABC, " +
+      "QTDDIFSIM AS S_DIF, RANKVENSIM AS O_RANKSIM, PARTCODSIM AS O_PARTSIM, " +
+      "SIM_QTDMARCATT AS QTDMAR, MED3MES " +
+      "FROM CTE1 WHERE CODPROD = ";
+
+    // Estado
+    var produtoAtual = null;
+
+    // Elementos DOM
+    var searchInput = document.getElementById('searchCodProd');
+    var btnBuscar = document.getElementById('btnBuscar');
+    var emptyState = document.getElementById('emptyState');
+    var productContent = document.getElementById('productContent');
+    var loadingOverlay = document.getElementById('loadingOverlay');
+    var toastContainer = document.getElementById('toastContainer');
+
+    // Funções auxiliares
+    function debug(msg, data) {
+      if (CONFIG.DEBUG) {
+        if (data !== undefined) console.log('[DEBUG] ' + msg, data);
+        else console.log('[DEBUG] ' + msg);
+      }
+    }
+
+    function loading(show, texto) {
+      if (show) {
+        loadingOverlay.classList.remove('hidden');
+      } else {
+        loadingOverlay.classList.add('hidden');
+      }
+    }
+
+    function toast(mensagem, tipo) {
+      var toastEl = document.createElement('div');
+      toastEl.className = 'toast toast-' + (tipo || 'info');
+      toastEl.textContent = mensagem;
+      toastContainer.appendChild(toastEl);
+      setTimeout(function() { toastEl.remove(); }, 4000);
+    }
+
+    function formatCurrency(value) {
+      var num = parseFloat(value) || 0;
+      return 'R$ ' + num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function formatNumber(value) {
+      var num = parseFloat(value) || 0;
+      return num.toLocaleString('pt-BR');
+    }
+
+    function formatDate(value) {
+      if (!value) return '-';
+      if (typeof value === 'string' && value.indexOf('/') > -1) return value;
+      try {
+        var d = new Date(value);
+        if (isNaN(d.getTime())) return '-';
+        return d.toLocaleDateString('pt-BR');
+      } catch (e) {
+        return '-';
+      }
+    }
+
+    function gerarIniciais(nome) {
+      if (!nome) return '??';
+      var partes = nome.trim().split(' ');
+      if (partes.length >= 2) {
+        return (partes[0].charAt(0) + partes[partes.length - 1].charAt(0)).toUpperCase();
+      }
+      return nome.substring(0, 2).toUpperCase();
+    }
+
+    function gerarCorAvatar(nome) {
+      if (!nome) return 'hsl(221, 83%, 53%)';
+      var hash = 0;
+      for (var i = 0; i < nome.length; i++) {
+        hash = nome.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      var hue = Math.abs(hash % 360);
+      return 'hsl(' + hue + ', 65%, 50%)';
+    }
+
+    // JX
+    function getJXRef() {
+      if (typeof JX !== 'undefined') return JX;
+      if (window.parent && window.parent.JX) return window.parent.JX;
+      if (window.top && window.top.JX) return window.top.JX;
+      return undefined;
+    }
+
+    function buscarProduto(codprod) {
+      if (!codprod || codprod.trim() === '') {
+        toast('Digite o código do produto', 'erro');
+        return;
+      }
+
+      var jxRef = getJXRef();
+      if (!jxRef || typeof jxRef.consultar !== 'function') {
+        toast('Erro: JX não disponível', 'erro');
+        return;
+      }
+
+      var sql = SQL_TEMPLATE + codprod.trim();
+      debug('SQL:', sql);
+
+      loading(true);
+
+      jxRef.consultar(sql)
+        .then(function(dados) {
+          loading(false);
+          debug('Retorno:', dados);
+
+          var lista = extrairDados(dados);
+          if (lista.length === 0) {
+            toast('Produto não encontrado', 'info');
+            emptyState.classList.remove('hidden');
+            productContent.classList.add('hidden');
+            return;
+          }
+
+          produtoAtual = normalizarDados(lista[0]);
+          debug('Produto:', produtoAtual);
+          exibirProduto(produtoAtual);
+          toast('Produto carregado', 'sucesso');
+        })
+        .catch(function(erro) {
+          loading(false);
+          debug('Erro:', erro);
+          toast('Erro: ' + (erro.message || erro), 'erro');
+        });
+    }
+
+    function extrairDados(dados) {
+      if (!dados) return [];
+      if (Array.isArray(dados)) return dados;
+      if (typeof dados === 'object') {
+        if (dados.result && Array.isArray(dados.result)) return dados.result;
+        if (dados.data && Array.isArray(dados.data)) return dados.data;
+        if (dados.rows && Array.isArray(dados.rows)) return dados.rows;
+        var keys = Object.keys(dados);
+        for (var i = 0; i < keys.length; i++) {
+          if (Array.isArray(dados[keys[i]])) return dados[keys[i]];
+        }
+      }
+      return [];
+    }
+
+    function normalizarDados(row) {
+      if (!row) return {};
+      var r = {};
+      // Normaliza maiúsc/minúsc
+      r.SIS = row.SIS !== undefined ? row.SIS : row.sis;
+      r.REF = row.REF !== undefined ? row.REF : row.ref;
+      r.ORG = row.ORG !== undefined ? row.ORG : row.org;
+      r.MARCA = row.MARCA !== undefined ? row.MARCA : row.marca;
+      r.DESCRPROD = row.DESCRPROD !== undefined ? row.DESCRPROD : row.descrprod;
+      r.GRUPO = row.GRUPO !== undefined ? row.GRUPO : row.grupo;
+      r.O_ETQ = row.O_ETQ !== undefined ? row.O_ETQ : row.o_etq;
+      r.S_ETQ = row.S_ETQ !== undefined ? row.S_ETQ : row.s_etq;
+      r.QTD_SETQ = row.QTD_SETQ !== undefined ? row.QTD_SETQ : row.qtd_setq;
+      r.O_QTDCOM = row.O_QTDCOM !== undefined ? row.O_QTDCOM : row.o_qtdcom;
+      r.O_ULTCOM = row.O_ULTCOM !== undefined ? row.O_ULTCOM : row.o_ultcom;
+      r.ULTPARC = row.ULTPARC !== undefined ? row.ULTPARC : row.ultparc;
+      r.ULTCUS = row.ULTCUS !== undefined ? row.ULTCUS : row.ultcus;
+      r.QTDPAR = row.QTDPAR !== undefined ? row.QTDPAR : row.qtdpar;
+      r.O_VENTT = row.O_VENTT !== undefined ? row.O_VENTT : row.o_ventt;
+      r.S_VENTT = row.S_VENTT !== undefined ? row.S_VENTT : row.s_ventt;
+      r.O_ULTVEN = row.O_ULTVEN !== undefined ? row.O_ULTVEN : row.o_ultven;
+      r.DIAS = row.DIAS !== undefined ? row.DIAS : row.dias;
+      r.RNK = row.RNK !== undefined ? row.RNK : row.rnk;
+      r.ABC = row.ABC !== undefined ? row.ABC : row.abc;
+      r.S_DIF = row.S_DIF !== undefined ? row.S_DIF : row.s_dif;
+      r.O_RANKSIM = row.O_RANKSIM !== undefined ? row.O_RANKSIM : row.o_ranksim;
+      r.O_PARTSIM = row.O_PARTSIM !== undefined ? row.O_PARTSIM : row.o_partsim;
+      r.QTDMAR = row.QTDMAR !== undefined ? row.QTDMAR : row.qtdmar;
+      r.MED3MES = row.MED3MES !== undefined ? row.MED3MES : row.med3mes;
+      return r;
+    }
+
+    function exibirProduto(p) {
+      emptyState.classList.add('hidden');
+      productContent.classList.remove('hidden');
+
+      // Avatar
+      var avatar = document.getElementById('productAvatar');
+      avatar.textContent = gerarIniciais(p.MARCA || p.DESCRPROD);
+      avatar.style.backgroundColor = gerarCorAvatar(p.MARCA);
+
+      // Cabeçalho
+      document.getElementById('productCode').textContent = 'SIS: ' + (p.SIS || '-');
+      document.getElementById('productName').textContent = p.DESCRPROD || 'Sem descrição';
+      document.getElementById('productMarca').textContent = p.MARCA || '-';
+      document.getElementById('productGrupo').textContent = p.GRUPO || '-';
+      document.getElementById('productRef').textContent = 'Ref: ' + (p.REF || '-');
+
+      // Badge ABC
+      var badgeABC = document.getElementById('badgeABC');
+      var abc = (p.ABC || 'C').toUpperCase();
+      badgeABC.textContent = 'Curva ' + abc;
+      badgeABC.className = 'badge-abc badge-abc-' + abc.toLowerCase();
+
+      // Badge Rank
+      document.getElementById('badgeRank').textContent = '#' + (p.RNK || '-');
+
+      // KPIs
+      document.getElementById('kpiEstoque').textContent = formatNumber(p.O_ETQ || 0);
+      document.getElementById('kpiEstoqueSim').textContent = formatNumber(p.S_ETQ || 0);
+      
+      var dias = parseInt(p.DIAS) || 0;
+      var kpiDias = document.getElementById('kpiDias');
+      kpiDias.textContent = dias >= 9999 ? 'Nunca' : dias;
+      
+      document.getElementById('kpiMedia').textContent = formatNumber(p.MED3MES || 0);
+      document.getElementById('kpiCusto').textContent = formatCurrency(p.ULTCUS || 0);
+      document.getElementById('kpiMarcas').textContent = formatNumber(p.QTDMAR || 0);
+
+      // Seção Estoque
+      document.getElementById('dataEstoqueOrig').textContent = formatNumber(p.O_ETQ || 0);
+      document.getElementById('dataEstoqueSim').textContent = formatNumber(p.S_ETQ || 0);
+      document.getElementById('dataMarcasEstoque').textContent = formatNumber(p.QTD_SETQ || 0);
+
+      // Seção Vendas
+      document.getElementById('dataVendasOrig').textContent = formatNumber(p.O_VENTT || 0);
+      document.getElementById('dataVendasSim').textContent = formatNumber(p.S_VENTT || 0);
+      document.getElementById('dataUltVenda').textContent = formatDate(p.O_ULTVEN);
+      
+      var partic = parseFloat(p.O_PARTSIM) || 0;
+      document.getElementById('dataParticipacao').textContent = partic.toFixed(1) + '%';
+      
+      var barPartic = document.getElementById('barParticipacao');
+      barPartic.style.width = Math.min(partic, 100) + '%';
+      barPartic.className = 'comparison-bar-fill ' + (partic >= 50 ? 'green' : partic >= 20 ? 'yellow' : 'red');
+
+      // Seção Compras
+      document.getElementById('dataQtdCompra').textContent = formatNumber(p.O_QTDCOM || 0);
+      document.getElementById('dataDataCompra').textContent = formatDate(p.O_ULTCOM);
+      document.getElementById('dataFornecedor').textContent = p.ULTPARC || '-';
+      document.getElementById('dataCusto').textContent = formatCurrency(p.ULTCUS || 0);
+      document.getElementById('dataQtdFornec').textContent = formatNumber(p.QTDPAR || 0);
+
+      // Seção Similares
+      document.getElementById('dataRankSim').textContent = '#' + (p.O_RANKSIM || '-');
+      document.getElementById('dataOutrasMarcas').textContent = formatNumber(p.S_DIF || 0);
+      document.getElementById('dataTotalMarcas').textContent = formatNumber(p.QTDMAR || 0);
+      document.getElementById('dataMedia3m').textContent = formatNumber(p.MED3MES || 0);
+
+      // Identificação
+      document.getElementById('infoSIS').textContent = p.SIS || '-';
+      document.getElementById('infoREF').textContent = (p.REF || '-').substring(0, 20);
+      document.getElementById('infoORG').textContent = p.ORG || '-';
+      document.getElementById('infoMARCA').textContent = p.MARCA || '-';
+    }
+
+    // Event Listeners
+    btnBuscar.addEventListener('click', function() {
+      buscarProduto(searchInput.value);
+    });
+
+    searchInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        buscarProduto(searchInput.value);
+      }
+    });
+
+    // Init
+    console.log('Ficha do Produto carregada!');
+    console.log('Digite o código do produto e pressione Enter ou clique em Buscar.');
+  </script>
+
+</body>
+</html>

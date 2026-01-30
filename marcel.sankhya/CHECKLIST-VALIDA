@@ -1,0 +1,235 @@
+Autor: Auto Peças São Paulo (APESP)
+
+Guia rápido — Erros recorrentes em Dashboards HTML5 (SankhyaJX)
+Compilado a partir do histórico de conversas e incidentes internos.
+
+1) Top erros que mais travam (e como resolver rápido)
+1. JX não definido (biblioteca não carregou)
+
+Causa típica: rodar fora do Sankhya/BI HTML5, bloqueio de rede/CDN, src errado, ordem de scripts errada.
+
+Sintoma: JX is not defined, tela travada em “Carregando…”.
+
+Checagem: console.log(typeof JX);
+
+Correção: testar dentro do Sankhya, conferir src, e garantir JX carregado antes do seu código.
+
+2. Código JS fora do padrão ES5
+
+Causa: uso de const/let, arrow =>, template literals com crase, optional chaining ?., async/await.
+
+Sintoma: erro de sintaxe / comportamento instável.
+
+Checagem: buscar no código por const, let, =>, `, ?., async, await.
+
+Correção: manter ES5 puro (var, function(){}, concatenação com +, .then().catch()).
+
+3. Retorno do JX.consultar não normalizado
+
+Causa: assumir que sempre vem array.
+
+Sintoma: Cannot read property ..., grid vazio sem erro claro.
+
+Correção: normalizar o retorno sempre.
+
+function normalizarConsultar(res) {
+  if (!res) return [];
+  if (Array.isArray(res)) return res;
+  if (typeof res === 'object' && Array.isArray(res.data)) return res.data;
+  return [];
+}
+
+4. Alias do SQL ≠ chaves usadas no JS/colunas
+
+Causa: SELECT CODPROD AS CODSIS e o JS tenta ler CODPROD.
+
+Sintoma: dados existem, mas colunas ficam undefined ou grid “vazio”.
+
+Checagem: console.log(Object.keys(lista[0] || {}));
+
+Correção: COLS[].key deve bater 1:1 com os AS do SELECT.
+
+5. SQL de outro banco (principalmente “modo SQL Server”)
+
+Causa: TOP, GETDATE(), INFORMATION_SCHEMA, ISNULL.
+
+Sintoma: erros ORA-* e consulta não roda.
+
+Correção: usar sintaxe Oracle (SYSDATE, NVL, ROWNUM/FETCH FIRST, etc.).
+
+6. JX.salvar com payload/PK inconsistentes
+
+Causa: tabela/instância incorreta, tipo incompatível, PK informada errado, chaves em minúsculo.
+
+Sintoma: “erro de conversão”, não salva, falha silenciosa.
+
+Correção: padronizar payload (chaves em MAIÚSCULO) e diferenciar INSERT vs UPDATE.
+
+function upperKeys(obj) {
+  var out = {};
+  for (var k in obj) if (obj.hasOwnProperty(k)) out[String(k).toUpperCase()] = obj[k];
+  return out;
+}
+
+// INSERT: pk = {}
+// UPDATE: pk = { CAMPO_PK: valor }
+JX.salvar(upperKeys(payload), 'NOME_TABELA', pkObj)
+  .then(function(r){ console.log('OK', r); })
+  .catch(function(e){ console.error('ERRO', e); });
+
+7. VIEW/Tabela inexistente ou inválida
+
+Sintoma: ORA-00942 / comportamento quebrado após alterações.
+
+Checagem:
+
+SELECT STATUS FROM USER_OBJECTS WHERE OBJECT_NAME = 'NOME_VIEW';
+
+
+Correção: corrigir dependências e recompilar quando necessário.
+
+8. Filtro no JS zerando o dataset
+
+Causa: DATA_FULL ok, mas DATA filtrado vira [].
+
+Checagem: console.log(DATA_FULL.length, DATA.length);
+
+Correção: desabilitar filtros temporariamente e validar condição por condição.
+
+9. Parse de número (BR vs US)
+
+Causa: valores com . e , interpretados errado.
+
+Sintoma: totalizadores absurdos (ex.: x100).
+
+Correção: parse defensivo.
+
+function parseNumero(v) {
+  if (v == null) return 0;
+  if (typeof v === 'number') return isFinite(v) ? v : 0;
+
+  var s = String(v).trim();
+  if (!s) return 0;
+
+  var temVirgula = s.indexOf(',') >= 0;
+  var temPonto = s.indexOf('.') >= 0;
+
+  if (temVirgula && temPonto) return parseFloat(s.replace(/\./g,'').replace(',','.')) || 0; // 1.234,56
+  if (temVirgula) return parseFloat(s.replace(',','.')) || 0; // 123,45
+  return parseFloat(s) || 0; // 1234.56
+}
+
+2) Padrão mínimo recomendado (HTML + ordem de scripts)
+
+Regras práticas:
+
+Rodar dentro do Sankhya/BI HTML5.
+
+Carregar jx.min.js antes do seu script.
+
+Seu JS em ES5.
+
+Sempre logar/normalizar retornos.
+
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dashboard</title>
+  <style>/* CSS inline */</style>
+</head>
+
+<body>
+  <div class="c">
+    <div class="h"></div>
+    <table>
+      <thead></thead>
+      <tbody id="tb"></tbody>
+    </table>
+    <div class="f"></div>
+  </div>
+
+  <!-- JX primeiro -->
+  <script src="https://cdn.jsdelivr.net/gh/wansleynery/SankhyaJX@main/jx.min.js"></script>
+
+  <!-- Seu código depois (ES5) -->
+  <script>
+    function carregarDados() {
+      if (typeof JX === 'undefined') {
+        console.error('JX não carregou.');
+        return;
+      }
+
+      var sql = 'SELECT CAMPO1 AS CAMPO1, CAMPO2 AS CAMPO2 FROM MINHA_VIEW';
+
+      JX.consultar(sql)
+        .then(function(res) {
+          var lista = normalizarConsultar(res);
+          console.log('Registros:', lista.length);
+          if (lista.length) console.log('Chaves:', Object.keys(lista[0]));
+          renderizar(lista);
+        })
+        .catch(function(e) {
+          console.error('Erro consultar:', e);
+        });
+    }
+
+    function renderizar(lista) {
+      // render ES5
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      carregarDados();
+    });
+  </script>
+</body>
+</html>
+
+3) Checklist final (Sim/Não)
+
+( ) Está testando dentro do Sankhya?
+
+( ) jx.min.js está carregando e vem antes do seu script?
+
+( ) JS está 100% ES5 (sem const/let/=>/crase/?./async/await)?
+
+( ) O SQL foi validado no DBExplorer antes?
+
+( ) Aliases do SQL batem com as chaves usadas no JS/colunas?
+
+( ) JX.consultar está com retorno normalizado?
+
+( ) Existe .catch() em toda chamada JX?
+
+( ) VIEW/tabela existe e está VALID?
+
+( ) Filtros JS não estão zerando o dataset?
+
+( ) Parse de número trata BR/US (se aplicável)?
+
+( ) Payload do JX.salvar está com chaves em MAIÚSCULO?
+
+( ) INSERT vs UPDATE está correto (PK vazia vs PK preenchida)?
+
+4) Fluxo de debug (ordem)
+
+SQL roda no DBExplorer?
+→ não: corrigir SQL/VIEW
+→ sim:
+
+typeof JX é definido?
+→ não: ambiente/ordem/CDN
+→ sim:
+
+JX.consultar retorna lista após normalização?
+→ não: permissões/SQL/retorno
+→ sim:
+
+chaves (Object.keys) batem com o esperado?
+→ não: alias
+→ sim:
+
+render mostra dados?
+→ não: filtro/render
+→ sim: ok

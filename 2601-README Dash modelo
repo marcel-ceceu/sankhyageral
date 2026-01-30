@@ -1,0 +1,97 @@
+/dashboard-apesp/
+│
+├── /_core/                           # NÚCLEO COMPARTILHADO (todos usam)
+│   ├── /css/
+│   │   ├── variables.css             # Variáveis globais APESP
+│   │   ├── base.css                  # Reset e estilos base
+│   │   ├── layout.css                # Container, card, header
+│   │   ├── buttons.css               # Botões padrão
+│   │   ├── loading.css               # Loading e toasts
+│   │   └── modal.css                 # Modais genéricos
+│   │
+│   ├── /js/
+│   │   ├── config.global.js          # Config global (API, ambiente, debug)
+│   │   ├── icons.js                  # Ícones SVG
+│   │   ├── utils.js                  # Funções utilitárias (formatadores BR)
+│   │   ├── sankhya.adapter.js        # JX.consultar, JX.salvar wrapper
+│   │   └── toast.js                  # Sistema de notificações
+│   │
+│   └── /vendor/                      # Bibliotecas externas (opcional)
+│       ├── webdatarocks.min.js
+│       └── webdatarocks.min.css
+│
+├── /_templates/                      # TEMPLATES POR TIPO DE DASHBOARD
+│   │
+│   ├── /grid/                        # Template: Grid tradicional
+│   │   ├── /css/
+│   │   │   ├── toolbar.css
+│   │   │   ├── table.css
+│   │   │   ├── filters.css
+│   │   │   └── pagination.css
+│   │   ├── /js/
+│   │   │   ├── config.js             # CONFIG template (SQL, COLUNAS)
+│   │   │   ├── dom.js
+│   │   │   ├── data.js
+│   │   │   ├── table.js
+│   │   │   ├── pagination.js
+│   │   │   ├── filters.js
+│   │   │   ├── export.js
+│   │   │   └── main.js
+│   │   ├── index.html
+│   │   ├── build.js
+│   │   └── README.md
+│   │
+│   ├── /pivot/                       # Template: Pivot Table (WebDataRocks)
+│   │   ├── /css/
+│   │   │   ├── pivot.css             # Estilos específicos pivot
+│   │   │   └── pivot.overrides.css   # Overrides WebDataRocks
+│   │   ├── /js/
+│   │   │   ├── config.js             # CONFIG template (SQL, SCHEMA, SLICE)
+│   │   │   ├── pivot.init.js         # Inicialização WebDataRocks
+│   │   │   ├── pivot.conditions.js   # Formatação condicional
+│   │   │   └── main.js
+│   │   ├── index.html
+│   │   ├── build.js
+│   │   └── README.md
+│   │
+│   └── /kpi-cards/                   # Template: Cards KPI
+│       ├── /css/
+│       │   └── cards.css
+│       ├── /js/
+│       │   ├── config.js
+│       │   ├── cards.js
+│       │   └── main.js
+│       ├── index.html
+│       ├── build.js
+│       └── README.md
+│
+├── /dashboards/                      # INSTÂNCIAS (dashboards criados)
+│   │
+│   ├── /vendas-dia/                  # Instância: Relatório Vendas Dia
+│   │   ├── /css/
+│   │   │   └── custom.css            # CSS específico (se precisar)
+│   │   ├── /js/
+│   │   │   └── config.js             # CONFIG específico (SQL, COLUNAS)
+│   │   ├── /dist/
+│   │   │   └── vendas-dia.html       # Build final
+│   │   ├── index.html
+│   │   └── build.js
+│   │
+│   ├── /pivot-sales/                 # Instância: Pivot Sales (WebDataRocks)
+│   │   ├── /js/
+│   │   │   └── config.js             # CONFIG específico
+│   │   ├── /dist/
+│   │   │   └── pivot-sales.html
+│   │   ├── index.html
+│   │   └── build.js
+│   │
+│   └── /estoque-curva/               # Instância: outro exemplo
+│       └── ...
+│
+├── /themes/                          # TEMAS VISUAIS
+│   ├── theme.teal.css
+│   ├── theme.dark.css
+│   └── theme.apesp.css
+│
+├── create-dashboard.js               # Script CLI para criar novo dashboard
+└── README.md

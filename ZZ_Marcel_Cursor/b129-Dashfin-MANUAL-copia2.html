@@ -1,0 +1,2253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Modelo - MANUAL COMENTADO (copia2)</title>
+
+  <style>
+    /* ═══════════════════════════════════════════════════════════════════════
+       CSS VARIABLES - DESIGN TOKENS
+       ═══════════════════════════════════════════════════════════════════════
+       
+       TEORIA: Variáveis CSS permitem temas e consistência.
+       Altere aqui para mudar cores em todo o dashboard.
+    */
+    :root {
+      /* Cores base */
+      --background: hsl(0 0% 100%);
+      --foreground: hsl(222.2 84% 4.9%);
+      --muted: hsl(210 40% 96.1%);
+      --muted-foreground: hsl(215.4 16.3% 46.9%);
+      --border: hsl(214.3 31.8% 91.4%);
+      
+      /* Cores de ação */
+      --primary: hsl(221.2 83.2% 53.3%);
+      --primary-foreground: hsl(210 40% 98%);
+      
+      /* Cores semânticas */
+      --success: hsl(142 76% 36%);
+      --success-bg: hsl(142 76% 94%);
+      --warning: hsl(38 92% 50%);
+      --warning-bg: hsl(38 92% 94%);
+      --destructive: hsl(0 84% 60%);
+      --destructive-bg: hsl(0 84% 94%);
+      --info: hsl(221 83% 53%);
+      --info-bg: hsl(221 83% 94%);
+      
+      /* Outros */
+      --radius: 0.5rem;
+      --font-sans: ui-sans-serif, system-ui, sans-serif;
+      --card: hsl(0 0% 100%);
+      --card-foreground: hsl(222.2 84% 4.9%);
+    }
+
+    /* Reset básico */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--muted);
+      color: var(--foreground);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       REGRA CRÍTICA: .hidden com !important
+       ═══════════════════════════════════════════════════════════════════════
+       
+       PROBLEMA ENCONTRADO: #loadingOverlay tinha display: flex, que tem
+       maior especificidade que .hidden { display: none; }
+       
+       SOLUÇÃO: Usar !important garante que .hidden sempre funciona.
+    */
+    .hidden { display: none !important; }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       KPIs - CARDS DE RESUMO
+       ═══════════════════════════════════════════════════════════════════════
+       
+       REGRA: Cada card precisa de um ID único no .status-card-value
+       para que o JS possa atualizar o valor dinamicamente.
+       
+       Exemplo: <div class="status-card-value" id="kpiTotal">0</div>
+    */
+    .status-cards {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr); /* Ajuste conforme qtd de KPIs */
+      gap: 0.75rem;
+      padding: 1rem;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .status-card {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+
+    /* Classes de cor para cada tipo de KPI */
+    .status-card.total { background: var(--info-bg); border-color: hsl(221 83% 85%); }
+    .status-card.receitas { background: var(--success-bg); border-color: hsl(142 76% 85%); }
+    .status-card.despesas { background: var(--destructive-bg); border-color: hsl(0 84% 85%); }
+    .status-card.aberto { background: var(--warning-bg); border-color: hsl(38 92% 85%); }
+    .status-card.vencido { background: var(--destructive-bg); border-color: hsl(0 84% 85%); }
+    .status-card.pago { background: var(--success-bg); border-color: hsl(142 76% 85%); }
+
+    .status-card-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: calc(var(--radius) - 2px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .status-card.total .status-card-icon { background: var(--info); color: white; }
+    .status-card.receitas .status-card-icon { background: var(--success); color: white; }
+    .status-card.despesas .status-card-icon { background: var(--destructive); color: white; }
+    .status-card.aberto .status-card-icon { background: var(--warning); color: white; }
+    .status-card.vencido .status-card-icon { background: var(--destructive); color: white; }
+    .status-card.pago .status-card-icon { background: var(--success); color: white; }
+
+    .status-card-icon svg { width: 1.25rem; height: 1.25rem; }
+
+    .status-card-content { min-width: 0; }
+
+    .status-card-label {
+      font-size: 0.625rem;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.125rem;
+    }
+
+    .status-card-value {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--foreground);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       TOOLBAR - FILTROS RÁPIDOS
+       ═══════════════════════════════════════════════════════════════════════
+       
+       REGRA: Cada input/select precisa de ID correspondente no JS.
+       
+       HTML                          JS
+       id="searchInput"     →    var searchInput = document.getElementById('searchInput');
+       id="filterStatus"    →    var filterStatus = document.getElementById('filterStatus');
+       id="filterVendedor"  →    var filterVendedor = document.getElementById('filterVendedor');
+       id="btnAtualizar"    →    document.getElementById('btnAtualizar').addEventListener(...)
+       id="btnExportar"     →    document.getElementById('btnExportar').addEventListener(...)
+    */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .toolbar-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: var(--foreground);
+    }
+
+    .toolbar-title svg { width: 1.25rem; height: 1.25rem; color: var(--primary); }
+
+    .toolbar-spacer { flex: 1; }
+
+    .search-input { position: relative; width: 280px; }
+
+    .search-input input {
+      width: 100%;
+      height: 2rem;
+      padding: 0 0.75rem 0 2.25rem;
+      font-size: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--background);
+      color: var(--foreground);
+    }
+
+    .search-input input:focus {
+      outline: 2px solid var(--primary);
+      outline-offset: -1px;
+    }
+
+    .search-input svg {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0.875rem;
+      height: 0.875rem;
+      color: var(--muted-foreground);
+    }
+
+    .filter-select {
+      height: 2rem;
+      padding: 0 0.75rem;
+      font-size: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--background);
+      color: var(--foreground);
+      cursor: pointer;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.375rem;
+      height: 2rem;
+      padding: 0 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--background);
+      color: var(--foreground);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover:not(:disabled) { background: var(--muted); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn svg { width: 0.875rem; height: 0.875rem; }
+
+    .btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: var(--primary-foreground);
+    }
+
+    .btn-primary:hover { background: hsl(221.2 83.2% 48%); }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       TABELA - CABEÇALHO COM data-column
+       ═══════════════════════════════════════════════════════════════════════
+       
+       REGRA CRÍTICA: O atributo data-column de cada <th> DEVE corresponder
+       a um case no switch da função getColumnValue() no JS.
+       
+       Exemplo de correspondência:
+       
+       HTML: <th data-column="parceiro">
+       JS:   case 'parceiro': return row.PARCEIRO || '';
+       
+       Se não houver correspondência, o filtro de coluna não funcionará.
+    */
+    .table-container {
+      flex: 1;
+      overflow: auto;
+      background: var(--card);
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    .table th,
+    .table td {
+      padding: 0.625rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .table th {
+      background: var(--muted);
+      font-weight: 600;
+      color: var(--foreground);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .table-header-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .table-header-cell:hover { color: var(--primary); }
+
+    .filter-icon {
+      width: 0.75rem;
+      height: 0.75rem;
+      color: var(--muted-foreground);
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .table th:hover .filter-icon { opacity: 1; }
+
+    .table th { position: relative; }
+
+    .resize-handle {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      cursor: col-resize;
+      background: transparent;
+    }
+
+    .resize-handle:hover,
+    .resize-handle.active { background: var(--primary); }
+
+    .table tbody tr:nth-child(even) { background: hsl(210 40% 98%); }
+    .table tbody tr:hover { background: hsl(210 40% 96%); }
+    .table tbody tr.selected { background: hsl(221 83% 94%) !important; }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       COMPONENTES AUXILIARES
+       ═══════════════════════════════════════════════════════════════════════
+    */
+    
+    /* Checkbox */
+    .checkbox {
+      width: 1rem;
+      height: 1rem;
+      border: 1px solid var(--primary);
+      border-radius: 0.25rem;
+      appearance: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--background);
+    }
+
+    .checkbox:checked { background: var(--primary); }
+
+    .checkbox:checked::after {
+      content: '';
+      width: 0.5rem;
+      height: 0.5rem;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/contain no-repeat;
+    }
+
+    /* Badges de status */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+    }
+
+    .badge-pago { background: var(--success-bg); color: var(--success); }
+    .badge-pendente { background: var(--warning-bg); color: hsl(38 92% 40%); }
+    .badge-vencido { background: var(--destructive-bg); color: var(--destructive); }
+
+    /* Avatar do parceiro */
+    .partner-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .avatar {
+      width: 1.875rem;
+      height: 1.875rem;
+      border-radius: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.625rem;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .partner-name { font-weight: 500; color: var(--foreground); }
+
+    /* Valores monetários */
+    .value-positive { color: var(--success); font-weight: 600; }
+    .value-negative { color: var(--destructive); font-weight: 600; }
+
+    /* Seleção */
+    .selection-count { font-size: 0.75rem; color: var(--muted-foreground); }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       DROPDOWN DE FILTRO POR COLUNA
+       ═══════════════════════════════════════════════════════════════════════
+    */
+    .column-filter-dropdown {
+      position: absolute;
+      min-width: 220px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      z-index: 999;
+      padding: 0.5rem;
+      display: none;
+    }
+
+    .column-filter-dropdown.open { display: block; }
+
+    .column-filter-actions,
+    .column-filter-selectors { display: flex; gap: 0.5rem; }
+
+    .column-filter-actions { margin-bottom: 0.5rem; }
+    .column-filter-search { margin-bottom: 0.5rem; }
+
+    .column-filter-search input {
+      width: 100%;
+      height: 1.75rem;
+      padding: 0 0.5rem;
+      font-size: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) - 2px);
+      background: var(--background);
+      color: var(--foreground);
+    }
+
+    .column-filter-list {
+      max-height: 220px;
+      overflow: auto;
+      margin-top: 0.5rem;
+      padding-right: 0.25rem;
+    }
+
+    .column-filter-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.25rem 0.25rem;
+      font-size: 0.75rem;
+      color: var(--foreground);
+    }
+
+    .column-filter-item input { width: 0.875rem; height: 0.875rem; }
+
+    .btn-small { height: 1.5rem; padding: 0 0.5rem; font-size: 0.6875rem; }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       PAGINAÇÃO
+       ═══════════════════════════════════════════════════════════════════════
+       
+       REGRA: O valor default de state.pageSize no JS deve corresponder
+       ao <option selected> no HTML.
+       
+       HTML: <option value="100" selected>100</option>
+       JS:   var state = { pageSize: 100, ... }
+    */
+    .pagination-bar {
+      flex-shrink: 0;
+      border-top: 1px solid var(--border);
+      background: hsl(210 40% 96.1% / 0.3);
+      padding: 0.375rem 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+    }
+
+    .record-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--muted-foreground);
+    }
+
+    .record-info .highlight { font-weight: 500; color: var(--foreground); }
+
+    .pagination-controls { display: flex; align-items: center; gap: 0.25rem; }
+
+    .btn-icon {
+      width: 1.75rem;
+      height: 1.75rem;
+      padding: 0;
+      border: none;
+      background: transparent;
+      border-radius: calc(var(--radius) - 2px);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease;
+    }
+
+    .btn-icon:hover:not(:disabled) { background: hsl(210 40% 96.1%); }
+    .btn-icon:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-icon svg { width: 1rem; height: 1rem; }
+
+    .page-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0 0.5rem;
+      margin: 0 0.25rem;
+      background: var(--background);
+      border-radius: calc(var(--radius) - 2px);
+      border: 1px solid var(--border);
+    }
+
+    .page-indicator span { color: var(--muted-foreground); }
+    .page-indicator .current-page { font-weight: 500; color: var(--foreground); }
+
+    .page-input {
+      width: 3.5rem;
+      height: 1.5rem;
+      font-size: 0.75rem;
+      text-align: center;
+      padding: 0.25rem;
+      border: none;
+      background: transparent;
+      color: var(--foreground);
+      font-family: inherit;
+    }
+
+    .page-input:focus { outline: none; }
+
+    .page-size-container { display: flex; align-items: center; gap: 0.5rem; }
+
+    .page-size-select {
+      height: 1.75rem;
+      width: 5rem;
+      font-size: 0.75rem;
+      padding: 0 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) - 2px);
+      background: var(--background);
+      color: var(--foreground);
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .page-size-label { color: var(--muted-foreground); }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       LOADING OVERLAY E TOAST
+       ═══════════════════════════════════════════════════════════════════════
+       
+       IMPORTANTE: Estes elementos devem existir no HTML para o JS funcionar.
+       O loading usa a classe .hidden para aparecer/sumir.
+    */
+    #loadingOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    #loadingText {
+      background: var(--background);
+      border: 1px solid var(--border);
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      color: var(--foreground);
+    }
+
+    #toastContainer {
+      position: fixed;
+      right: 1rem;
+      top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      z-index: 1100;
+    }
+
+    .toast {
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--background);
+      font-size: 0.75rem;
+      color: var(--foreground);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .toast-info { border-color: hsl(221 83% 85%); background: var(--info-bg); color: var(--info); }
+    .toast-sucesso { border-color: hsl(142 76% 85%); background: var(--success-bg); color: var(--success); }
+    .toast-erro { border-color: hsl(0 84% 85%); background: var(--destructive-bg); color: var(--destructive); }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .status-cards { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      .status-cards { grid-template-columns: repeat(2, 1fr); }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .search-input { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       BLOCO HTML: KPIs
+       ═══════════════════════════════════════════════════════════════════════
+       
+       INSTRUÇÕES:
+       1. Ajuste a quantidade de cards conforme necessário
+       2. Cada .status-card-value precisa de um ID único
+       3. O JS atualizará esses IDs com document.getElementById('kpiXXX').textContent = valor;
+       
+       EXEMPLO DE MAPEAMENTO:
+       ID HTML: kpiTotal     →  JS: document.getElementById('kpiTotal').textContent = total;
+       ID HTML: kpiValor     →  JS: document.getElementById('kpiValor').textContent = 'R$ ' + valor;
+  -->
+  <div class="status-cards">
+    <!-- KPI 1: Total de registros -->
+    <div class="status-card total">
+      <div class="status-card-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+          <path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1Z"/>
+        </svg>
+      </div>
+      <div class="status-card-content">
+        <div class="status-card-label">Produtos</div>
+        <!-- ID OBRIGATÓRIO para o JS atualizar -->
+        <div class="status-card-value" id="kpiTotal">0</div>
+      </div>
+    </div>
+
+    <!-- KPI 2: Estoque de origem -->
+    <div class="status-card receitas">
+      <div class="status-card-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <div class="status-card-content">
+        <div class="status-card-label">Estoque Origem</div>
+        <div class="status-card-value" id="kpiValor">0</div>
+      </div>
+    </div>
+
+    <!-- Adicione mais KPIs conforme necessário -->
+    <!-- Copie o bloco acima e ajuste: classe, ícone, label, ID -->
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       BLOCO HTML: TOOLBAR (Filtros Rápidos)
+       ═══════════════════════════════════════════════════════════════════════
+       
+       INSTRUÇÕES:
+       1. Cada elemento interativo precisa de ID
+       2. O JS captura esses elementos com getElementById
+       3. Event listeners são adicionados para cada um
+       
+       IDs OBRIGATÓRIOS (ajuste conforme sua necessidade):
+       - searchInput: campo de busca
+       - filterStatus: select de status
+       - filterVendedor: select de marca (ou outro filtro)
+       - btnAtualizar: botão para recarregar dados
+       - btnExportar: botão para exportar CSV
+       - selectionCount: span com contagem de selecionados
+       - clearSelection: botão para limpar seleção
+  -->
+  <div class="toolbar">
+    <div class="toolbar-title">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>
+      <span>Estoque e desempenho por produto</span>
+    </div>
+    <div class="toolbar-spacer"></div>
+
+    <!-- Campo de busca - ID: searchInput -->
+    <div class="search-input">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="m21 21-4.3-4.3"/>
+      </svg>
+      <input type="text" id="searchInput" placeholder="Buscar produto, marca, grupo, referência...">
+    </div>
+
+    <!-- Filtro de status - ID: filterStatus -->
+    <select class="filter-select" id="filterStatus">
+      <option value="">Todos ABC</option>
+      <!-- Será preenchido dinamicamente pelo JS -->
+    </select>
+
+    <!-- Filtro adicional - ID: filterVendedor (marca) -->
+    <select class="filter-select" id="filterVendedor">
+      <!-- Será preenchido dinamicamente pelo JS -->
+    </select>
+
+    <span class="selection-count" id="selectionCount">0 selecionado(s)</span>
+    <button class="btn" id="clearSelection" disabled>Limpar seleção</button>
+
+    <!-- Botão Atualizar - ID: btnAtualizar -->
+    <button class="btn btn-primary" id="btnAtualizar">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 2v6h-6"/>
+        <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
+        <path d="M3 22v-6h6"/>
+        <path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
+      </svg>
+      Atualizar
+    </button>
+
+    <!-- Botão Exportar - ID: btnExportar -->
+    <button class="btn" id="btnExportar">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Exportar CSV
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       BLOCO HTML: TABELA
+       ═══════════════════════════════════════════════════════════════════════
+       
+       REGRA CRÍTICA: data-column
+       
+       Cada <th> que terá filtro de coluna precisa do atributo data-column.
+       Este valor DEVE ter um case correspondente no switch de getColumnValue().
+       
+       EXEMPLO:
+       HTML: <th data-column="parceiro">
+       JS:   case 'parceiro': return row.PARCEIRO || '';
+       
+       CHECKLIST PARA CADA COLUNA:
+       □ Tem data-column?
+       □ Tem case no getColumnValue()?
+       □ Está sendo renderizado no renderTable()?
+  -->
+  <div class="table-container">
+    <table class="table" id="dataTable">
+      <thead>
+        <tr>
+          <!-- Coluna de checkbox (sem data-column) -->
+          <th style="width: 40px;"><input type="checkbox" class="checkbox" id="selectAll"></th>
+
+          <th style="width: 70px;" data-column="status">
+            <div class="table-header-cell">ABC
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 80px;" data-column="sis">
+            <div class="table-header-cell">SIS
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 220px;" data-column="produto">
+            <div class="table-header-cell">Produto
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 200px;" data-column="ref">
+            <div class="table-header-cell">Referência
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 140px;" data-column="org">
+            <div class="table-header-cell">Origem
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 120px;" data-column="marca">
+            <div class="table-header-cell">Marca
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 140px;" data-column="grupo">
+            <div class="table-header-cell">Grupo
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 90px;" data-column="o_etq">
+            <div class="table-header-cell">O. Estq
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 90px;" data-column="s_etq">
+            <div class="table-header-cell">S. Estq
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 110px;" data-column="qtd_setq">
+            <div class="table-header-cell">Qtd S/Estq
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 110px;" data-column="o_qtdcom">
+            <div class="table-header-cell">Qtd Compra
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 120px;" data-column="o_ultcom">
+            <div class="table-header-cell">Últ Compra
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 180px;" data-column="ultparc">
+            <div class="table-header-cell">Últ Forn
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 110px;" data-column="ultcus">
+            <div class="table-header-cell">Últ Custo
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 90px;" data-column="qtdpar">
+            <div class="table-header-cell">Qtd Forn
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 90px;" data-column="o_ventt">
+            <div class="table-header-cell">O. Vendas
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 90px;" data-column="s_ventt">
+            <div class="table-header-cell">S. Vendas
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 110px;" data-column="o_ultven">
+            <div class="table-header-cell">Últ Venda
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 70px;" data-column="dias">
+            <div class="table-header-cell">Dias
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 70px;" data-column="rnk">
+            <div class="table-header-cell">Rank
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 100px;" data-column="s_dif">
+            <div class="table-header-cell">Dif. Marcas
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 90px;" data-column="o_ranksim">
+            <div class="table-header-cell">Rank Sim
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 90px;" data-column="o_partsim">
+            <div class="table-header-cell">% Part
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 100px;" data-column="qtdmar">
+            <div class="table-header-cell">Qtd Marcas
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+
+          <th style="width: 90px;" data-column="med3mes">
+            <div class="table-header-cell">Med 3M
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <!-- Dados serão inseridos via JS -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Dropdown de filtro por coluna (não mexer, funciona automaticamente) -->
+  <div class="column-filter-dropdown" id="columnFilterDropdown">
+    <div class="column-filter-actions">
+      <button class="btn btn-small" type="button" data-sort="asc">A-Z</button>
+      <button class="btn btn-small" type="button" data-sort="desc">Z-A</button>
+    </div>
+    <div class="column-filter-search">
+      <input type="text" id="columnFilterSearch" placeholder="Buscar...">
+    </div>
+    <div class="column-filter-selectors">
+      <button class="btn btn-small" type="button" data-select="all">Todos</button>
+      <button class="btn btn-small" type="button" data-select="none">Nenhum</button>
+    </div>
+    <div class="column-filter-list" id="columnFilterList"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       BLOCO HTML: PAGINAÇÃO
+       ═══════════════════════════════════════════════════════════════════════
+       
+       REGRA: O <option selected> deve corresponder ao state.pageSize no JS
+       
+       Exemplo:
+       HTML: <option value="100" selected>100</option>
+       JS:   var state = { pageSize: 100, ... }
+  -->
+  <div class="pagination-bar">
+    <div class="record-info">
+      <span>Mostrando <span class="highlight" id="recordStart">1</span> - <span class="highlight" id="recordEnd">0</span> de <span class="highlight" id="recordTotal">0</span></span>
+    </div>
+    <div class="pagination-controls">
+      <button class="btn-icon" id="btnFirst" title="Primeira página (Alt+Home)" disabled>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
+      </button>
+      <button class="btn-icon" id="btnPrev" title="Página anterior (Alt+←)" disabled>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div class="page-indicator">
+        <span>Página</span>
+        <input type="number" class="page-input" id="pageInput" value="1" min="1" max="1">
+        <span>de</span>
+        <span class="current-page" id="totalPages">1</span>
+      </div>
+      <button class="btn-icon" id="btnNext" title="Próxima página (Alt+→)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <button class="btn-icon" id="btnLast" title="Última página (Alt+End)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+      </button>
+    </div>
+    <div class="page-size-container">
+      <!-- ATENÇÃO: O selected aqui deve bater com state.pageSize no JS -->
+      <select class="page-size-select" id="pageSize">
+        <option value="50">50</option>
+        <option value="100" selected>100</option>
+        <option value="200">200</option>
+        <option value="500">500</option>
+      </select>
+      <span class="page-size-label">por página</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       BLOCO HTML: LOADING E TOAST (OBRIGATÓRIOS)
+       ═══════════════════════════════════════════════════════════════════════
+       
+       Estes elementos são controlados pelo JS.
+       O loading começa com classe "hidden" e o JS remove/adiciona.
+  -->
+  <div id="loadingOverlay" class="hidden">
+    <div id="loadingText">Carregando dados...</div>
+  </div>
+  <div id="toastContainer"></div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       BIBLIOTECA SANKHYA JX
+       ═══════════════════════════════════════════════════════════════════════
+       
+       IMPORTANTE: Este script DEVE vir ANTES do script principal!
+       
+       A ordem correta é:
+       1. jx.min.js (biblioteca)
+       2. Seu script principal
+  -->
+  <script src="https://cdn.jsdelivr.net/gh/wansleynery/SankhyaJX/jx.min.js"></script>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════════════════
+    // BLOCO JS: ESTRUTURA COMPLETA DO DASHBOARD
+    // ═══════════════════════════════════════════════════════════════════════
+    //
+    // Este script está dividido em seções claramente identificadas.
+    // Siga a ordem de implementação para evitar erros.
+    //
+    // ORDEM DE SEÇÕES:
+    // 1. CONFIGURAÇÃO
+    // 2. QUERY SQL
+    // 3. ESTADO GLOBAL
+    // 4. ELEMENTOS DO DOM
+    // 5. FUNÇÕES AUXILIARES
+    // 6. INTEGRAÇÃO JX
+    // 7. PROCESSAMENTO DE DADOS
+    // 8. KPIs
+    // 9. FILTROS
+    // 10. RENDERIZAÇÃO
+    // 11. PAGINAÇÃO
+    // 12. CHECKBOX
+    // 13. FILTRO POR COLUNA
+    // 14. RESIZE DE COLUNAS
+    // 15. EXPORTAR CSV
+    // 16. EVENT LISTENERS
+    // 17. ATALHOS DE TECLADO
+    // 18. INICIALIZAÇÃO
+    // ═══════════════════════════════════════════════════════════════════════
+
+    // ╔══════════════════════════════════════════════════════════════════════╗
+    // ║ 1. CONFIGURAÇÃO                                                      ║
+    // ╚══════════════════════════════════════════════════════════════════════╝
+    //
+    // Defina aqui parâmetros fixos da consulta.
+    // Estes valores podem vir de variáveis Sankhya futuramente.
+
+    var CONFIG = {
+      CODEMP: 1,                // Código da empresa (ajuste conforme necessário)
+      DEBUG: true,              // true = exibe logs no console
+      DEBUG_SQL_TESTS: false    // true = executa testes SQL rápidos
+      // Adicione outros parâmetros conforme necessidade
+    };
+
+    // ╔══════════════════════════════════════════════════════════════════════╗
+    // ║ 2. QUERY SQL                                                         ║
+    // ╚══════════════════════════════════════════════════════════════════════╝
+    //
+    // REGRA CRÍTICA: Os aliases da query (após AS) devem corresponder
+    // às chaves usadas no JS para acessar os dados.
+    //
+    // DICA: Use nomes em MAIÚSCULA para os aliases, pois alguns bancos
+    // retornam assim. O normalizarDados() vai padronizar.
+    //
+    // EXEMPLO:
+    // SELECT CAB.NUNOTA AS NUNOTA, PAR.NOMEPARC AS PARCEIRO ...
+    //
+    // No JS você acessa: row.NUNOTA, row.PARCEIRO
+
+    var SQL = `
+WITH CTE1 AS (
+    SELECT
+        PRO.CODPROD,
+        PRO.COMPLDESC,
+        PRO.REFFORN,
+        PRO.CODIGO,
+        PRO.MARCA,
+        PRO.DESCRPROD,
+        PRO.CODGRUPOPROD,
+        PRO.DESCRGRUPOPROD,
+        PEPETQ.ESTOQUE AS ETQORIG,
+        PEPETQ.SIM_ESTQAT,
+        PEPETQ.ESTQMARSIM,
+        NVL(VENSIM.ORG_QTDVENLIQ_TT, 0) AS ORG_QTDVENLIQ_TT,
+        NVL(VENSIM.SIM_QTDVENLIQ_TT, 0) AS SIM_QTDVENLIQ_TT,
+        NVL(VENSIM.ORG_NOTAVENLIQ_TT, 0) AS ORG_NOTAVENLIQ_TT,
+        NVL(VENSIM.SIM_NOTAVENLIQ_TT, 0) AS SIM_NOTAVENLIQ_TT,
+        VENSIM.ORG_DTULTVEN,
+        NVL(VENSIM.ORG_DIASULTVEN, 9999) AS ORG_DIASULTVEN,
+        VENSIM.ORG_ABC_RANK,
+        NVL(VENSIM.ORG_ABC_CLASS, 'C') AS ORG_ABC_CLASS,
+        NVL(VENSIM.QTDDIFSIM, 0) AS QTDDIFSIM,
+        VENSIM.RANKVENSIM,
+        NVL(VENSIM.PARTCODSIM, 0) AS PARTCODSIM,
+        NVL(VENSIM.SIM_QTDMARCATT, 0) AS SIM_QTDMARCATT,
+        CASE 
+            WHEN NVL(MED3.QTDVEN3MES, 0) / 3 >= 1 THEN ROUND(MED3.QTDVEN3MES / 3, 2)
+            WHEN NVL(VENSIM.ORG_QTDVENLIQ_TT, 0) > 1 THEN 1
+            ELSE 0
+        END AS MED3MES,
+        COMSIM.COM_QTDCOMPRA_ORIG,
+        COMSIM.COM_ULTDT,
+        COMSIM.COM_ULTPARC,
+        PAR.NOMEPARC,
+        COMSIM.COM_ULTCUSTO,
+        COMSIM.COM_QTDPARCDIF
+    FROM AE1_2601_PEPETQSIM PEPETQ
+    LEFT JOIN AE1_2601_PEPVENSIMTT VENSIM ON VENSIM.CODPROD = PEPETQ.CODPROD
+    LEFT JOIN AE1_2601_PEPCOMSIMTT COMSIM ON COMSIM.CODPROD = PEPETQ.CODPROD
+    LEFT JOIN TGFPAR PAR ON PAR.CODPARC = COMSIM.COM_ULTPARC
+    LEFT JOIN AVW_PRODUTOCOMPLETO PRO ON PRO.CODPROD = PEPETQ.CODPROD
+    LEFT JOIN (
+        SELECT 
+            ITE.CODPROD,
+            SUM(CASE WHEN MOV.MOVOFICIAL = 'PEDIDO_VENDA' THEN ITE.QTDNEG ELSE 0 END) -
+            SUM(CASE WHEN MOV.MOVOFICIAL = 'DEVOLUCAO_VENDA' THEN ITE.QTDNEG ELSE 0 END) AS QTDVEN3MES
+        FROM TGFCAB CAB
+        JOIN TGFITE ITE ON ITE.NUNOTA = CAB.NUNOTA
+        JOIN AE0_TOPMOVGER MOV ON MOV.CODTIPOPER = CAB.CODTIPOPER
+        WHERE MOV.MOVOFICIAL IN ('PEDIDO_VENDA', 'DEVOLUCAO_VENDA')
+          AND CAB.DTNEG >= ADD_MONTHS(TRUNC(SYSDATE), -3)
+        GROUP BY ITE.CODPROD
+    ) MED3 ON MED3.CODPROD = PEPETQ.CODPROD
+)
+SELECT
+    CODPROD AS SIS,
+    COMPLDESC AS REF,
+    REFFORN AS ORG,
+    MARCA,
+    DESCRPROD,
+    DESCRGRUPOPROD AS GRUPO,
+    ETQORIG AS O_ETQ,
+    SIM_ESTQAT AS S_ETQ,
+    ESTQMARSIM AS QTD_SETQ,
+    COM_QTDCOMPRA_ORIG AS O_QTDCOM,
+    COM_ULTDT AS O_ULTCOM,
+    NOMEPARC AS ULTPARC,
+    COM_ULTCUSTO AS ULTCUS,
+    COM_QTDPARCDIF AS QTDPAR,
+    ORG_NOTAVENLIQ_TT AS O_VENTT,
+    SIM_NOTAVENLIQ_TT AS S_VENTT,
+    ORG_DTULTVEN AS O_ULTVEN,
+    ORG_DIASULTVEN AS DIAS,
+    ORG_ABC_RANK AS RNK,
+    ORG_ABC_CLASS AS ABC,
+    QTDDIFSIM AS S_DIF,
+    RANKVENSIM AS O_RANKSIM,
+    PARTCODSIM AS O_PARTSIM,
+    SIM_QTDMARCATT AS QTDMAR,
+    MED3MES
+FROM CTE1
+`;
+
+    // ╔══════════════════════════════════════════════════════════════════════╗
+    // ║ 3. ESTADO GLOBAL                                                     ║
+    // ╚══════════════════════════════════════════════════════════════════════╝
+    //
+    // Estas variáveis armazenam os dados e o estado atual do dashboard.
+
+    var dadosBrutos = [];     // Dados originais vindos da consulta
+    var dadosFiltrados = [];  // Dados após aplicar filtros
+    var marcasUnicas = [];    // Lista para popular filtro de marca
+    var statusUnicos = [];    // Lista para popular filtro ABC
+
+    // REGRA: pageSize deve corresponder ao <option selected> no HTML
+    var state = {
+      currentPage: 1,
+      pageSize: 100,    // <- Deve bater com o HTML
+      totalCount: 0,
+      totalPages: 1
+    };
+
+    var columnFilters = {};
+    var activeFilterColumn = null;
+    var activeFilterHeader = null;
+
+    // ╔══════════════════════════════════════════════════════════════════════╗
+    // ║ 4. ELEMENTOS DO DOM                                                  ║
+    // ╚══════════════════════════════════════════════════════════════════════╝
+    //
+    // REGRA CRÍTICA: Cada getElementById aqui precisa ter um elemento
+    // correspondente no HTML com o mesmo ID (case-sensitive).
+    //
+    // Se o ID não existir, a variável será null e o JS vai quebrar.
+    //
+    // CHECKLIST: Para cada linha abaixo, verifique se o ID existe no HTML.
+
+    var tableBody = document.getElementById('tableBody');
+    var selectAllCheckbox = document.getElementById('selectAll');
+    var pageInput = document.getElementById('pageInput');
+    var pageSizeSelect = document.getElementById('pageSize');
+    var btnFirst = document.getElementById('btnFirst');
+    var btnPrev = document.getElementById('btnPrev');
+    var btnNext = document.getElementById('btnNext');
+    var btnLast = document.getElementById('btnLast');
+    var recordStart = document.getElementById('recordStart');
+    var recordEnd = document.getElementById('recordEnd');
+    var recordTotal = document.getElementById('recordTotal');
+    var totalPagesEl = document.getElementById('totalPages');
+    var selectionCountEl = document.getElementById('selectionCount');
+    var clearSelectionBtn = document.getElementById('clearSelection');
+    var columnFilterDropdown = document.getElementById('columnFilterDropdown');
+    var columnFilterList = document.getElementById('columnFilterList');
+    var columnFilterSearch = document.getElementById('columnFilterSearch');
+    var searchInput = document.getElementById('searchInput');
+    var filterStatus = document.getElementById('filterStatus');
+    var filterVendedor = document.getElementById('filterVendedor');
+    var loadingOverlay = document.getElementById('loadingOverlay');
+    var loadingText = document.getElementById('loadingText');
+    var toastContainer = document.getElementById('toastContainer');
+
+    // ╔══════════════════════════════════════════════════════════════════════╗
+    // ║ 5. FUNÇÕES AUXILIARES                                                ║
+    // ╚══════════════════════════════════════════════════════════════════════╝
+
+    function debug(msg, data) {
+      if (CONFIG.DEBUG) {
+        if (data !== undefined) {
+          console.log('[DEBUG] ' + msg, data);
+        } else {
+          console.log('[DEBUG] ' + msg);
+        }
+      }
+    }
+
+    function loading(show, texto) {
+      if (show) {
+        loadingOverlay.classList.remove('hidden');
+        loadingText.textContent = texto || 'Carregando dados...';
+      } else {
+        loadingOverlay.classList.add('hidden');
+      }
+    }
+
+    function toast(mensagem, tipo) {
+      var toastEl = document.createElement('div');
+      toastEl.className = 'toast toast-' + (tipo || 'info');
+      toastEl.textContent = mensagem;
+      toastContainer.appendChild(toastEl);
+      setTimeout(function() { toastEl.remove(); }, 4000);
+    }
+
+    function logDebugDetalhado(etiqueta, payload) {
+      try {
+        console.groupCollapsed('[DEBUG-DETALHADO] ' + etiqueta);
+        console.log('timestamp:', new Date().toISOString());
+        console.log('tipo:', typeof payload);
+        console.log('valor:', payload);
+        if (payload && typeof payload === 'object') {
+          console.log('chaves:', Object.keys(payload));
+          if (payload.message !== undefined) console.log('message:', payload.message);
+          if (payload.stack !== undefined) console.log('stack:', payload.stack);
+          try {
+            console.log('json:', JSON.stringify(payload));
+          } catch (jsonErr) {
+            console.log('json: [falhou stringify]', jsonErr);
+          }
+        }
+        console.groupEnd();
+      } catch (e) {
+        console.log('[DEBUG-DETALHADO] falha ao logar:', e);
+      }
+    }
+
+    function formatCurrency(value) {
+      var num = parseFloat(value);
+      if (isNaN(num)) return '';
+      return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function formatNumber(value, decimals) {
+      if (value === null || value === undefined || value === '') return '';
+      var num = Number(value);
+      if (isNaN(num)) return String(value);
+      var digits = typeof decimals === 'number' ? decimals : 0;
+      return num.toLocaleString('pt-BR', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+    }
+
+    function formatPercent(value) {
+      if (value === null || value === undefined || value === '') return '';
+      var num = Number(value);
+      if (isNaN(num)) return String(value);
+      return formatNumber(num, 2) + '%';
+    }
+
+    function formatDate(value) {
+      if (!value) return '';
+      if (value instanceof Date) return value.toLocaleDateString('pt-BR');
+      var date = new Date(value);
+      if (!isNaN(date.getTime())) return date.toLocaleDateString('pt-BR');
+      return String(value);
+    }
+
+    // Gera iniciais do nome (ex.: "João Silva" → "JS")
+    function gerarIniciais(nome) {
+      if (!nome) return '??';
+      var partes = nome.trim().split(' ');
+      if (partes.length >= 2) {
+        return (partes[0].charAt(0) + partes[partes.length - 1].charAt(0)).toUpperCase();
+      }
+      return nome.substring(0, 2).toUpperCase();
+    }
+
+    // Gera cor baseada no nome (para avatar)
+    function gerarCorAvatar(nome) {
+      if (!nome) return 'hsl(200, 70%, 50%)';
+      var hash = 0;
+      for (var i = 0; i < nome.length; i++) {
+        hash = nome.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      var hue = Math.abs(hash % 360);
+      return 'hsl(' + hue + ', 65%, 45%)';
+    }
+
+    // ╔══════════════════════════════════════════════════════════════════════╗
+    // ║ 6. INTEGRAÇÃO JX                                                     ║
+    // ╚══════════════════════════════════════════════════════════════════════╝
+    //
+    // LIÇÃO APRENDIDA: Em ambiente Sankhya embed, o JX pode estar em:
+    // - window (quando carregado diretamente)
+    // - window.parent (quando em iframe)
+    // - window.top (quando em iframe aninhado)
+    //
+    // A função getJXRef() busca em todos esses lugares.
+
+    function getJXRef() {
+      if (typeof JX !== 'undefined') return JX;
+      if (window.parent && window.parent.JX) return window.parent.JX;
+      if (window.top && window.top.JX) return window.top.JX;
+      return undefined;
+    }
+
+    function executarTestesSql(jxRef) {
+      if (!CONFIG.DEBUG_SQL_TESTS) return;
+
+      var testes = [
+        { nome: 'PING DUAL', sql: 'SELECT 1 AS QTDE FROM DUAL' },
+        { nome: 'COUNT AE1_2601_PEPETQSIM', sql: 'SELECT COUNT(*) AS QTDE FROM AE1_2601_PEPETQSIM' },
+        { nome: 'COUNT AE1_2601_PEPVENSIMTT', sql: 'SELECT COUNT(*) AS QTDE FROM AE1_2601_PEPVENSIMTT' },
+        { nome: 'COUNT AE1_2601_PEPCOMSIMTT', sql: 'SELECT COUNT(*) AS QTDE FROM AE1_2601_PEPCOMSIMTT' },
+        { nome: 'COUNT AVW_PRODUTOCOMPLETO', sql: 'SELECT COUNT(*) AS QTDE FROM AVW_PRODUTOCOMPLETO' }
+      ];
+
+      debug('Executando testes SQL rápidos...');
+      logDebugDetalhado('SQL_TESTES.lista', testes);
+
+      function extrairQtde(res) {
+        var lista = extrairDadosRetorno(res);
+        if (!lista || !lista.length) return null;
+        var row = lista[0] || {};
+        if (row.QTDE !== undefined) return row.QTDE;
+        if (row.qtde !== undefined) return row.qtde;
+        var keys = Object.keys(row);
+        if (keys.length) return row[keys[0]];
+        return null;
+      }
+
+      function executarIndice(i) {
+        if (i >= testes.length) {
+          debug('Testes SQL finalizados.');
+          return;
+        }
+
+        var teste = testes[i];
+        jxRef.consultar(teste.sql)
+          .then(function(res) {
+            var qtde = extrairQtde(res);
+            debug('Teste SQL [' + teste.nome + '] QTDE:', qtde);
+            executarIndice(i + 1);
+          })
+          .catch(function(err) {
+            console.error('[DEBUG] Teste SQL falhou [' + teste.nome + ']', err);
+            executarIndice(i + 1);
+          });
+      }
+
+      executarIndice(0);
+    }
+
+    function carregarDadosSankhya() {
+      debug('Iniciando carregamento de dados...');
+      debug('SQL:', SQL);
+      logDebugDetalhado('SQL.info', {
+        tamanho: SQL ? SQL.length : 0,
+        inicio: SQL ? SQL.slice(0, 200) : '',
+        fim: SQL ? SQL.slice(Math.max(0, SQL.length - 200)) : ''
+      });
+
+      var jxRef = getJXRef();
+      logDebugDetalhado('JX.ref', jxRef);
+
+      if (typeof jxRef === 'undefined') {
+        debug('JX não disponível');
+        toast('Erro: JX não disponível', 'erro');
+        dadosBrutos = [];
+        dadosFiltrados = [];
+        atualizarInterface();
+        return;
+      }
+
+      if (typeof jxRef.consultar !== 'function') {
+        debug('JX.consultar não é função');
+        toast('Erro: JX.consultar não disponível', 'erro');
+        dadosBrutos = [];
+        dadosFiltrados = [];
+        atualizarInterface();
+        return;
+      }
+
+      executarTestesSql(jxRef);
+
+      loading(true, 'Consultando banco de dados...');
+
+      try {
+        var promiseConsulta = jxRef.consultar(SQL);
+        logDebugDetalhado('JX.consultar.retorno', promiseConsulta);
+
+        promiseConsulta
+          .then(function(dados) {
+            loading(false);
+            debug('Retorno da consulta - Tipo:', typeof dados);
+            logDebugDetalhado('JX.consultar.sucesso', dados);
+
+            dadosBrutos = extrairDadosRetorno(dados);
+            dadosBrutos = normalizarDados(dadosBrutos);
+            debug('Total de registros:', dadosBrutos.length);
+
+            if (dadosBrutos.length > 0) {
+              debug('Primeiro registro:', dadosBrutos[0]);
+              processarDados();
+              toast(dadosBrutos.length + ' registros carregados', 'sucesso');
+            } else {
+              toast('Nenhum registro encontrado', 'info');
+              dadosFiltrados = [];
+              atualizarInterface();
+            }
+          })
+          .catch(function(erro) {
+            loading(false);
+            debug('Erro na consulta:', erro);
+            logDebugDetalhado('JX.consultar.erro', erro);
+            var msgErro = erro && erro.message ? erro.message : String(erro);
+            toast('Erro: ' + msgErro, 'erro');
+            dadosBrutos = [];
+            dadosFiltrados = [];
+            atualizarInterface();
+          });
+      } catch (erroSync) {
+        loading(false);
+        debug('Erro síncrono na consulta:', erroSync);
+        logDebugDetalhado('JX.consultar.erro-sync', erroSync);
+        var msgErroSync = erroSync && erroSync.message ? erroSync.message : String(erroSync);
+        toast('Erro: ' + msgErroSync, 'erro');
+        dadosBrutos = [];
+        dadosFiltrados = [];
+        atualizarInterface();
+      }
+    }
+
+    // LIÇÃO APRENDIDA: O retorno do JX pode vir em diferentes formatos
+    function extrairDadosRetorno(dados) {
+      if (dados === null || dados === undefined) return [];
+      if (Array.isArray(dados)) return dados;
+      if (typeof dados === 'object') {
+        if (dados.result && Array.isArray(dados.result)) return dados.result;
+        if (dados.data && Array.isArray(dados.data)) return dados.data;
+        if (dados.rows && Array.isArray(dados.rows)) return dados.rows;
+        var keys = Object.keys(dados);
+        for (var i = 0; i < keys.length; i++) {
+          if (Array.isArray(dados[keys[i]])) return dados[keys[i]];
+        }
+      }
+      return [];
+    }
+
+    // LIÇÃO APRENDIDA: Chaves podem vir maiúsculas ou minúsculas
+    // Esta função padroniza para MAIÚSCULA
+    function normalizarDados(lista) {
+      if (!Array.isArray(lista)) return [];
+      var normalizados = [];
+      for (var i = 0; i < lista.length; i++) {
+        var row = lista[i] || {};
+        // AJUSTE AQUI: Adicione todos os campos da sua query
+        normalizados.push({
+          SIS: row.SIS !== undefined ? row.SIS : row.sis,
+          REF: row.REF !== undefined ? row.REF : row.ref,
+          ORG: row.ORG !== undefined ? row.ORG : row.org,
+          MARCA: row.MARCA !== undefined ? row.MARCA : row.marca,
+          DESCRPROD: row.DESCRPROD !== undefined ? row.DESCRPROD : row.descrprod,
+          GRUPO: row.GRUPO !== undefined ? row.GRUPO : row.grupo,
+          O_ETQ: row.O_ETQ !== undefined ? row.O_ETQ : row.o_etq,
+          S_ETQ: row.S_ETQ !== undefined ? row.S_ETQ : row.s_etq,
+          QTD_SETQ: row.QTD_SETQ !== undefined ? row.QTD_SETQ : row.qtd_setq,
+          O_QTDCOM: row.O_QTDCOM !== undefined ? row.O_QTDCOM : row.o_qtdcom,
+          O_ULTCOM: row.O_ULTCOM !== undefined ? row.O_ULTCOM : row.o_ultcom,
+          ULTPARC: row.ULTPARC !== undefined ? row.ULTPARC : row.ultparc,
+          ULTCUS: row.ULTCUS !== undefined ? row.ULTCUS : row.ultcus,
+          QTDPAR: row.QTDPAR !== undefined ? row.QTDPAR : row.qtdpar,
+          O_VENTT: row.O_VENTT !== undefined ? row.O_VENTT : row.o_ventt,
+          S_VENTT: row.S_VENTT !== undefined ? row.S_VENTT : row.s_ventt,
+          O_ULTVEN: row.O_ULTVEN !== undefined ? row.O_ULTVEN : row.o_ultven,
+          DIAS: row.DIAS !== undefined ? row.DIAS : row.dias,
+          RNK: row.RNK !== undefined ? row.RNK : row.rnk,
+          ABC: row.ABC !== undefined ? row.ABC : row.abc,
+          S_DIF: row.S_DIF !== undefined ? row.S_DIF : row.s_dif,
+          O_RANKSIM: row.O_RANKSIM !== undefined ? row.O_RANKSIM : row.o_ranksim,
+          O_PARTSIM: row.O_PARTSIM !== undefined ? row.O_PARTSIM : row.o_partsim,
+          QTDMAR: row.QTDMAR !== undefined ? row.QTDMAR : row.qtdmar,
+          MED3MES: row.MED3MES !== undefined ? row.MED3MES : row.med3mes
+        });
+      }
+      return normalizados;
+    }
+
+    // ╔══════════════════════════════════════════════════════════════════════╗
+    // ║ 7. PROCESSAMENTO DE DADOS                                            ║
+    // ╚══════════════════════════════════════════════════════════════════════╝
+    //
+    // Esta função é chamada após carregar os dados.
+    // Aqui você pode:
+    // - Calcular campos derivados (ex.: _iniciais, _cor)
+    // - Popular listas para filtros (ex.: marcasUnicas)
+
+    function processarDados() {
+      debug('Processando dados...');
+
+      marcasUnicas = [];
+      statusUnicos = [];
+      var marcasMap = {};
+      var statusMap = {};
+
+      for (var i = 0; i < dadosBrutos.length; i++) {
+        var row = dadosBrutos[i];
+
+        // Campos derivados (calculados a partir dos dados)
+        var produtoNome = row.DESCRPROD || row.REF || String(row.SIS || '');
+        row._produtoNome = produtoNome;
+        row._iniciais = gerarIniciais(produtoNome);
+        row._cor = gerarCorAvatar(produtoNome);
+
+        // Marca (filtro)
+        var marca = row.MARCA || 'SEM MARCA';
+        row._marca = marca;
+        if (!marcasMap[marca]) {
+          marcasMap[marca] = true;
+          marcasUnicas.push(marca);
+        }
+
+        // ABC (status)
+        var status = row.ABC || 'C';
+        row._status = status;
+        if (!statusMap[status]) {
+          statusMap[status] = true;
+          statusUnicos.push(status);
+        }
+      }
+
+      marcasUnicas.sort();
+      statusUnicos.sort();
+      popularFiltroMarca();
+      popularFiltroStatus();
+
+      dadosFiltrados = dadosBrutos.slice();
+      atualizarInterface();
+    }
+
+    function popularFiltroMarca() {
+      var html = '<option value="">Todas Marcas</option>';
+      for (var i = 0; i < marcasUnicas.length; i++) {
+        html += '<option value="' + marcasUnicas[i] + '">' + marcasUnicas[i] + '</option>';
+      }
+      filterVendedor.innerHTML = html;
+    }
+
+    function popularFiltroStatus() {
+      var html = '<option value="">Todos ABC</option>';
+      for (var i = 0; i < statusUnicos.length; i++) {
+        html += '<option value="' + statusUnicos[i] + '">' + statusUnicos[i] + '</option>';
+      }
+      filterStatus.innerHTML = html;
+    }
+
+    function atualizarInterface() {
+      calcularKPIs();
+      state.totalCount = dadosFiltrados.length;
+      state.currentPage = 1;
+      updatePagination();
+      renderTable();
+    }
+
+    // ╔══════════════════════════════════════════════════════════════════════╗
+    // ║ 8. KPIs                                                              ║
+    // ╚══════════════════════════════════════════════════════════════════════╝
+    //
+    // REGRA: Os IDs usados aqui (kpiTotal, kpiValor, etc.) devem existir no HTML
+
+    function calcularKPIs() {
+      var total = dadosFiltrados.length;
+      var estoqueOrigem = 0;
+
+      for (var i = 0; i < dadosFiltrados.length; i++) {
+        var row = dadosFiltrados[i];
+        estoqueOrigem += parseFloat(row.O_ETQ) || 0;
+      }
+
+      document.getElementById('kpiTotal').textContent = formatNumber(total);
+      document.getElementById('kpiValor').textContent = formatNumber(estoqueOrigem);
+    }
+
+    // ╔══════════════════════════════════════════════════════════════════════╗
+    // ║ 9. FILTROS                                                           ║
+    // ╚══════════════════════════════════════════════════════════════════════╝
+
+    function aplicarFiltros() {
+      var termoBusca = (searchInput.value || '').toLowerCase().trim();
+      var statusSel = filterStatus.value;
+      var marcaSel = filterVendedor.value;
+
+      dadosFiltrados = dadosBrutos.filter(function(row) {
+        // Filtro de busca
+        if (termoBusca) {
+          var campos = [
+            String(row.SIS || ''),
+            (row.REF || '').toLowerCase(),
+            (row.ORG || '').toLowerCase(),
+            (row.MARCA || '').toLowerCase(),
+            (row.DESCRPROD || '').toLowerCase(),
+            (row.GRUPO || '').toLowerCase(),
+            (row.ULTPARC || '').toLowerCase(),
+            (row.ABC || '').toLowerCase()
+          ].join(' ');
+          if (campos.indexOf(termoBusca) === -1) {
+            return false;
+          }
+        }
+
+        // Filtro de status (ABC)
+        if (statusSel && row._status !== statusSel) {
+          return false;
+        }
+
+        // Filtro de marca
+        if (marcaSel && (row._marca || '') !== marcaSel) {
+          return false;
+        }
+
+        return true;
+      });
+
+      atualizarInterface();
+    }
+
+    // ╔══════════════════════════════════════════════════════════════════════╗
+    // ║ 10. RENDERIZAÇÃO DA TABELA                                           ║
+    // ╚══════════════════════════════════════════════════════════════════════╝
+    //
+    // REGRA: Cada <td> aqui deve corresponder a uma coluna do <thead>
+
+    function renderTable() {
+      var startIndex = (state.currentPage - 1) * state.pageSize;
+      var endIndex = Math.min(startIndex + state.pageSize, state.totalCount);
+      var pageData = dadosFiltrados.slice(startIndex, endIndex);
+
+      var html = '';
+      for (var i = 0; i < pageData.length; i++) {
+        var row = pageData[i];
+        var abc = row.ABC || 'C';
+        var badgeClass = abc === 'A' ? 'badge-pago' : (abc === 'B' ? 'badge-pendente' : 'badge-vencido');
+
+        html += '<tr>';
+        html += '<td><input type="checkbox" class="checkbox row-checkbox" data-id="' + row.SIS + '"></td>';
+        html += '<td><span class="badge ' + badgeClass + '">' + abc + '</span></td>';
+        html += '<td>' + formatNumber(row.SIS) + '</td>';
+        html += '<td><div class="partner-cell">';
+        html += '<div class="avatar" style="background-color: ' + row._cor + ';">' + row._iniciais + '</div>';
+        html += '<span class="partner-name">' + (row._produtoNome || '') + '</span>';
+        html += '</div></td>';
+        html += '<td>' + (row.REF || '') + '</td>';
+        html += '<td>' + (row.ORG || '') + '</td>';
+        html += '<td>' + (row.MARCA || '') + '</td>';
+        html += '<td>' + (row.GRUPO || '') + '</td>';
+        html += '<td>' + formatNumber(row.O_ETQ) + '</td>';
+        html += '<td>' + formatNumber(row.S_ETQ) + '</td>';
+        html += '<td>' + formatNumber(row.QTD_SETQ) + '</td>';
+        html += '<td>' + formatNumber(row.O_QTDCOM) + '</td>';
+        html += '<td>' + formatDate(row.O_ULTCOM) + '</td>';
+        html += '<td>' + (row.ULTPARC || '') + '</td>';
+        html += '<td><span class="value-positive">R$ ' + formatCurrency(row.ULTCUS) + '</span></td>';
+        html += '<td>' + formatNumber(row.QTDPAR) + '</td>';
+        html += '<td>' + formatNumber(row.O_VENTT) + '</td>';
+        html += '<td>' + formatNumber(row.S_VENTT) + '</td>';
+        html += '<td>' + formatDate(row.O_ULTVEN) + '</td>';
+        html += '<td>' + formatNumber(row.DIAS) + '</td>';
+        html += '<td>' + formatNumber(row.RNK) + '</td>';
+        html += '<td>' + formatNumber(row.S_DIF) + '</td>';
+        html += '<td>' + formatNumber(row.O_RANKSIM) + '</td>';
+        html += '<td>' + formatPercent(row.O_PARTSIM) + '</td>';
+        html += '<td>' + formatNumber(row.QTDMAR) + '</td>';
+        html += '<td>' + formatNumber(row.MED3MES, 2) + '</td>';
+        html += '</tr>';
+      }
+
+      if (pageData.length === 0) {
+        html = '<tr><td colspan="100" style="text-align: center; padding: 2rem; color: var(--muted-foreground);">Nenhum registro encontrado</td></tr>';
+      }
+
+      tableBody.innerHTML = html;
+      bindRowCheckboxes();
+      updateSelectAllState();
+    }
+
+    // ╔══════════════════════════════════════════════════════════════════════╗
+    // ║ 11. PAGINAÇÃO                                                        ║
+    // ╚══════════════════════════════════════════════════════════════════════╝
+
+    function updatePagination() {
+      state.totalPages = Math.ceil(state.totalCount / state.pageSize);
+      if (state.totalPages < 1) state.totalPages = 1;
+      if (state.currentPage > state.totalPages) state.currentPage = state.totalPages;
+
+      var startRecord = state.totalCount === 0 ? 0 : (state.currentPage - 1) * state.pageSize + 1;
+      var endRecord = state.totalCount === 0 ? 0 : Math.min(state.currentPage * state.pageSize, state.totalCount);
+
+      recordStart.textContent = startRecord.toLocaleString('pt-BR');
+      recordEnd.textContent = endRecord.toLocaleString('pt-BR');
+      recordTotal.textContent = state.totalCount.toLocaleString('pt-BR');
+
+      pageInput.value = state.currentPage;
+      pageInput.max = state.totalPages;
+      totalPagesEl.textContent = state.totalPages;
+
+      btnFirst.disabled = state.currentPage === 1;
+      btnPrev.disabled = state.currentPage === 1;
+      btnNext.disabled = state.currentPage === state.totalPages;
+      btnLast.disabled = state.currentPage === state.totalPages;
+    }
+
+    function goToPage(page) {
+      var newPage = Math.max(1, Math.min(page, state.totalPages));
+      if (newPage !== state.currentPage) {
+        state.currentPage = newPage;
+        updatePagination();
+        renderTable();
+      }
+    }
+
+    function goToFirst() { goToPage(1); }
+    function goToPrev() { goToPage(state.currentPage - 1); }
+    function goToNext() { goToPage(state.currentPage + 1); }
+    function goToLast() { goToPage(state.totalPages); }
+
+    // ╔══════════════════════════════════════════════════════════════════════╗
+    // ║ 12. CHECKBOX                                                         ║
+    // ╚══════════════════════════════════════════════════════════════════════╝
+
+    function bindRowCheckboxes() {
+      var rowCheckboxes = document.querySelectorAll('.row-checkbox');
+      for (var i = 0; i < rowCheckboxes.length; i++) {
+        rowCheckboxes[i].addEventListener('change', function() {
+          var row = this.closest('tr');
+          if (row) {
+            if (this.checked) {
+              row.classList.add('selected');
+            } else {
+              row.classList.remove('selected');
+            }
+          }
+          updateSelectAllState();
+        });
+      }
+    }
+
+    function updateSelectAllState() {
+      var rowCheckboxes = document.querySelectorAll('.row-checkbox');
+      var allChecked = true;
+      var someChecked = false;
+      var selectedCount = 0;
+
+      for (var i = 0; i < rowCheckboxes.length; i++) {
+        if (rowCheckboxes[i].checked) {
+          someChecked = true;
+          selectedCount++;
+        } else {
+          allChecked = false;
+        }
+      }
+
+      selectAllCheckbox.checked = allChecked && rowCheckboxes.length > 0;
+      selectAllCheckbox.indeterminate = someChecked && !allChecked;
+      if (selectionCountEl) {
+        selectionCountEl.textContent = selectedCount + ' selecionado(s)';
+      }
+      if (clearSelectionBtn) {
+        clearSelectionBtn.disabled = selectedCount === 0;
+      }
+    }
+
+    selectAllCheckbox.addEventListener('change', function() {
+      var rowCheckboxes = document.querySelectorAll('.row-checkbox');
+      for (var i = 0; i < rowCheckboxes.length; i++) {
+        rowCheckboxes[i].checked = selectAllCheckbox.checked;
+        var row = rowCheckboxes[i].closest('tr');
+        if (row) {
+          if (selectAllCheckbox.checked) {
+            row.classList.add('selected');
+          } else {
+            row.classList.remove('selected');
+          }
+        }
+      }
+      updateSelectAllState();
+    });
+
+    if (clearSelectionBtn) {
+      clearSelectionBtn.addEventListener('click', function() {
+        var rowCheckboxes = document.querySelectorAll('.row-checkbox');
+        for (var i = 0; i < rowCheckboxes.length; i++) {
+          rowCheckboxes[i].checked = false;
+          var row = rowCheckboxes[i].closest('tr');
+          if (row) row.classList.remove('selected');
+        }
+        updateSelectAllState();
+      });
+    }
+
+    // ╔══════════════════════════════════════════════════════════════════════╗
+    // ║ 13. FILTRO POR COLUNA                                                ║
+    // ╚══════════════════════════════════════════════════════════════════════╝
+    //
+    // REGRA CRÍTICA: Cada case deste switch DEVE corresponder a um
+    // data-column existente no <th> do HTML.
+
+    function getColumnValue(row, columnKey) {
+      switch (columnKey) {
+        case 'status': return row._status || 'C';
+        case 'sis': return formatNumber(row.SIS);
+        case 'produto': return row._produtoNome || '';
+        case 'ref': return row.REF || '';
+        case 'org': return row.ORG || '';
+        case 'marca': return row.MARCA || '';
+        case 'grupo': return row.GRUPO || '';
+        case 'o_etq': return formatNumber(row.O_ETQ);
+        case 's_etq': return formatNumber(row.S_ETQ);
+        case 'qtd_setq': return formatNumber(row.QTD_SETQ);
+        case 'o_qtdcom': return formatNumber(row.O_QTDCOM);
+        case 'o_ultcom': return formatDate(row.O_ULTCOM);
+        case 'ultparc': return row.ULTPARC || '';
+        case 'ultcus': return 'R$ ' + formatCurrency(row.ULTCUS);
+        case 'qtdpar': return formatNumber(row.QTDPAR);
+        case 'o_ventt': return formatNumber(row.O_VENTT);
+        case 's_ventt': return formatNumber(row.S_VENTT);
+        case 'o_ultven': return formatDate(row.O_ULTVEN);
+        case 'dias': return formatNumber(row.DIAS);
+        case 'rnk': return formatNumber(row.RNK);
+        case 's_dif': return formatNumber(row.S_DIF);
+        case 'o_ranksim': return formatNumber(row.O_RANKSIM);
+        case 'o_partsim': return formatPercent(row.O_PARTSIM);
+        case 'qtdmar': return formatNumber(row.QTDMAR);
+        case 'med3mes': return formatNumber(row.MED3MES, 2);
+        default: return '';
+      }
+    }
+
+    function getUniqueValues(columnKey) {
+      var unique = {};
+      for (var i = 0; i < dadosBrutos.length; i++) {
+        var value = getColumnValue(dadosBrutos[i], columnKey);
+        if (!unique[value]) unique[value] = true;
+      }
+      var values = [];
+      for (var key in unique) {
+        if (unique.hasOwnProperty(key)) values.push(key);
+      }
+      return values;
+    }
+
+    function ensureFilterState(columnKey, values) {
+      if (!columnFilters[columnKey]) {
+        var selected = {};
+        for (var i = 0; i < values.length; i++) {
+          selected[values[i]] = true;
+        }
+        columnFilters[columnKey] = { selected: selected, sort: 'asc', search: '' };
+      } else {
+        for (var j = 0; j < values.length; j++) {
+          if (columnFilters[columnKey].selected[values[j]] === undefined) {
+            columnFilters[columnKey].selected[values[j]] = true;
+          }
+        }
+      }
+    }
+
+    function getSortedValues(values, sort) {
+      var list = values.slice();
+      list.sort(function(a, b) {
+        var aVal = a.toLowerCase();
+        var bVal = b.toLowerCase();
+        if (aVal < bVal) return sort === 'desc' ? 1 : -1;
+        if (aVal > bVal) return sort === 'desc' ? -1 : 1;
+        return 0;
+      });
+      return list;
+    }
+
+    function renderFilterList(columnKey) {
+      var values = getUniqueValues(columnKey);
+      ensureFilterState(columnKey, values);
+      var filter = columnFilters[columnKey];
+      var sortedValues = getSortedValues(values, filter.sort);
+      var searchText = filter.search.toLowerCase();
+      var html = '';
+
+      for (var i = 0; i < sortedValues.length; i++) {
+        var value = sortedValues[i];
+        if (searchText && value.toLowerCase().indexOf(searchText) === -1) continue;
+        var checked = filter.selected[value] ? ' checked' : '';
+        html += '<label class="column-filter-item">' +
+          '<input type="checkbox" class="column-filter-checkbox" data-value="' + value + '"' + checked + '>' +
+          '<span>' + value + '</span>' +
+          '</label>';
+      }
+
+      columnFilterList.innerHTML = html;
+      var checkboxes = columnFilterList.querySelectorAll('.column-filter-checkbox');
+      for (var j = 0; j < checkboxes.length; j++) {
+        checkboxes[j].addEventListener('change', function() {
+          var val = this.getAttribute('data-value');
+          columnFilters[columnKey].selected[val] = this.checked;
+          applyColumnFilters();
+        });
+      }
+    }
+
+    function applyColumnFilters() {
+      dadosFiltrados = dadosBrutos.filter(function(row) {
+        for (var key in columnFilters) {
+          if (!columnFilters.hasOwnProperty(key)) continue;
+          var value = getColumnValue(row, key);
+          if (!columnFilters[key].selected[value]) {
+            return false;
+          }
+        }
+        return true;
+      });
+      state.totalCount = dadosFiltrados.length;
+      state.currentPage = 1;
+      calcularKPIs();
+      updatePagination();
+      renderTable();
+    }
+
+    function openColumnFilter(headerEl, columnKey) {
+      activeFilterHeader = headerEl;
+      activeFilterColumn = columnKey;
+      renderFilterList(columnKey);
+      columnFilterSearch.value = columnFilters[columnKey].search || '';
+      columnFilterDropdown.classList.add('open');
+
+      var rect = headerEl.getBoundingClientRect();
+      var dropdownWidth = columnFilterDropdown.offsetWidth || 240;
+      var left = rect.left + window.scrollX;
+      var top = rect.bottom + window.scrollY + 6;
+      if (left + dropdownWidth > window.innerWidth) {
+        left = window.innerWidth - dropdownWidth - 8;
+      }
+      if (left < 8) left = 8;
+      columnFilterDropdown.style.left = left + 'px';
+      columnFilterDropdown.style.top = top + 'px';
+    }
+
+    function closeColumnFilter() {
+      activeFilterColumn = null;
+      activeFilterHeader = null;
+      columnFilterDropdown.classList.remove('open');
+    }
+
+    function initColumnFilters() {
+      var headerCells = document.querySelectorAll('th[data-column] .table-header-cell');
+      for (var i = 0; i < headerCells.length; i++) {
+        headerCells[i].addEventListener('click', function(e) {
+          var th = this.closest('th');
+          if (!th || !th.dataset.column) return;
+          if (e.target.classList.contains('resize-handle')) return;
+          e.stopPropagation();
+          if (activeFilterColumn === th.dataset.column && columnFilterDropdown.classList.contains('open')) {
+            closeColumnFilter();
+            return;
+          }
+          openColumnFilter(th, th.dataset.column);
+        });
+      }
+
+      columnFilterDropdown.addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+
+      document.addEventListener('click', function() {
+        if (columnFilterDropdown.classList.contains('open')) {
+          closeColumnFilter();
+        }
+      });
+
+      columnFilterSearch.addEventListener('input', function() {
+        if (!activeFilterColumn) return;
+        columnFilters[activeFilterColumn].search = columnFilterSearch.value;
+        renderFilterList(activeFilterColumn);
+      });
+
+      var sortButtons = columnFilterDropdown.querySelectorAll('[data-sort]');
+      for (var j = 0; j < sortButtons.length; j++) {
+        sortButtons[j].addEventListener('click', function() {
+          if (!activeFilterColumn) return;
+          columnFilters[activeFilterColumn].sort = this.getAttribute('data-sort');
+          renderFilterList(activeFilterColumn);
+        });
+      }
+
+      var selectButtons = columnFilterDropdown.querySelectorAll('[data-select]');
+      for (var k = 0; k < selectButtons.length; k++) {
+        selectButtons[k].addEventListener('click', function() {
+          if (!activeFilterColumn) return;
+          var values = getUniqueValues(activeFilterColumn);
+          var mode = this.getAttribute('data-select');
+          for (var i2 = 0; i2 < values.length; i2++) {
+            columnFilters[activeFilterColumn].selected[values[i2]] = mode === 'all';
+          }
+          renderFilterList(activeFilterColumn);
+          applyColumnFilters();
+        });
+      }
+    }
+
+    // ╔══════════════════════════════════════════════════════════════════════╗
+    // ║ 14. RESIZE DE COLUNAS                                                ║
+    // ╚══════════════════════════════════════════════════════════════════════╝
+
+    function initColumnResize() {
+      var resizeHandles = document.querySelectorAll('.resize-handle');
+
+      for (var i = 0; i < resizeHandles.length; i++) {
+        (function(handle) {
+          var isResizing = false;
+          var startX = 0;
+          var startWidth = 0;
+          var th = null;
+
+          handle.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            th = handle.parentElement;
+            startX = e.pageX;
+            startWidth = th.offsetWidth;
+            handle.classList.add('active');
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+            e.preventDefault();
+          });
+
+          document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            var width = startWidth + (e.pageX - startX);
+            if (width >= 50) {
+              th.style.width = width + 'px';
+            }
+          });
+
+          document.addEventListener('mouseup', function() {
+            if (isResizing) {
+              isResizing = false;
+              handle.classList.remove('active');
+              document.body.style.cursor = '';
+              document.body.style.userSelect = '';
+            }
+          });
+        })(resizeHandles[i]);
+      }
+    }
+
+    // ╔══════════════════════════════════════════════════════════════════════╗
+    // ║ 15. EXPORTAR CSV                                                     ║
+    // ╚══════════════════════════════════════════════════════════════════════╝
+
+    function exportarCSV() {
+      if (dadosFiltrados.length === 0) {
+        toast('Nenhum dado para exportar', 'info');
+        return;
+      }
+
+      var headers = [
+        'ABC', 'SIS', 'Produto', 'Referência', 'Origem', 'Marca', 'Grupo',
+        'O. Estq', 'S. Estq', 'Qtd S/Estq', 'Qtd Compra', 'Últ Compra',
+        'Últ Forn', 'Últ Custo', 'Qtd Forn', 'O. Vendas', 'S. Vendas',
+        'Últ Venda', 'Dias', 'Rank', 'Dif. Marcas', 'Rank Sim', '% Part',
+        'Qtd Marcas', 'Med 3M'
+      ];
+      var linhas = [headers.join(';')];
+
+      for (var i = 0; i < dadosFiltrados.length; i++) {
+        var row = dadosFiltrados[i];
+        var linha = [
+          row.ABC || '',
+          row.SIS || '',
+          (row.DESCRPROD || '').replace(/;/g, ','),
+          (row.REF || '').replace(/;/g, ','),
+          (row.ORG || '').replace(/;/g, ','),
+          (row.MARCA || '').replace(/;/g, ','),
+          (row.GRUPO || '').replace(/;/g, ','),
+          formatNumber(row.O_ETQ),
+          formatNumber(row.S_ETQ),
+          formatNumber(row.QTD_SETQ),
+          formatNumber(row.O_QTDCOM),
+          formatDate(row.O_ULTCOM),
+          (row.ULTPARC || '').replace(/;/g, ','),
+          formatCurrency(row.ULTCUS),
+          formatNumber(row.QTDPAR),
+          formatNumber(row.O_VENTT),
+          formatNumber(row.S_VENTT),
+          formatDate(row.O_ULTVEN),
+          formatNumber(row.DIAS),
+          formatNumber(row.RNK),
+          formatNumber(row.S_DIF),
+          formatNumber(row.O_RANKSIM),
+          formatPercent(row.O_PARTSIM),
+          formatNumber(row.QTDMAR),
+          formatNumber(row.MED3MES, 2)
+        ];
+        linhas.push(linha.join(';'));
+      }
+
+      var conteudo = linhas.join('\n');
+      var blob = new Blob(['\ufeff' + conteudo], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'exportacao_' + new Date().toISOString().slice(0, 10) + '.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast('CSV exportado com sucesso', 'sucesso');
+    }
+
+    // ╔══════════════════════════════════════════════════════════════════════╗
+    // ║ 16. EVENT LISTENERS                                                  ║
+    // ╚══════════════════════════════════════════════════════════════════════╝
+
+    btnFirst.addEventListener('click', goToFirst);
+    btnPrev.addEventListener('click', goToPrev);
+    btnNext.addEventListener('click', goToNext);
+    btnLast.addEventListener('click', goToLast);
+
+    pageInput.addEventListener('change', function() {
+      var page = parseInt(pageInput.value);
+      if (!isNaN(page)) {
+        goToPage(page);
+      }
+    });
+
+    pageSizeSelect.addEventListener('change', function() {
+      state.pageSize = parseInt(pageSizeSelect.value);
+      state.currentPage = 1;
+      updatePagination();
+      renderTable();
+    });
+
+    searchInput.addEventListener('input', function() {
+      aplicarFiltros();
+    });
+
+    filterStatus.addEventListener('change', function() {
+      aplicarFiltros();
+    });
+
+    filterVendedor.addEventListener('change', function() {
+      aplicarFiltros();
+    });
+
+    document.getElementById('btnAtualizar').addEventListener('click', function() {
+      carregarDadosSankhya();
+    });
+
+    document.getElementById('btnExportar').addEventListener('click', function() {
+      exportarCSV();
+    });
+
+    // ╔══════════════════════════════════════════════════════════════════════╗
+    // ║ 17. ATALHOS DE TECLADO                                               ║
+    // ╚══════════════════════════════════════════════════════════════════════╝
+
+    document.addEventListener('keydown', function(e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+
+      if (e.altKey) {
+        switch (e.key) {
+          case 'ArrowLeft':
+            e.preventDefault();
+            goToPrev();
+            break;
+          case 'ArrowRight':
+            e.preventDefault();
+            goToNext();
+            break;
+          case 'Home':
+            e.preventDefault();
+            goToFirst();
+            break;
+          case 'End':
+            e.preventDefault();
+            goToLast();
+            break;
+        }
+      }
+    });
+
+    // ╔══════════════════════════════════════════════════════════════════════╗
+    // ║ 18. INICIALIZAÇÃO                                                    ║
+    // ╚══════════════════════════════════════════════════════════════════════╝
+
+    function init() {
+      debug('═══════════════════════════════════════════');
+      debug('DASHBOARD INICIALIZANDO');
+      debug('═══════════════════════════════════════════');
+
+      initColumnResize();
+      initColumnFilters();
+
+      // Carrega dados do banco
+      carregarDadosSankhya();
+
+      console.log('Dashboard carregado!');
+      console.log('Atalhos: Alt+← (anterior), Alt+→ (próxima), Alt+Home (primeira), Alt+End (última)');
+    }
+
+    init();
+  </script>
+
+</body>
+</html>

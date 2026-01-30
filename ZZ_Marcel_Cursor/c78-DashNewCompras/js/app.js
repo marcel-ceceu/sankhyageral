@@ -1,0 +1,1839 @@
+(() => {
+  // ============================================================
+  // 1) DADOS
+  // ============================================================
+  let DATA = [];
+  let DATA_FULL = []; // Todos os registros sem filtro (para tooltip de similares)
+
+  // ============================================================
+  // 3) DEFINIÇÃO DAS COLUNAS
+  // ============================================================
+  let COLS = [
+    // ORDEM PRINCIPAL (conforme solicitado)
+    { key: 'CODSIS',        label: 'Cód. Sistema',    width: 90,  align: 'right',  visible: true },
+    { key: 'NUNOTA',        label: 'Nº Nota',         width: 90,  align: 'right',  type: 'number',  visible: true },
+    { key: 'DTNEG',         label: 'Dt. Neg.',        width: 90,  align: 'center', type: 'date',    visible: true },
+    { key: 'DTINSERT',      label: 'Dt. Insert',      width: 130, align: 'center', type: 'datetime', visible: true },
+    { key: 'CODREF',        label: 'Cód. Ref.',       width: 150, align: 'left',   visible: true },
+    { key: 'MARCA',         label: 'Marca',           width: 100, align: 'left',   visible: true },
+    { key: 'CODORIG',       label: 'Cód. Original',   width: 120, align: 'left',   visible: true },
+    { key: 'GRUPO',         label: 'Grupo',           width: 120, align: 'left',   visible: true },
+    { key: 'PRODUTO',       label: 'Produto',         width: 250, align: 'left',   visible: true },
+    { key: 'ABC',           label: 'Curva ABC',       width: 70,  align: 'center', type: 'curva',   visible: true },
+    { key: 'RNK',           label: 'Ranking',         width: 80,  align: 'right',  type: 'number',  visible: true },
+    { key: 'CATEG_VAL',     label: 'Categ. Valor',    width: 0,   align: 'center', visible: false },
+    { key: 'CATEG',         label: 'Categoria',       width: 120, align: 'center', type: 'categoria', editable: true, visible: true },
+    { key: 'STATUS',        label: 'Status',          width: 110, align: 'center', type: 'status',  visible: true },
+    { key: 'AUT_STATUS',    label: 'Status Auto',     width: 110, align: 'center', type: 'status',  visible: true },
+    { key: 'SUGESTAO',      label: 'Sugestão',        width: 85,  align: 'right',  type: 'number',  visible: true },
+    { key: 'ORIG_ETQ',      label: 'Etq. Original',   width: 90,  align: 'right',  type: 'number',  visible: true },
+    { key: 'SIM_ETQ',       label: 'Etq. Similar',    width: 90,  align: 'right',  type: 'number',  visible: true },
+    { key: 'USU_DECISAO',   label: 'Decisão',         width: 145, align: 'center', type: 'decisao',  editable: true, visible: true },
+
+    // --- OUTROS ---
+    { key: 'FORNECEDOR',    label: 'Fornecedor',      width: 150, align: 'left',   visible: true },
+    { key: 'COM_ULTCUS',    label: 'Custo Ult.',      width: 100, align: 'right',  type: 'currency', visible: true },
+    { key: 'ORIG_MEDMES',   label: 'Média/Mês',       width: 90,  align: 'right',  type: 'decimal',  visible: true },
+    { key: 'USU_QTDPEDIDO', label: 'Qtd. Pedido',     width: 90,  align: 'right',  type: 'number',   visible: true },
+    { key: 'COM_DTULT',     label: 'Cód. Fornec.',    width: 100, align: 'right',  visible: false },
+  ];
+
+  // ============================================================
+  // 4) ESTADO GLOBAL
+  // ============================================================
+  const state = {
+    filtroCotacaoRapida: false, // Filtro especial de cotação rápida
+    sort: { key: null, dir: null },
+    globalSearch: '',
+    quickFilters: {},
+    menuFilters: {},
+    selectedIds: new Set(),
+    currentPage: 1,
+    pageSize: 50,
+    dragColumn: null,
+  };
+
+  COLS.forEach(col => {
+    state.quickFilters[col.key] = '';
+    state.menuFilters[col.key] = {
+      operator: 'contains',
+      value: '',
+      selected: new Set(),
+      includeBlanks: true,
+    };
+  });
+
+  // ============================================================
+  // 5) ELEMENTOS DOM
+  // ============================================================
+  const $grid = document.getElementById('gridScroll');
+  const $popup = document.getElementById('popup');
+  const $chkCotacaoRapida = document.getElementById('chkCotacaoRapida');
+  const $globalSearch = document.getElementById('globalSearch');
+  const $btnToggleCols = document.getElementById('btnToggleCols');
+  const $menuCols = document.getElementById('menuCols');
+  const $btnRefresh = document.getElementById('btnRefresh');
+  const $btnClear = document.getElementById('btnClear');
+  const $btnExport = document.getElementById('btnExport');
+  const $pageSize = document.getElementById('pageSize');
+  const $btnPrev = document.getElementById('btnPrev');
+  const $btnNext = document.getElementById('btnNext');
+  const $pageInfo = document.getElementById('pageInfo');
+  const $selectionInfo = document.getElementById('selectionInfo');
+  const $totalInfo = document.getElementById('totalInfo');
+  const $loading = document.getElementById('loading');
+  const $appToast = document.getElementById('appToast');
+  const $tabButtons = document.querySelectorAll('.tab-btn');
+  const $tabTable = document.getElementById('tabTable');
+  const $tabKanban = document.getElementById('tabKanban');
+  const $tab2Search = document.getElementById('tab2Search');
+  const $tab2DecisionFilter = document.getElementById('tab2DecisionFilter');
+  const $tab2Refresh = document.getElementById('tab2Refresh');
+  const $tab2Total = document.getElementById('tab2Total');
+  const $tab2CountProcessar = document.getElementById('tab2CountProcessar');
+  const $tab2CountAnalisar = document.getElementById('tab2CountAnalisar');
+  const $tab2CountIgnorar = document.getElementById('tab2CountIgnorar');
+  const $tab2CountSem = document.getElementById('tab2CountSem');
+  const $tab2ColProcessar = document.getElementById('tab2ColProcessar');
+  const $tab2ColAnalisar = document.getElementById('tab2ColAnalisar');
+  const $tab2ColIgnorar = document.getElementById('tab2ColIgnorar');
+  const $tab2ColSem = document.getElementById('tab2ColSem');
+  const $tab2ColCountProcessar = document.getElementById('tab2ColCountProcessar');
+  const $tab2ColCountAnalisar = document.getElementById('tab2ColCountAnalisar');
+  const $tab2ColCountIgnorar = document.getElementById('tab2ColCountIgnorar');
+  const $tab2ColCountSem = document.getElementById('tab2ColCountSem');
+
+  // ============================================================
+  // 6) UTILITÁRIOS
+  // ============================================================
+  const normalize = (v) => (v ?? '').toString();
+  const isBlank = (v) => normalize(v).trim() === '';
+  const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+  const escapeHtml = (s) => normalize(s).replace(/[&<>"']/g, m =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m])
+  );
+  function safeStringify(obj) {
+    try { return JSON.stringify(obj); } catch (e) {}
+    try { return String(obj); } catch (e) {}
+    return '[obj]';
+  }
+
+  function getErrorMessage(err) {
+    if (!err) return 'Erro desconhecido';
+    if (typeof err === 'string') return err;
+    return err.responseText || err.statusMessage || err.message || safeStringify(err);
+  }
+
+  let tab2SearchValue = '';
+  let tab2DecisionFilter = 'ALL';
+
+  function setActiveTab(tab) {
+    $tabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+    if ($tabTable) $tabTable.classList.toggle('active', tab === 'table');
+    if ($tabKanban) $tabKanban.classList.toggle('active', tab === 'kanban');
+    if (tab === 'kanban') renderKanban();
+  }
+
+  $tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => setActiveTab(btn.dataset.tab));
+  });
+
+  if ($tab2Search) {
+    $tab2Search.addEventListener('input', () => {
+      tab2SearchValue = $tab2Search.value || '';
+      renderKanban();
+    });
+  }
+
+  if ($tab2DecisionFilter) {
+    $tab2DecisionFilter.addEventListener('change', () => {
+      tab2DecisionFilter = $tab2DecisionFilter.value || 'ALL';
+      renderKanban();
+    });
+  }
+
+  if ($tab2Refresh) {
+    $tab2Refresh.addEventListener('click', () => carregarDados());
+  }
+
+  function extractRows(resultado) {
+    if (!resultado) return [];
+    if (Array.isArray(resultado)) return resultado;
+    // Alguns ambientes retornam { retorno: [...] }
+    if (Array.isArray(resultado.retorno)) return resultado.retorno;
+    if (resultado.data) {
+      if (Array.isArray(resultado.data)) return resultado.data;
+      if (Array.isArray(resultado.data.rows)) return resultado.data.rows;
+      if (Array.isArray(resultado.data.result)) return resultado.data.result;
+      if (Array.isArray(resultado.data.retorno)) return resultado.data.retorno;
+    }
+    if (Array.isArray(resultado.rows)) return resultado.rows;
+    if (Array.isArray(resultado.result)) return resultado.result;
+    if (Array.isArray(resultado.resultado)) return resultado.resultado;
+    if (typeof resultado.responseText === 'string') {
+      try { return extractRows(JSON.parse(resultado.responseText)); } catch (e) {}
+    }
+    return [];
+  }
+
+  function normalizeRowKeys(row) {
+    if (!row || typeof row !== 'object') return row;
+    const out = { ...row };
+    Object.keys(row).forEach(k => {
+      const up = k.toUpperCase();
+      if (!(up in out)) out[up] = row[k];
+    });
+    return out;
+  }
+
+  function normalizeRows(rows) {
+    if (!Array.isArray(rows)) return [];
+    return rows.map(normalizeRowKeys);
+  }
+
+  function parsePtNumber(value) {
+    if (value == null) return 0;
+    if (typeof value === 'number') return isFinite(value) ? value : 0;
+    const s = String(value).trim();
+    if (!s) return 0;
+
+    // Remove tudo que não for dígito, vírgula, ponto ou sinal
+    const cleaned = s.replace(/[^\d.,-]/g, '');
+    // Remove separadores de milhar (pontos) e troca vírgula por ponto
+    const normalized = cleaned.replace(/\./g, '').replace(',', '.');
+    const n = Number(normalized);
+    return isFinite(n) ? n : 0;
+  }
+
+  // ===== TOOLTIP SIMILARES (compacto) =====
+  const $tip = document.getElementById('tooltipSimilar');
+
+  function mostrarTip(el, html) {
+    if (!$tip) return;
+    $tip.innerHTML = html;
+    $tip.classList.add('show');
+    const r = el.getBoundingClientRect();
+    let x = r.right + 8, y = r.top - 4;
+    if (x + 320 > innerWidth) x = r.left - 320;
+    if (y + $tip.offsetHeight > innerHeight) y = innerHeight - $tip.offsetHeight - 8;
+    $tip.style.cssText = `left:${Math.max(8,x)}px;top:${Math.max(8,y)}px`;
+  }
+
+  function esconderTip() { if ($tip) $tip.classList.remove('show'); }
+
+  function getSimilares(row) {
+    const ref = normalize(row.CODREF).trim();
+    const cod = normalize(row.CODSIS).trim();
+    if (!ref) return [];
+    
+    const byMarca = new Map();
+
+    DATA_FULL.forEach(r => {
+      if (normalize(r.CODREF).trim() !== ref) return;
+      if (normalize(r.CODSIS).trim() === cod) return;
+
+      const qtd = parsePtNumber(r.ORIG_ETQ);
+      if (!(qtd > 0)) return;
+
+      const marca = normalize(r.MARCA).trim() || '(sem marca)';
+      byMarca.set(marca, (byMarca.get(marca) || 0) + qtd);
+    });
+
+    return Array.from(byMarca.entries())
+      .map(([marca, qtd]) => ({ marca, qtd }))
+      .sort((a, b) => b.qtd - a.qtd);
+  }
+
+  function tipHtml(ref, itens, simTotal, rowData) {
+    const header =
+      `<div class="tooltip-similar-header">Similares — Ref: ${escapeHtml(ref)} (SIM: ${formatValue(simTotal,'number')} un.)</div>`;
+
+    // Buscar TODOS os produtos com mesmo CODREF em DATA_FULL
+    const todosSimulares = DATA_FULL.filter(r => {
+      const rRef = normalize(r.CODREF).trim();
+      return rRef === normalize(ref).trim();
+    }).sort((a, b) => {
+      // Ordena por estoque decrescente
+      return parsePtNumber(b.ORIG_ETQ) - parsePtNumber(a.ORIG_ETQ);
+    });
+
+    if (todosSimulares.length === 0) {
+      return header + `<div style="padding:8px 0;color:#6b7280">Nenhum similar encontrado.</div>`;
+    }
+
+    const lista = todosSimulares.map(r => {
+      const codsis = r.CODSIS || r.CODPROD || '-';
+      const marca = r.MARCA || '-';
+      const etq = parsePtNumber(r.ORIG_ETQ);
+      const isOriginal = rowData && String(r.CODSIS) === String(rowData.CODSIS);
+      
+      const tagOriginal = isOriginal ? ' <span style="color:#f59e0b;font-weight:600">(ATUAL)</span>' : '';
+      const corEtq = etq > 0 ? 'color:#22c55e;font-weight:600' : 'color:#9ca3af';
+      
+      return `<div style="padding:5px 0;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center">
+        <span><b style="color:var(--pri)">${escapeHtml(marca)}</b> — Cód: ${escapeHtml(codsis)}${tagOriginal}</span>
+        <span style="${corEtq}">${formatValue(etq, 'number')} un.</span>
+      </div>`;
+    }).join('');
+
+    const totalGeral = todosSimulares.reduce((acc, r) => acc + parsePtNumber(r.ORIG_ETQ), 0);
+    const footer = `<div style="padding:6px 0;font-weight:600;text-align:right;border-top:2px solid #ddd;margin-top:4px">
+      Total: ${formatValue(totalGeral, 'number')} un. em ${todosSimulares.length} produto(s)
+    </div>`;
+
+    return header + lista + footer;
+  }
+
+  // ============================================================
+  // 6.0) UI HELPERS (toast, flash)
+  // ============================================================
+  function showToast(msg, ms = 1800) {
+    if (!$appToast) return;
+    $appToast.textContent = msg || '';
+    $appToast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => $appToast.classList.remove('show'), ms);
+  }
+
+  function flashOk(el, ms = 900) {
+    if (!el) return;
+    el.classList.add('flash-ok');
+    setTimeout(() => el.classList.remove('flash-ok'), ms);
+  }
+
+  // ============================================================
+  // 6.2) DROPDOWN EDITÁVEL GENÉRICO
+  // ============================================================
+  const DROPDOWN_CONFIG = {
+    categoria: {
+      instancia: 'Produto',
+      campo: 'AD_CATCOMPRA',
+      chaveNome: 'CODPROD',
+      opcoes: [
+        { value: '', label: '- Selecione -' },
+        { value: '1', label: '1. REPASSE' },
+        { value: '2', label: '2. REPO RAPIDA' },
+        { value: '3', label: '3. REPO DEVAGAR' },
+        { value: '4', label: '4. PENDENTE' },
+      ],
+      cores: { '1': 'categ-1', '2': 'categ-2', '3': 'categ-3', '4': 'categ-4' },
+      confirmar: false,
+      atualizarLocal: (row, val) => {
+        row.CATEG_VAL = val;
+        const mapa = { '1': '1. REPASSE', '2': '2. REPO RAPIDA', '3': '3. REPO DEVAGAR', '4': '4. PENDENTE' };
+        row.CATEG = mapa[val] || '';
+      }
+    },
+    decisao: {
+      instancia: 'AD_2601COTANEWHIST',
+      campo: 'DECISAO',
+      chaveNome: 'NUREG',
+      atualizarLocal: (row, val) => { row.USU_DECISAO = val; }
+    }
+  };
+
+  function criarDropdownEditavel(tipo, chaveValor, valorAtual, rowData) {
+    const cfg = DROPDOWN_CONFIG[tipo];
+    const select = document.createElement('select');
+    select.className = 'edit-select';
+    select.dataset.tipo = tipo;
+    select.dataset.chave = chaveValor;
+    select.dataset.valorOriginal = valorAtual || '';
+
+    cfg.opcoes.forEach(opt => {
+      const o = document.createElement('option');
+      o.value = opt.value;
+      o.textContent = opt.label;
+      const valUpper = (valorAtual || '').toString().toUpperCase();
+      const optUpper = opt.value.toString().toUpperCase();
+      if (valUpper === optUpper || valorAtual == opt.value) o.selected = true;
+      select.appendChild(o);
+    });
+
+    aplicarCorDropdown(select, cfg.cores);
+
+    select.addEventListener('change', async (e) => {
+      e.stopPropagation();
+      const novoValor = select.value;
+      const anterior = select.dataset.valorOriginal;
+      
+      if (novoValor === anterior) return;
+      
+      aplicarCorDropdown(select, cfg.cores);
+
+      const precisaConfirmar = typeof cfg.confirmar === 'function' 
+        ? cfg.confirmar(novoValor) 
+        : cfg.confirmar;
+
+      if (precisaConfirmar) {
+        const msg = `Confirmar alteração?\n\nDe: ${anterior || '(vazio)'}\nPara: ${novoValor}`;
+        if (!confirm(msg)) {
+          select.value = anterior;
+          aplicarCorDropdown(select, cfg.cores);
+          return;
+        }
+      }
+
+      select.disabled = true;
+      const ok = await salvarDropdown(cfg, chaveValor, novoValor);
+      select.disabled = false;
+
+      if (ok) {
+        select.dataset.valorOriginal = novoValor;
+        const reg = DATA.find(r => r[cfg.chaveNome] == chaveValor || r.CODSIS == chaveValor);
+        if (reg && cfg.atualizarLocal) cfg.atualizarLocal(reg, novoValor);
+        showToast('✅ Salvo');
+        flashOk(select);
+      } else {
+        select.value = anterior;
+        aplicarCorDropdown(select, cfg.cores);
+      }
+    });
+
+    select.addEventListener('click', e => e.stopPropagation());
+    return select;
+  }
+
+  // ============================================================
+  // BOTÕES DE DECISÃO (SUBSTITUI DROPDOWN)
+  // ============================================================
+  function criarBotoesDecisao(nureg, valorAtual, rowData) {
+    const container = document.createElement('div');
+    container.className = 'btns-decisao';
+    container.dataset.nureg = nureg;
+    container.dataset.atual = (valorAtual || '').toUpperCase();
+
+    const botoes = [
+      {
+        valor: 'IGNORAR',
+        icone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6L18 18M18 6L6 18"/></svg>`,
+        titulo: 'Ignorar'
+      },
+      {
+        valor: 'ANALISAR',
+        icone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15L21 21" stroke-linecap="round"/></svg>`,
+        titulo: 'Analisar'
+      },
+      {
+        valor: 'PROCESSAR',
+        icone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5L10 17L19 7.5"/></svg>`,
+        titulo: 'Processar'
+      }
+    ];
+
+    botoes.forEach(cfg => {
+      const btn = document.createElement('button');
+      btn.className = `btn-dec btn-dec-${cfg.valor.toLowerCase()}`;
+      btn.dataset.valor = cfg.valor;
+      btn.title = cfg.titulo;
+      btn.innerHTML = cfg.icone;
+
+      // Marca como ativo se for o valor atual
+      if ((valorAtual || '').toUpperCase() === cfg.valor) {
+        btn.classList.add('ativo');
+      }
+
+      container.appendChild(btn);
+    });
+
+    return container;
+  }
+
+  // ============================================================
+  // ATUALIZAR VISUAL DOS BOTÕES APÓS SALVAR
+  // ============================================================
+  function atualizarBotoesDecisao(container, novoValor) {
+    if (!container) return;
+
+    const valorUpper = (novoValor || '').toUpperCase();
+    container.dataset.atual = valorUpper;
+
+    container.querySelectorAll('.btn-dec').forEach(btn => {
+      const isAtivo = btn.dataset.valor === valorUpper;
+      btn.classList.toggle('ativo', isAtivo);
+    });
+  }
+
+  // ============================================================
+  // UTILITÁRIOS DE DROPDOWN
+  // ============================================================
+  function aplicarCorDropdown(select, mapa) {
+    Object.values(mapa).forEach(c => select.classList.remove(c));
+    const v = (select.value || '').toString();
+    const classe = mapa[v] || mapa[v.toUpperCase()];
+    if (classe) select.classList.add(classe);
+  }
+
+  async function salvarDropdown(cfg, chaveValor, novoValor) {
+    if (typeof JX === 'undefined' || typeof JX.salvar !== 'function') {
+      alert('Erro: Execute dentro do ambiente Sankhya.');
+      return false;
+    }
+    try {
+      await JX.salvar(
+        { [cfg.campo]: novoValor || null },
+        cfg.instancia,
+        { [cfg.chaveNome]: chaveValor }
+      );
+      console.log('✅ Salvo:', cfg.campo, '=', novoValor);
+      return true;
+    } catch (err) {
+      console.error('❌ Erro ao salvar:', err);
+      const msg = err?.responseText || err?.message || err?.statusMessage ||
+        (typeof err === 'string' ? err : JSON.stringify(err));
+      alert('Erro ao salvar: ' + msg);
+      return false;
+    }
+  }
+
+  function formatValue(value, type) {
+    if (isBlank(value)) return '';
+
+    switch (type) {
+      case 'date': {
+        const strValue = normalize(value).trim();
+        if (strValue.match(/^\d{8}/)) {
+          const dia = strValue.substring(0, 2);
+          const mes = strValue.substring(2, 4);
+          const ano = strValue.substring(4, 8);
+          return `${dia}/${mes}/${ano}`;
+        }
+        const date = new Date(value);
+        if (isNaN(date.getTime())) return escapeHtml(value);
+        return date.toLocaleDateString('pt-BR');
+      }
+      case 'datetime': {
+        const s = normalize(value).trim();
+        const digits = s.replace(/[^\d]/g, '');
+
+        // Formatos comuns no Sankhya:
+        // - DDMMYYYYHHMMSS / DDMMYYYYHHMM / DDMMYYYY
+        // - (alguns ambientes) YYYYMMDDHHMMSS / YYYYMMDDHHMM / YYYYMMDD
+        const yyyy = Number(digits.slice(0, 4));
+        const mmY = Number(digits.slice(4, 6));
+        const ddY = Number(digits.slice(6, 8));
+        const isYMD =
+          digits.length >= 8 &&
+          yyyy >= 1900 && yyyy <= 2200 &&
+          mmY >= 1 && mmY <= 12 &&
+          ddY >= 1 && ddY <= 31;
+
+        if (isYMD) {
+          const DD = String(ddY).padStart(2, '0');
+          const MM = String(mmY).padStart(2, '0');
+          const YYYY = String(yyyy);
+          const HH = digits.length >= 10 ? digits.slice(8, 10) : '00';
+          const MI = digits.length >= 12 ? digits.slice(10, 12) : '00';
+          if (digits.length >= 12) return `${DD}/${MM}/${YYYY} ${HH}:${MI}`;
+          return `${DD}/${MM}/${YYYY}`;
+        }
+
+        if (digits.length >= 14) {
+          const dd = digits.slice(0, 2);
+          const mm = digits.slice(2, 4);
+          const yyyy = digits.slice(4, 8);
+          const HH = digits.slice(8, 10);
+          const MI = digits.slice(10, 12);
+          return `${dd}/${mm}/${yyyy} ${HH}:${MI}`;
+        }
+        if (digits.length >= 12) {
+          const dd = digits.slice(0, 2);
+          const mm = digits.slice(2, 4);
+          const yyyy = digits.slice(4, 8);
+          const HH = digits.slice(8, 10);
+          const MI = digits.slice(10, 12);
+          return `${dd}/${mm}/${yyyy} ${HH}:${MI}`;
+        }
+        if (digits.length >= 8) {
+          const dd = digits.slice(0, 2);
+          const mm = digits.slice(2, 4);
+          const yyyy = digits.slice(4, 8);
+          return `${dd}/${mm}/${yyyy}`;
+        }
+
+        // Fallback: ISO/timestamp
+        const d = new Date(value);
+        if (isNaN(d.getTime())) return escapeHtml(value);
+        const dia = String(d.getDate()).padStart(2, '0');
+        const mes = String(d.getMonth() + 1).padStart(2, '0');
+        const ano = d.getFullYear();
+        const hora = String(d.getHours()).padStart(2, '0');
+        const minuto = String(d.getMinutes()).padStart(2, '0');
+        return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+      }
+      case 'currency':
+        return 'R$ ' + Number(value).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      case 'number':
+        return Number(value).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+      case 'decimal':
+        return Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      case 'dias': {
+        const dias = Number(value);
+        if (dias >= 999) return '<span class="text-muted">-</span>';
+        if (dias <= 15) return `<span class="text-danger">${dias}</span>`;
+        if (dias <= 30) return `<span class="text-warning">${dias}</span>`;
+        return `<span class="text-success">${dias}</span>`;
+      }
+      case 'curva': {
+        const curvaClasses = { 'A': 'badge-danger', 'B': 'badge-warning', 'C': 'badge-info' };
+        return `<span class="badge ${curvaClasses[value] || 'badge-muted'}">${escapeHtml(value)}</span>`;
+      }
+      case 'status': {
+        const statusClasses = {
+          '1-CRITICO': 'badge-danger',
+          '2-ATENCAO': 'badge-warning',
+          '3-OK': 'badge-success',
+          '4-AVALIAR': 'badge-info',
+          '8-IGNORAR': 'badge-muted',
+          '9-REPASSE': 'badge-muted',
+        };
+        return `<span class="badge ${statusClasses[value] || 'badge-muted'}">${escapeHtml(value)}</span>`;
+      }
+      case 'decisao': {
+        const val = normalize(value).toUpperCase();
+        const classes = {
+          'PROCESSAR': 'badge-success',
+          'IGNORAR': 'badge-muted',
+          'ANALISAR': 'badge-warning',
+        };
+        if (!val) return '<span class="text-muted">-</span>';
+        return `<span class="badge ${classes[val] || 'badge-muted'}">${escapeHtml(value)}</span>`;
+      }
+      case 'categoria': {
+        const mapa = {
+          '1. REPASSE': 'badge-muted',
+          '2. REPO RAPIDA': 'badge-success',
+          '3. REPO DEVAGAR': 'badge-warning',
+          '4. PENDENTE': 'badge-info',
+        };
+        const classe = mapa[value] || 'badge-muted';
+        if (!value) return '<span class="text-muted">-</span>';
+        return `<span class="badge ${classe}">${escapeHtml(value)}</span>`;
+      }
+      default:
+        return escapeHtml(value);
+    }
+  }
+
+  // ============================================================
+  // 7) CARREGAMENTO DE DADOS
+  // ============================================================
+  const SQL_MAIN = "WITH CTE_ULTIMOS AS (SELECT H.NUREG, H.NUNOTA, H.DTNEG, H.DTINSERT, H.CODPROD, H.COMPLDESC, H.DESCRPROD, H.REFFORN, H.MARCA, H.DESCRGRUPOPROD, H.AD_STATUSREP_DES, H.ORIG_COMPRA_ULTI, H.NOMEPARC, H.ORIG_CUSTO_ULTCO, H.ORIG_RANK, H.ORIG_ABC, H.ORIG_PEDVEN_MED, H.SUGESTAO_COMPRA, H.STATUS, H.QTDPEDIDO, H.DECISAO, P.AD_CATCOMPRA, ROW_NUMBER() OVER (PARTITION BY H.CODPROD ORDER BY H.NUREG DESC) AS RN FROM AD_2601COTANEWHIST H JOIN TGFPRO P ON P.CODPROD = H.CODPROD), CTE_COM_ESTOQUE AS (SELECT U.NUREG, U.NUNOTA, U.DTNEG, U.DTINSERT, U.CODPROD, U.COMPLDESC, U.DESCRPROD, U.REFFORN, U.MARCA, U.DESCRGRUPOPROD, U.AD_STATUSREP_DES, U.ORIG_COMPRA_ULTI, U.NOMEPARC, U.ORIG_CUSTO_ULTCO, U.ORIG_RANK, U.ORIG_ABC, U.ORIG_PEDVEN_MED, U.SUGESTAO_COMPRA, U.STATUS, U.QTDPEDIDO, U.DECISAO, U.AD_CATCOMPRA, COALESCE(E.ESTOQUE, 0) AS ORIG_ETQ FROM CTE_ULTIMOS U LEFT JOIN TGFEST E ON E.CODPROD = U.CODPROD AND E.CODEMP = 1 WHERE U.RN = 1) SELECT NUREG, NUNOTA, DTNEG, DTINSERT, CODPROD AS CODSIS, COMPLDESC AS CODREF, DESCRPROD AS PRODUTO, REFFORN AS CODORIG, MARCA, DESCRGRUPOPROD AS GRUPO, AD_CATCOMPRA AS CATEG_VAL, OPTION_LABEL('TGFPRO','AD_CATCOMPRA', AD_CATCOMPRA) AS CATEG, AD_STATUSREP_DES AS STATUS, ORIG_COMPRA_ULTI AS COM_DTULT, NOMEPARC AS FORNECEDOR, ORIG_CUSTO_ULTCO AS COM_ULTCUS, ORIG_RANK AS RNK, ORIG_ABC AS ABC, ORIG_ETQ, SUM(ORIG_ETQ) OVER (PARTITION BY COMPLDESC) AS SIM_ETQ, ORIG_PEDVEN_MED AS ORIG_MEDMES, SUGESTAO_COMPRA AS SUGESTAO, STATUS AS AUT_STATUS, QTDPEDIDO AS USU_QTDPEDIDO, DECISAO AS USU_DECISAO FROM CTE_COM_ESTOQUE ORDER BY CODPROD";
+
+  function carregarDados() {
+    $loading.style.display = 'flex';
+    $loading.textContent = 'Carregando dados...';
+
+    if (typeof JX === 'undefined') {
+      console.error('❌ ERRO: JX não está definido');
+      $loading.textContent = 'ERRO: Biblioteca JX não carregada. Verifique se está no ambiente Sankhya.';
+      return;
+    }
+
+    // SOLUÇÃO: Paginação para contornar limite de 5.000 registros
+    // Seguindo regras JXJS: ES5, Oracle, tratamento de erros
+    var todosRegistros = [];
+    var loteAtual = 1;
+    var tamanhoPagina = 5000;
+    var continuar = true;
+    
+    function carregarProximoLote() {
+      if (!continuar) return;
+      
+      var offsetInicio = (loteAtual - 1) * tamanhoPagina + 1;
+      var offsetFim = loteAtual * tamanhoPagina;
+      
+      // SQL paginado usando ROWNUM (Oracle)
+      var sqlPaginado = 
+        'SELECT * FROM (' +
+        '  SELECT ' +
+        '    NUREG, NUNOTA, DTNEG, DTINSERT, CODPROD AS CODSIS, COMPLDESC AS CODREF, ' +
+        '    DESCRPROD AS PRODUTO, REFFORN AS CODORIG, MARCA, DESCRGRUPOPROD AS GRUPO, ' +
+        '    AD_CATCOMPRA AS CATEG_VAL, OPTION_LABEL(\'TGFPRO\',\'AD_CATCOMPRA\', AD_CATCOMPRA) AS CATEG, ' +
+        '    AD_STATUSREP_DES AS STATUS, ORIG_COMPRA_ULTI AS COM_DTULT, NOMEPARC AS FORNECEDOR, ' +
+        '    ORIG_CUSTO_ULTCO AS COM_ULTCUS, ORIG_RANK AS RNK, ORIG_ABC AS ABC, ORIG_ETQ, ' +
+        '    SUM(ORIG_ETQ) OVER (PARTITION BY COMPLDESC) AS SIM_ETQ, ' +
+        '    ORIG_PEDVEN_MED AS ORIG_MEDMES, SUGESTAO_COMPRA AS SUGESTAO, STATUS AS AUT_STATUS, ' +
+        '    QTDPEDIDO AS USU_QTDPEDIDO, DECISAO AS USU_DECISAO, ' +
+        '    ROW_NUMBER() OVER (ORDER BY CODPROD) AS RN ' +
+        '  FROM (' +
+        '    WITH CTE_ULTIMOS AS (' +
+        '      SELECT H.NUREG, H.NUNOTA, H.DTNEG, H.DTINSERT, H.CODPROD, H.COMPLDESC, H.DESCRPROD, ' +
+        '        H.REFFORN, H.MARCA, H.DESCRGRUPOPROD, H.AD_STATUSREP_DES, H.ORIG_COMPRA_ULTI, ' +
+        '        H.NOMEPARC, H.ORIG_CUSTO_ULTCO, H.ORIG_RANK, H.ORIG_ABC, H.ORIG_PEDVEN_MED, ' +
+        '        H.SUGESTAO_COMPRA, H.STATUS, H.QTDPEDIDO, H.DECISAO, P.AD_CATCOMPRA, ' +
+        '        ROW_NUMBER() OVER (PARTITION BY H.CODPROD ORDER BY H.NUREG DESC) AS RN ' +
+        '      FROM AD_2601COTANEWHIST H ' +
+        '      JOIN TGFPRO P ON P.CODPROD = H.CODPROD' +
+        '    ), ' +
+        '    CTE_COM_ESTOQUE AS (' +
+        '      SELECT U.NUREG, U.NUNOTA, U.DTNEG, U.DTINSERT, U.CODPROD, U.COMPLDESC, U.DESCRPROD, ' +
+        '        U.REFFORN, U.MARCA, U.DESCRGRUPOPROD, U.AD_STATUSREP_DES, U.ORIG_COMPRA_ULTI, ' +
+        '        U.NOMEPARC, U.ORIG_CUSTO_ULTCO, U.ORIG_RANK, U.ORIG_ABC, U.ORIG_PEDVEN_MED, ' +
+        '        U.SUGESTAO_COMPRA, U.STATUS, U.QTDPEDIDO, U.DECISAO, U.AD_CATCOMPRA, ' +
+        '        COALESCE(E.ESTOQUE, 0) AS ORIG_ETQ ' +
+        '      FROM CTE_ULTIMOS U ' +
+        '      LEFT JOIN TGFEST E ON E.CODPROD = U.CODPROD AND E.CODEMP = 1 ' +
+        '      WHERE U.RN = 1' +
+        '    ) ' +
+        '    SELECT * FROM CTE_COM_ESTOQUE' +
+        '  )' +
+        ') WHERE RN >= ' + offsetInicio + ' AND RN <= ' + offsetFim;
+      
+      $loading.textContent = 'Carregando lote ' + loteAtual + ' (' + todosRegistros.length + ' registros)...';
+      
+      JX.consultar(sqlPaginado)
+        .then(function(resultado) {
+          var rows = normalizeRows(extractRows(resultado));
+          
+          console.log('📦 Lote ' + loteAtual + ' carregado:', rows.length, 'registros');
+          
+          if (!rows || rows.length === 0) {
+            // Não há mais dados
+            finalizarCarregamento();
+            return;
+          }
+          
+          // Adiciona registros ao array total
+          todosRegistros = todosRegistros.concat(rows);
+          
+          // Se retornou menos que o tamanho da página, chegou ao fim
+          if (rows.length < tamanhoPagina) {
+            finalizarCarregamento();
+          } else {
+            // Carregar próximo lote
+            loteAtual++;
+            setTimeout(carregarProximoLote, 100);
+          }
+        })
+        .catch(function(erro) {
+          continuar = false;
+          var msg = getErrorMessage(erro);
+          console.error('❌ Erro ao carregar lote ' + loteAtual + ':', erro);
+          $loading.innerHTML =
+            '<div style="color:#dc2626;background:#fee2e2;padding:20px;border-radius:8px;text-align:left;margin:20px;">' +
+              '<b>❌ ERRO ao carregar lote ' + loteAtual + ':</b> ' + escapeHtml(msg) +
+            '</div>';
+        });
+    }
+    
+    function finalizarCarregamento() {
+      continuar = false;
+      
+      if (todosRegistros.length === 0) {
+        $loading.innerHTML =
+          '<div style="color:#b45309;background:#fef3c7;padding:20px;border-radius:8px;text-align:left;margin:20px;">' +
+            '<b>⚠️ Nenhum registro encontrado</b><br>' +
+            '<span style="font-size:12px;opacity:.85">Verifique os filtros ou a consulta SQL.</span>' +
+          '</div>';
+        return;
+      }
+      
+      DATA = todosRegistros;
+      DATA_FULL = todosRegistros;
+      
+      console.log('✅ CARREGAMENTO COMPLETO:', todosRegistros.length, 'registros');
+      console.log('📊 Esperado: ~26.039 registros');
+      
+      if (todosRegistros.length >= 20000) {
+        console.log('✅ Todos os registros foram carregados com sucesso!');
+      } else if (todosRegistros.length >= 5000) {
+        console.warn('⚠️ Carregados ' + todosRegistros.length + ' registros. Esperado: ~26.039');
+      } else {
+        console.error('❌ ATENÇÃO: Apenas ' + todosRegistros.length + ' registros! Verifique a consulta.');
+      }
+      
+        $loading.style.display = 'none';
+        render();
+        renderKanban();
+    }
+    
+    // Iniciar carregamento
+    carregarProximoLote();
+  }
+
+  // ============================================================
+  // 8) FILTRAGEM
+  // ============================================================
+  function matchesOperator(cellValue, operator, filterValue) {
+    const cell = normalize(cellValue).toLowerCase();
+    const filter = normalize(filterValue).toLowerCase();
+
+    if (!filter && !['blank', 'notBlank'].includes(operator)) return true;
+
+    switch (operator) {
+      case 'contains':    return cell.includes(filter);
+      case 'notContains': return !cell.includes(filter);
+      case 'equals':      return cell === filter;
+      case 'notEquals':   return cell !== filter;
+      case 'beginsWith':  return cell.startsWith(filter);
+      case 'endsWith':    return cell.endsWith(filter);
+      case 'blank':       return isBlank(cellValue);
+      case 'notBlank':    return !isBlank(cellValue);
+      default:            return true;
+    }
+  }
+
+  function filterData(rows) {
+    let result = [...rows];
+
+    // Filtro COTAÇÃO RÁPIDA (especial)
+    if (state.filtroCotacaoRapida) {
+      result = result.filter(row => {
+        // STATUS AUTO: 1-CRITICO, 2-ATENCAO, 4-AVALIAR
+        const autStatus = normalize(row['AUT_STATUS']);
+        const statusValido = ['1-CRITICO', '2-ATENCAO', '4-AVALIAR'].includes(autStatus);
+
+        // CATEGORIA: 4.PENDENTE (4) ou 2.REPO RAPIDA (2)
+        const categVal = Number(row['CATEG_VAL'] || 0);
+        const categValida = categVal === 4 || categVal === 2;
+
+        // DECISÃO: não pode ser IGNORAR
+        const decisao = (row['USU_DECISAO'] || '').toString().toUpperCase();
+        const naoIgnorado = decisao !== 'IGNORAR';
+
+        // SUGESTÃO: maior que 0
+        const sugestao = Number(row['SUGESTAO'] || 0);
+        const temSugestao = sugestao > 0;
+
+        return statusValido && categValida && naoIgnorado && temSugestao;
+      });
+    }
+
+    const global = state.globalSearch.trim().toLowerCase();
+    if (global) {
+      result = result.filter(row =>
+        COLS.some(col => normalize(row[col.key]).toLowerCase().includes(global))
+      );
+    }
+
+    result = result.filter(row => {
+      for (const col of COLS) {
+        const quick = state.quickFilters[col.key].trim().toLowerCase();
+        if (quick && !normalize(row[col.key]).toLowerCase().includes(quick)) return false;
+      }
+      return true;
+    });
+
+    result = result.filter(row => {
+      for (const col of COLS) {
+        const menu = state.menuFilters[col.key];
+        const cellValue = row[col.key];
+
+        if (isBlank(cellValue) && !menu.includeBlanks) return false;
+        if (!matchesOperator(cellValue, menu.operator, menu.value)) return false;
+        if (menu.selected.size > 0 && !menu.selected.has(normalize(cellValue))) return false;
+      }
+      return true;
+    });
+
+    return result;
+  }
+
+  // ============================================================
+  // 9) ORDENAÇÃO
+  // ============================================================
+  function sortData(rows) {
+    const { key, dir } = state.sort;
+
+    // Helper: obtém tipo da coluna (ex.: 'date', 'number', etc.)
+    const getColType = (k) => (COLS.find(c => c.key === k)?.type) || null;
+
+    // Helper: chave de ordenação cronológica (suporta DDMMYYYY[HHMMSS] e Date/ISO)
+    function dateSortKey(v) {
+      if (v == null) return null;
+      if (v instanceof Date) {
+        const t = v.getTime();
+        return isNaN(t) ? null : t;
+      }
+      const s = normalize(v).trim();
+      if (!s) return null;
+      const digits = s.replace(/[^\d]/g, '');
+      // Detecta YYYYMMDD... (ex.: 20260121143000) vs DDMMYYYY...
+      const yyyy = Number(digits.slice(0, 4));
+      const mmY = Number(digits.slice(4, 6));
+      const ddY = Number(digits.slice(6, 8));
+
+      const isYMD =
+        digits.length >= 8 &&
+        yyyy >= 1900 && yyyy <= 2200 &&
+        mmY >= 1 && mmY <= 12 &&
+        ddY >= 1 && ddY <= 31;
+
+      if (isYMD) {
+        // YYYYMMDDHHMMSS
+        if (digits.length >= 14) return Number(digits.slice(0, 14));
+        // YYYYMMDD
+        return Number(digits.slice(0, 8));
+      } else {
+        // DDMMYYYYHHMMSS
+        if (digits.length >= 14) {
+          const d = digits.slice(0, 2), m = digits.slice(2, 4), y = digits.slice(4, 8), t = digits.slice(8, 14);
+          return Number(`${y}${m}${d}${t}`);
+        }
+        // DDMMYYYY
+        if (digits.length >= 8) {
+          const d = digits.slice(0, 2), m = digits.slice(2, 4), y = digits.slice(4, 8);
+          return Number(`${y}${m}${d}`);
+        }
+      }
+      const dt = new Date(s);
+      const tt = dt.getTime();
+      return isNaN(tt) ? null : tt;
+    }
+    
+    // Ordenação especial para Cotação Rápida
+    if (state.filtroCotacaoRapida) {
+      // Se o usuário escolheu uma coluna para ordenar, respeita a ordenação do cabeçalho
+      // (mantém o filtro especial e permite ordenar por data ou qualquer outra coluna).
+      if (key && dir) {
+        const multiplier = dir === 'asc' ? 1 : -1;
+        const colType = getColType(key);
+        return [...rows].sort((a, b) => {
+          let va = a[key];
+          let vb = b[key];
+
+          if (colType === 'date' || colType === 'datetime') {
+            const da = dateSortKey(va);
+            const db = dateSortKey(vb);
+            if (da != null && db != null) return (da - db) * multiplier;
+          }
+
+          const na = Number(va);
+          const nb = Number(vb);
+          if (!isNaN(na) && !isNaN(nb) && va !== '' && vb !== '') return (na - nb) * multiplier;
+
+          const sa = normalize(va).toLowerCase();
+          const sb = normalize(vb).toLowerCase();
+          if (sa < sb) return -1 * multiplier;
+          if (sa > sb) return 1 * multiplier;
+          return 0;
+        });
+      }
+
+      return [...rows].sort((a, b) => {
+        // 1º Critério: STATUS AUTO (1-CRITICO, 2-ATENCAO, 4-AVALIAR)
+        const statusA = normalize(a.AUT_STATUS);
+        const statusB = normalize(b.AUT_STATUS);
+        
+        const prioridadeStatus = {
+          '1-CRITICO': 1,
+          '2-ATENCAO': 2,
+          '4-AVALIAR': 3
+        };
+        
+        const prioA = prioridadeStatus[statusA] || 999;
+        const prioB = prioridadeStatus[statusB] || 999;
+        
+        if (prioA !== prioB) return prioA - prioB;
+        
+        // 2º Critério: RANKING (menor = melhor)
+        const rankA = Number(a.RNK || 999999);
+        const rankB = Number(b.RNK || 999999);
+        
+        return rankA - rankB;
+      });
+    }
+    
+    // Ordenação normal (quando não está em modo Cotação Rápida)
+    if (!key || !dir) return rows;
+
+    const multiplier = dir === 'asc' ? 1 : -1;
+    const colType = getColType(key);
+
+    return [...rows].sort((a, b) => {
+      let va = a[key];
+      let vb = b[key];
+
+      if (colType === 'date' || colType === 'datetime') {
+        const da = dateSortKey(va);
+        const db = dateSortKey(vb);
+        if (da != null && db != null) return (da - db) * multiplier;
+      }
+
+      const na = Number(va);
+      const nb = Number(vb);
+      if (!isNaN(na) && !isNaN(nb) && va !== '' && vb !== '') return (na - nb) * multiplier;
+
+      const sa = normalize(va).toLowerCase();
+      const sb = normalize(vb).toLowerCase();
+      if (sa < sb) return -1 * multiplier;
+      if (sa > sb) return 1 * multiplier;
+      return 0;
+    });
+  }
+
+  function toggleSort(colKey) {
+    if (state.sort.key !== colKey) {
+      state.sort.key = colKey;
+      state.sort.dir = 'asc';
+    } else {
+      state.sort.dir = state.sort.dir === 'asc' ? 'desc' : 'asc';
+    }
+    render();
+  }
+
+  // ============================================================
+  // 10) PAGINAÇÃO
+  // ============================================================
+  function getVisibleRows() {
+    return sortData(filterData(DATA));
+  }
+
+  function getPagedRows() {
+    const all = getVisibleRows();
+    const start = (state.currentPage - 1) * state.pageSize;
+    return all.slice(start, start + state.pageSize);
+  }
+
+  function getTotalPages() {
+    return Math.ceil(getVisibleRows().length / state.pageSize) || 1;
+  }
+
+  function updatePagination() {
+    const total = getTotalPages();
+    state.currentPage = clamp(state.currentPage, 1, total);
+
+    $pageInfo.textContent = `${state.currentPage} de ${total}`;
+    $btnPrev.disabled = state.currentPage <= 1;
+    $btnNext.disabled = state.currentPage >= total;
+
+    const visible = getVisibleRows();
+    $totalInfo.textContent = `${visible.length} registro(s)`;
+    $selectionInfo.textContent = `${state.selectedIds.size} selecionado(s)`;
+  }
+
+  // ============================================================
+  // 11) TEMPLATE DE COLUNAS (CSS GRID)
+  // ============================================================
+  function getVisibleCols() {
+    return COLS.filter(c => c.visible);
+  }
+
+  function getGridTemplate() {
+    const visibleCols = getVisibleCols();
+    const cols = [`var(--select-width)`].concat(visibleCols.map(c => `${c.width}px`));
+    return cols.join(' ');
+  }
+
+  // ============================================================
+  // 12) RENDERIZAÇÃO
+  // ============================================================
+  function render() {
+    try {
+      const template = getGridTemplate();
+      $grid.innerHTML = '';
+
+      // ----- HEADER -----
+      const header = document.createElement('div');
+      header.className = 'row row-header';
+      header.style.gridTemplateColumns = template;
+
+      const selectAllCell = document.createElement('div');
+      selectAllCell.className = 'cell cell-select';
+      const cbAll = document.createElement('input');
+      cbAll.type = 'checkbox';
+
+      const pageRows = getPagedRows();
+      cbAll.checked = pageRows.length > 0 && pageRows.every(r => state.selectedIds.has(r.CODSIS));
+
+      cbAll.addEventListener('change', () => {
+        if (cbAll.checked) pageRows.forEach(r => state.selectedIds.add(r.CODSIS));
+        else pageRows.forEach(r => state.selectedIds.delete(r.CODSIS));
+        renderBody();
+        updatePagination();
+      });
+
+      selectAllCell.appendChild(cbAll);
+      header.appendChild(selectAllCell);
+
+      const visibleCols = getVisibleCols();
+      visibleCols.forEach((col, idx) => {
+        const colIdx = COLS.indexOf(col); // Índice real no array COLS
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.setAttribute('data-col-idx', colIdx);
+
+        const content = document.createElement('div');
+        content.className = 'header-content';
+
+        const label = document.createElement('div');
+        label.className = 'header-label';
+        label.draggable = true;
+
+        label.innerHTML = `
+          <span>${escapeHtml(col.label)}</span>
+          <span class="sort-icon ${state.sort.key === col.key ? 'active' : ''}">
+            ${state.sort.key === col.key ? (state.sort.dir === 'asc' ? '▲' : '▼') : '▲'}
+          </span>
+        `;
+
+        label.addEventListener('click', () => toggleSort(col.key));
+
+        label.addEventListener('dragstart', (e) => {
+          state.dragColumn = colIdx;
+          e.dataTransfer.effectAllowed = 'move';
+        });
+
+        cell.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+        });
+
+        cell.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const fromIdx = state.dragColumn;
+          const toIdx = colIdx;
+          if (fromIdx !== null && fromIdx !== toIdx) {
+            const moved = COLS.splice(fromIdx, 1)[0];
+            COLS.splice(toIdx, 0, moved);
+            render();
+          }
+          state.dragColumn = null;
+        });
+
+        // Ajuste 1: menu REMOVIDO do header (não compete com o nome)
+        const resizer = document.createElement('div');
+        resizer.className = 'resizer';
+        resizer.addEventListener('mousedown', (e) => startResize(e, colIdx));
+
+        content.appendChild(label);
+        content.appendChild(resizer);
+        cell.appendChild(content);
+        header.appendChild(cell);
+      });
+
+      $grid.appendChild(header);
+
+      // ----- FILTER ROW -----
+      const filterRow = document.createElement('div');
+      filterRow.className = 'row row-filter';
+      filterRow.style.gridTemplateColumns = template;
+
+      const filterSelectCell = document.createElement('div');
+      filterSelectCell.className = 'cell cell-select';
+      filterSelectCell.innerHTML = '<span class="text-muted">✓</span>';
+      filterRow.appendChild(filterSelectCell);
+
+      visibleCols.forEach(col => {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.style.padding = '2px 6px';
+
+        // Ajuste 1: input + menu ao lado direito
+        const wrap = document.createElement('div');
+        wrap.className = 'filter-cell-wrap';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'filter-input';
+        input.placeholder = 'Filtrar...';
+        input.value = state.quickFilters[col.key];
+        input.addEventListener('input', () => {
+          state.quickFilters[col.key] = input.value;
+          state.currentPage = 1;
+          renderBody();
+          updatePagination();
+        });
+
+        const menuBtn = document.createElement('button');
+        menuBtn.className = 'menu-btn';
+
+        const mf = state.menuFilters[col.key];
+        const hasFilter = mf.value || mf.selected.size > 0 || mf.operator !== 'contains' || mf.includeBlanks === false;
+        if (hasFilter) menuBtn.classList.add('has-filter');
+
+        // ícone 3 pontos (vertical)
+        menuBtn.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <circle cx="12" cy="5" r="2"></circle>
+            <circle cx="12" cy="12" r="2"></circle>
+            <circle cx="12" cy="19" r="2"></circle>
+          </svg>
+        `;
+        menuBtn.title = 'Filtro avançado';
+        menuBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openMenu(col, menuBtn);
+        });
+
+        wrap.appendChild(input);
+        wrap.appendChild(menuBtn);
+        cell.appendChild(wrap);
+        filterRow.appendChild(cell);
+      });
+
+      $grid.appendChild(filterRow);
+
+      renderBody();
+      updatePagination();
+      renderKanban();
+    } catch (err) {
+      console.error('❌ Erro no render()', err);
+      try {
+        $loading.style.display = 'flex';
+        $loading.innerHTML =
+          '<div style="color:#dc2626;background:#fee2e2;padding:20px;border-radius:8px;text-align:left;margin:20px;">' +
+            '<b>❌ Erro ao renderizar a grade</b><br>' +
+            escapeHtml(getErrorMessage(err)) +
+            '<div style="margin-top:10px;font-size:12px;opacity:.85">' +
+              'Abra o console (F12) para ver o stacktrace e os logs.' +
+            '</div>' +
+          '</div>';
+      } catch (e) {}
+      try { showToast('❌ Erro ao renderizar (ver console)', 3000); } catch (e) {}
+    }
+  }
+
+  function renderBody() {
+    try {
+      const existing = $grid.querySelectorAll('.row-data');
+      existing.forEach(el => el.remove());
+
+      const template = getGridTemplate();
+      const rows = getPagedRows();
+
+      rows.forEach(rowData => {
+        const row = document.createElement('div');
+        row.className = 'row row-data';
+        if (state.selectedIds.has(rowData.CODSIS)) row.classList.add('selected');
+        row.style.gridTemplateColumns = template;
+
+      const selectCell = document.createElement('div');
+      selectCell.className = 'cell cell-select';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = state.selectedIds.has(rowData.CODSIS);
+      cb.addEventListener('change', () => {
+        if (cb.checked) state.selectedIds.add(rowData.CODSIS);
+        else state.selectedIds.delete(rowData.CODSIS);
+        row.classList.toggle('selected', cb.checked);
+        updatePagination();
+      });
+      selectCell.appendChild(cb);
+      row.appendChild(selectCell);
+
+      const visibleCols = getVisibleCols();
+      visibleCols.forEach(col => {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        if (col.align === 'right') cell.classList.add('cell-right');
+        if (col.align === 'center') cell.classList.add('cell-center');
+
+        const value = rowData[col.key];
+
+        // Se for coluna editável de categoria, renderiza dropdown
+        if (col.editable && col.type === 'categoria') {
+          if (rowData.CODSIS) {
+            cell.appendChild(criarDropdownEditavel('categoria', rowData.CODSIS, rowData.CATEG_VAL, rowData));
+          } else {
+            cell.innerHTML = '<span class="text-muted">-</span>';
+          }
+        } else if (col.editable && col.type === 'decisao') {
+          if (rowData.NUREG) {
+            cell.appendChild(criarBotoesDecisao(rowData.NUREG, value, rowData));
+          } else {
+            cell.innerHTML = '<span class="text-muted">-</span>';
+          }
+        } else {
+          // --- coluna SUGESTAO: seta verde indicando "comprar" ---
+          if (col.key === 'SUGESTAO') {
+            const numSug = parsePtNumber(value);
+            const qtd = formatValue(value, 'number');
+
+            const wrap = document.createElement('div');
+            wrap.style.display = 'flex';
+            wrap.style.alignItems = 'center';
+            wrap.style.justifyContent = col.align === 'right' ? 'flex-end' : 'flex-start';
+            wrap.style.width = '100%';
+            wrap.style.gap = '4px';
+
+            if (numSug > 0) {
+              const seta = document.createElement('span');
+              seta.className = 'sugestao-arrow';
+              seta.textContent = '⬆';
+              seta.title = 'Sugestão de compra';
+              wrap.appendChild(seta);
+            }
+
+            const spanVal = document.createElement('span');
+            spanVal.innerHTML = qtd;
+            wrap.appendChild(spanVal);
+
+            cell.innerHTML = '';
+            cell.appendChild(wrap);
+            cell.title = normalize(value);
+          }
+          // --- coluna SIM_ETQ: adiciona lupa + tooltip ---
+          else if (col.key === 'SIM_ETQ') {
+            const qtd = formatValue(value, 'number');
+            const simTotal = parsePtNumber(value);
+            const similares = simTotal > 0 ? getSimilares(rowData) : [];
+
+            // container interno
+            const wrap = document.createElement('div');
+            wrap.style.display = 'flex';
+            wrap.style.alignItems = 'center';
+            wrap.style.justifyContent = col.align === 'right' ? 'flex-end' : 'flex-start';
+            wrap.style.width = '100%';
+            wrap.style.gap = '6px';
+
+            const spanVal = document.createElement('span');
+            spanVal.innerHTML = qtd;
+
+            wrap.appendChild(spanVal);
+
+            // Regra: mostrar lupa sempre que SIM_ETQAT (coluna SIM_ETQ) > 0
+            if (simTotal > 0) {
+              const lupa = document.createElement('span');
+              lupa.className = 'lupa-similar on';
+              lupa.textContent = '🔍';
+
+              lupa.addEventListener('mouseenter', () => {
+                mostrarTip(lupa, tipHtml(rowData.CODREF, similares, simTotal, rowData));
+              });
+              lupa.addEventListener('mouseleave', esconderTip);
+
+              wrap.appendChild(lupa);
+            }
+
+            cell.innerHTML = '';
+            cell.appendChild(wrap);
+            cell.title = normalize(value);
+          }
+          // --- coluna ORIG_ETQ: volta ao normal + emoji 📦 ---
+          else if (col.key === 'ORIG_ETQ') {
+            const wrap = document.createElement('div');
+            wrap.style.display = 'flex';
+            wrap.style.alignItems = 'center';
+            wrap.style.justifyContent = col.align === 'right' ? 'flex-end' : 'flex-start';
+            wrap.style.width = '100%';
+            wrap.style.gap = '4px';
+
+            const icon = document.createElement('span');
+            icon.className = 'estoque-icon';
+            icon.textContent = '📦';
+            icon.title = 'Estoque (original)';
+            wrap.appendChild(icon);
+
+            const spanVal = document.createElement('span');
+            spanVal.innerHTML = formatValue(value, 'number');
+            wrap.appendChild(spanVal);
+
+            cell.innerHTML = '';
+            cell.appendChild(wrap);
+            cell.title = normalize(value);
+          } else {
+            let cellContent = formatValue(value, col.type);
+            cell.innerHTML = cellContent;
+            cell.title = normalize(value);
+          }
+        }
+
+        row.appendChild(cell);
+      });
+
+        $grid.appendChild(row);
+      });
+    } catch (err) {
+      console.error('❌ Erro no renderBody()', err);
+      try { showToast('❌ Erro ao montar linhas (ver console)', 3500); } catch (e) {}
+      // Evita travar a tela silenciosamente
+      try {
+        $loading.style.display = 'flex';
+        $loading.innerHTML =
+          '<div style="color:#dc2626;background:#fee2e2;padding:20px;border-radius:8px;text-align:left;margin:20px;">' +
+            '<b>❌ Erro ao montar as linhas</b><br>' +
+            escapeHtml(getErrorMessage(err)) +
+          '</div>';
+      } catch (e) {}
+    }
+  }
+
+  // ============================================================
+  // 12.5) ABA 2 (KANBAN) - RENDERIZAÇÃO
+  // ============================================================
+  function getDecisionValue(row) {
+    const val = normalize(row.USU_DECISAO).trim().toUpperCase();
+    if (val === 'PROCESSAR' || val === 'ANALISAR' || val === 'IGNORAR') return val;
+    return 'SEM';
+  }
+
+  function matchesTab2Search(row) {
+    const q = normalize(tab2SearchValue).toLowerCase().trim();
+    if (!q) return true;
+    const hay = [
+      row.PRODUTO,
+      row.CODREF,
+      row.MARCA,
+      row.GRUPO,
+      row.FORNECEDOR
+    ].map(v => normalize(v).toLowerCase()).join(' ');
+    return hay.includes(q);
+  }
+
+  function matchesTab2Decision(row) {
+    if (!tab2DecisionFilter || tab2DecisionFilter === 'ALL') return true;
+    return getDecisionValue(row) === tab2DecisionFilter;
+  }
+
+  function buildCardHtml(row) {
+    const curva = normalize(row.ABC).toUpperCase() || 'D';
+    const ranking = row.RNK ? `#${formatValue(row.RNK, 'number')}` : '-';
+    const marca = normalize(row.MARCA) || '-';
+    const produto = normalize(row.PRODUTO) || '-';
+    const grupo = normalize(row.GRUPO) || '-';
+    const decisao = getDecisionValue(row);
+
+    const actions = decisao === 'IGNORAR'
+      ? '<button class="tab2-card-btn done" disabled>✓ Ignorado</button>'
+      : `
+        <button class="tab2-card-btn ignorar" data-action="IGNORAR">Ignorar</button>
+        <button class="tab2-card-btn analisar" data-action="ANALISAR">Analisar</button>
+        <button class="tab2-card-btn comprar" data-action="PROCESSAR">Comprar</button>
+      `;
+
+    return `
+      <div class="tab2-product-card" data-nureg="${escapeHtml(row.NUREG)}">
+        <div class="tab2-card-top">
+          <div>
+            <div class="tab2-product-name">${escapeHtml(produto)}</div>
+            <div class="tab2-grupo-tag">${escapeHtml(grupo)}</div>
+          </div>
+          <span class="tab2-curva ${escapeHtml(curva)}">${escapeHtml(curva)}</span>
+        </div>
+        <div class="tab2-card-details">
+          <div class="tab2-detail-item">
+            <span class="tab2-detail-label">Marca</span>
+            <span class="tab2-detail-value marca">${escapeHtml(marca)}</span>
+          </div>
+          <div class="tab2-detail-item">
+            <span class="tab2-detail-label">Ranking</span>
+            <span class="tab2-detail-value">${escapeHtml(ranking)}</span>
+          </div>
+        </div>
+        <div class="tab2-card-actions">
+          ${actions}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderKanban() {
+    if (!$tabKanban || !$tab2ColProcessar || !$tab2ColAnalisar || !$tab2ColIgnorar || !$tab2ColSem) return;
+
+    const rows = getVisibleRows().filter(r => matchesTab2Search(r) && matchesTab2Decision(r));
+
+    const processar = rows.filter(r => getDecisionValue(r) === 'PROCESSAR');
+    const analisar = rows.filter(r => getDecisionValue(r) === 'ANALISAR');
+    const ignorar = rows.filter(r => getDecisionValue(r) === 'IGNORAR');
+    const sem = rows.filter(r => getDecisionValue(r) === 'SEM');
+
+    if ($tab2Total) $tab2Total.textContent = String(rows.length);
+    if ($tab2CountProcessar) $tab2CountProcessar.textContent = String(processar.length);
+    if ($tab2CountAnalisar) $tab2CountAnalisar.textContent = String(analisar.length);
+    if ($tab2CountIgnorar) $tab2CountIgnorar.textContent = String(ignorar.length);
+    if ($tab2CountSem) $tab2CountSem.textContent = String(sem.length);
+
+    if ($tab2ColCountProcessar) $tab2ColCountProcessar.textContent = String(processar.length);
+    if ($tab2ColCountAnalisar) $tab2ColCountAnalisar.textContent = String(analisar.length);
+    if ($tab2ColCountIgnorar) $tab2ColCountIgnorar.textContent = String(ignorar.length);
+    if ($tab2ColCountSem) $tab2ColCountSem.textContent = String(sem.length);
+
+    $tab2ColProcessar.innerHTML = processar.map(buildCardHtml).join('') || '<div class="text-muted">Sem itens.</div>';
+    $tab2ColAnalisar.innerHTML = analisar.map(buildCardHtml).join('') || '<div class="text-muted">Sem itens.</div>';
+    $tab2ColIgnorar.innerHTML = ignorar.map(buildCardHtml).join('') || '<div class="text-muted">Sem itens.</div>';
+    $tab2ColSem.innerHTML = sem.map(buildCardHtml).join('') || '<div class="text-muted">Sem itens.</div>';
+  }
+
+  $tabKanban.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.tab2-card-btn');
+    if (!btn) return;
+    const card = btn.closest('.tab2-product-card');
+    if (!card) return;
+
+    const nureg = card.dataset.nureg;
+    if (!nureg) return;
+
+    const novoValor = btn.dataset.action;
+    if (!novoValor) return;
+
+    const rowData = DATA.find(r => String(r.NUREG) === String(nureg));
+    if (!rowData) return;
+
+    btn.disabled = true;
+    btn.classList.add('is-loading');
+    const ok = await salvarDropdown(DROPDOWN_CONFIG.decisao, nureg, novoValor);
+    btn.classList.remove('is-loading');
+    btn.disabled = false;
+
+    if (ok) {
+      rowData.USU_DECISAO = novoValor;
+      showToast('✅ Salvo');
+      render();
+      renderKanban();
+    }
+  });
+
+  // ============================================================
+  // 13) MENU DE FILTRO (POPUP) - mantido
+  // ============================================================
+  function openMenu(col, anchorEl) {
+    const rect = anchorEl.getBoundingClientRect();
+    const left = Math.min(window.innerWidth - 360, rect.left);
+    const top = Math.min(window.innerHeight - 450, rect.bottom + 8);
+
+    $popup.style.left = left + 'px';
+    $popup.style.top = top + 'px';
+    $popup.classList.add('show');
+
+    const menu = state.menuFilters[col.key];
+    const distinctValues = [...new Set(DATA.map(r => normalize(r[col.key])))].sort((a, b) =>
+      a.toLowerCase().localeCompare(b.toLowerCase())
+    );
+
+    $popup.innerHTML = `
+      <div class="popup-header">
+        <div class="popup-title">${escapeHtml(col.label)}</div>
+        <button class="popup-close" id="popupClose">✕</button>
+      </div>
+
+      <div class="popup-section">
+        <div class="popup-label">Selecionar Valores</div>
+        <input type="text" class="value-search" id="popupSearch" placeholder="Buscar valores...">
+        <div class="value-list" id="popupValueList"></div>
+      </div>
+
+      <div class="popup-footer">
+        <button class="btn" id="popupClear">Limpar</button>
+        <button class="btn btn-primary" id="popupApply">Aplicar</button>
+      </div>
+    `;
+
+    const $close = document.getElementById('popupClose');
+    const $search = document.getElementById('popupSearch');
+    const $valueList = document.getElementById('popupValueList');
+    const $clear = document.getElementById('popupClear');
+    const $apply = document.getElementById('popupApply');
+
+    function renderValueList() {
+      const search = $search.value.toLowerCase();
+      const filtered = distinctValues.filter(v => v.toLowerCase().includes(search));
+
+      $valueList.innerHTML = '';
+
+      const blankItem = document.createElement('div');
+      blankItem.className = 'value-item';
+      blankItem.innerHTML = `
+        <input type="checkbox" ${menu.selected.has('') || menu.selected.size === 0 ? 'checked' : ''}>
+        <span><em>(Vazios)</em></span>
+      `;
+      blankItem.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (menu.selected.has('')) menu.selected.delete('');
+        else menu.selected.add('');
+        renderValueList();
+      });
+      $valueList.appendChild(blankItem);
+
+      filtered.forEach(val => {
+        if (val === '') return;
+
+        const item = document.createElement('div');
+        item.className = 'value-item';
+        const checked = menu.selected.size === 0 || menu.selected.has(val);
+        item.innerHTML = `
+          <input type="checkbox" ${checked ? 'checked' : ''}>
+          <span>${escapeHtml(val)}</span>
+        `;
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (menu.selected.has(val)) {
+            menu.selected.delete(val);
+          } else {
+            if (menu.selected.size === 0) {
+              distinctValues.forEach(v => { if (v !== val) menu.selected.add(v); });
+            } else {
+              menu.selected.add(val);
+            }
+          }
+          renderValueList();
+        });
+        $valueList.appendChild(item);
+      });
+    }
+
+    $search.addEventListener('input', renderValueList);
+    renderValueList();
+
+    $close.addEventListener('click', closeMenu);
+
+    $clear.addEventListener('click', () => {
+      state.menuFilters[col.key] = {
+        operator: 'contains',
+        value: '',
+        selected: new Set(),
+        includeBlanks: true,
+      };
+      closeMenu();
+      render();
+    });
+
+    $apply.addEventListener('click', () => {
+      state.currentPage = 1;
+      closeMenu();
+      render();
+    });
+  }
+
+  function closeMenu() {
+    $popup.classList.remove('show');
+  }
+
+  document.addEventListener('click', (e) => {
+    if ($popup.classList.contains('show') && !$popup.contains(e.target)) closeMenu();
+  });
+
+  // ============================================================
+  // 14) REDIMENSIONAMENTO DE COLUNAS
+  // ============================================================
+  let resizing = null;
+
+  function startResize(e, colIdx) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    resizing = {
+      idx: colIdx,
+      startX: e.clientX,
+      startWidth: COLS[colIdx].width,
+    };
+
+    document.addEventListener('mousemove', onResize);
+    document.addEventListener('mouseup', stopResize);
+  }
+
+  function onResize(e) {
+    if (!resizing) return;
+
+    const diff = e.clientX - resizing.startX;
+    const newWidth = clamp(resizing.startWidth + diff, 60, 600);
+    COLS[resizing.idx].width = newWidth;
+    render();
+  }
+
+  function stopResize() {
+    resizing = null;
+    document.removeEventListener('mousemove', onResize);
+    document.removeEventListener('mouseup', stopResize);
+  }
+
+  // ============================================================
+  // 15) DROPDOWN DE COLUNAS (compacto)
+  // ============================================================
+  if ($btnToggleCols && $menuCols) {
+    $btnToggleCols.addEventListener('click', (e) => {
+      e.stopPropagation();
+      $menuCols.classList.toggle('show');
+      if ($menuCols.classList.contains('show')) renderMenuCols();
+    });
+
+    document.addEventListener('click', () => $menuCols.classList.remove('show'));
+  }
+
+  function renderMenuCols() {
+    if (!$menuCols) return;
+    $menuCols.innerHTML = COLS.map((col, i) => `
+      <label class="dropdown-item">
+        <input type="checkbox" ${col.visible ? 'checked' : ''} data-idx="${i}">
+        ${escapeHtml(col.label)}
+      </label>
+    `).join('');
+    
+    $menuCols.querySelectorAll('input').forEach(cb => {
+      cb.addEventListener('change', () => {
+        COLS[cb.dataset.idx].visible = cb.checked;
+        render();
+      });
+    });
+  }
+
+  // ============================================================
+  // 15.5) ESC FECHA MENU DE FILTRO E TOOLTIP
+  // ============================================================
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      esconderTip();
+      if ($popup?.classList.contains('show')) {
+        closeMenu();
+      }
+    }
+  });
+
+  // Fecha tooltip ao dar scroll
+  document.addEventListener('scroll', esconderTip, true);
+
+  // ============================================================
+  // 16) EVENTOS DA TOOLBAR
+  // ============================================================
+  $globalSearch.addEventListener('input', () => {
+    state.globalSearch = $globalSearch.value;
+    state.currentPage = 1;
+    render();
+  });
+
+  $btnRefresh.addEventListener('click', () => {
+    state.selectedIds.clear();
+    carregarDados();
+  });
+
+  $btnClear.addEventListener('click', () => {
+    state.globalSearch = '';
+    $globalSearch.value = '';
+    state.sort = { key: null, dir: null };
+    state.selectedIds.clear();
+    state.currentPage = 1;
+
+    COLS.forEach(col => {
+      state.quickFilters[col.key] = '';
+      state.menuFilters[col.key] = {
+        operator: 'contains',
+        value: '',
+        selected: new Set(),
+        includeBlanks: true,
+      };
+    });
+
+    // reset filtro cotação rápida
+    state.filtroCotacaoRapida = false;
+    if ($chkCotacaoRapida) $chkCotacaoRapida.checked = false;
+
+    closeMenu();
+    render();
+  });
+
+
+  $btnExport.addEventListener('click', () => {
+    const dataToExport = state.selectedIds.size > 0
+      ? DATA.filter(r => state.selectedIds.has(r.CODSIS))
+      : getVisibleRows();
+
+    if (dataToExport.length === 0) {
+      alert('Nenhum dado para exportar!');
+      return;
+    }
+
+    const headers = COLS.map(c => c.label);
+    const csvRows = [headers.join(';')];
+
+    dataToExport.forEach(row => {
+      const values = COLS.map(col => {
+        let val = row[col.key] ?? '';
+        val = String(val).replace(/"/g, '""');
+        return `"${val}"`;
+      });
+      csvRows.push(values.join(';'));
+    });
+
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `reposicao_decisao_${new Date().toISOString().slice(0,10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  });
+
+  // ============================================================
+  // 17) EVENTOS DE PAGINAÇÃO
+  // ============================================================
+  $pageSize.addEventListener('change', () => {
+    state.pageSize = parseInt($pageSize.value);
+    state.currentPage = 1;
+    render();
+  });
+
+  $btnPrev.addEventListener('click', () => {
+    if (state.currentPage > 1) {
+      state.currentPage--;
+      render();
+    }
+  });
+
+  $btnNext.addEventListener('click', () => {
+    if (state.currentPage < getTotalPages()) {
+      state.currentPage++;
+      render();
+    }
+  });
+
+  // ============================================================
+  // EVENT DELEGATION: BOTÕES DE DECISÃO
+  // ============================================================
+  $grid.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.btn-dec');
+    if (!btn) return;
+
+    e.stopPropagation();
+
+    const container = btn.closest('.btns-decisao');
+    if (!container) return;
+
+    const nureg = container.dataset.nureg;
+    const valorAtual = container.dataset.atual;
+    const novoValor = btn.dataset.valor;
+
+    // Se clicou no mesmo valor, não faz nada
+    if (valorAtual === novoValor) return;
+
+    // Buscar dados do registro
+    const rowData = DATA.find(r => String(r.NUREG) === String(nureg));
+    if (!rowData) {
+      console.error('Registro não encontrado:', nureg);
+      return;
+    }
+
+    // Desabilitar botões durante salvamento
+    const todosBotoes = container.querySelectorAll('.btn-dec');
+    todosBotoes.forEach(b => b.disabled = true);
+    btn.classList.add('is-loading');
+
+    // Salvar no banco
+    const cfg = DROPDOWN_CONFIG.decisao;
+    const ok = await salvarDropdown(cfg, nureg, novoValor);
+
+    // Reabilitar botões
+    todosBotoes.forEach(b => b.disabled = false);
+    btn.classList.remove('is-loading');
+
+    if (ok) {
+      // Atualizar visual
+      atualizarBotoesDecisao(container, novoValor);
+
+      // Atualizar DATA local
+      rowData.USU_DECISAO = novoValor;
+
+      // Feedback
+      showToast('✅ Salvo');
+      flashOk(container);
+    }
+  });
+
+  // ============================================================
+  // 18) EVENTO CHECKBOX COTAÇÃO RÁPIDA
+  // ============================================================
+  if ($chkCotacaoRapida) {
+    $chkCotacaoRapida.addEventListener('change', () => {
+      state.filtroCotacaoRapida = $chkCotacaoRapida.checked;
+      state.currentPage = 1;
+      render();
+    });
+  }
+
+  // ============================================================
+  // 19) INICIALIZAÇÃO
+  // ============================================================
+  carregarDados();
+
+})();

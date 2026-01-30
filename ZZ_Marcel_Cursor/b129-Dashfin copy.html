@@ -1,0 +1,1962 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Financeiro - Mock Sankhya</title>
+  <style>
+    /* ===== CSS VARIABLES - DESIGN TOKENS ===== */
+    :root {
+      --background: hsl(0 0% 100%);
+      --foreground: hsl(222.2 84% 4.9%);
+      --muted: hsl(210 40% 96.1%);
+      --muted-foreground: hsl(215.4 16.3% 46.9%);
+      --border: hsl(214.3 31.8% 91.4%);
+      --primary: hsl(221.2 83.2% 53.3%);
+      --primary-foreground: hsl(210 40% 98%);
+      --card: hsl(0 0% 100%);
+      --card-foreground: hsl(222.2 84% 4.9%);
+      --success: hsl(142 76% 36%);
+      --success-bg: hsl(142 76% 94%);
+      --warning: hsl(38 92% 50%);
+      --warning-bg: hsl(38 92% 94%);
+      --destructive: hsl(0 84% 60%);
+      --destructive-bg: hsl(0 84% 94%);
+      --info: hsl(221 83% 53%);
+      --info-bg: hsl(221 83% 94%);
+      --radius: 0.5rem;
+      --font-sans: ui-sans-serif, system-ui, sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--muted);
+      color: var(--foreground);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== STATUS CARDS (KPIs) ===== */
+    .status-cards {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 0.75rem;
+      padding: 1rem;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .status-card {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+
+    .status-card.total { background: var(--info-bg); border-color: hsl(221 83% 85%); }
+    .status-card.receitas { background: var(--success-bg); border-color: hsl(142 76% 85%); }
+    .status-card.despesas { background: var(--destructive-bg); border-color: hsl(0 84% 85%); }
+    .status-card.aberto { background: var(--warning-bg); border-color: hsl(38 92% 85%); }
+    .status-card.vencido { background: var(--destructive-bg); border-color: hsl(0 84% 85%); }
+    .status-card.pago { background: var(--success-bg); border-color: hsl(142 76% 85%); }
+
+    .status-card-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: calc(var(--radius) - 2px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .status-card.total .status-card-icon { background: var(--info); color: white; }
+    .status-card.receitas .status-card-icon { background: var(--success); color: white; }
+    .status-card.despesas .status-card-icon { background: var(--destructive); color: white; }
+    .status-card.aberto .status-card-icon { background: var(--warning); color: white; }
+    .status-card.vencido .status-card-icon { background: var(--destructive); color: white; }
+    .status-card.pago .status-card-icon { background: var(--success); color: white; }
+
+    .status-card-icon svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+
+    .status-card-content {
+      min-width: 0;
+    }
+
+    .status-card-label {
+      font-size: 0.625rem;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.125rem;
+    }
+
+    .status-card-value {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--foreground);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .status-card.receitas .status-card-value { color: var(--success); }
+    .status-card.despesas .status-card-value { color: var(--destructive); }
+
+    /* ===== TOOLBAR / FILTROS ===== */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .toolbar-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: var(--foreground);
+    }
+
+    .toolbar-title svg {
+      width: 1.25rem;
+      height: 1.25rem;
+      color: var(--primary);
+    }
+
+    .toolbar-spacer {
+      flex: 1;
+    }
+
+    .search-input {
+      position: relative;
+      width: 280px;
+    }
+
+    .search-input input {
+      width: 100%;
+      height: 2rem;
+      padding: 0 0.75rem 0 2.25rem;
+      font-size: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--background);
+      color: var(--foreground);
+    }
+
+    .search-input input:focus {
+      outline: 2px solid var(--primary);
+      outline-offset: -1px;
+    }
+
+    .search-input svg {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0.875rem;
+      height: 0.875rem;
+      color: var(--muted-foreground);
+    }
+
+    .filter-select {
+      height: 2rem;
+      padding: 0 0.75rem;
+      font-size: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--background);
+      color: var(--foreground);
+      cursor: pointer;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.375rem;
+      height: 2rem;
+      padding: 0 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--background);
+      color: var(--foreground);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover:not(:disabled) {
+      background: var(--muted);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn svg {
+      width: 0.875rem;
+      height: 0.875rem;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: var(--primary-foreground);
+    }
+
+    .btn-primary:hover {
+      background: hsl(221.2 83.2% 48%);
+    }
+
+    /* ===== TABLE ===== */
+    .table-container {
+      flex: 1;
+      overflow: auto;
+      background: var(--card);
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    .table th,
+    .table td {
+      padding: 0.625rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .table th {
+      background: var(--muted);
+      font-weight: 600;
+      color: var(--foreground);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .table-header-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .table-header-cell:hover {
+      color: var(--primary);
+    }
+
+    .filter-icon {
+      width: 0.75rem;
+      height: 0.75rem;
+      color: var(--muted-foreground);
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .table th:hover .filter-icon {
+      opacity: 1;
+    }
+
+    .table th {
+      position: relative;
+    }
+
+    .resize-handle {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      cursor: col-resize;
+      background: transparent;
+    }
+
+    .resize-handle:hover,
+    .resize-handle.active {
+      background: var(--primary);
+    }
+
+    .table tbody tr:nth-child(even) {
+      background: hsl(210 40% 98%);
+    }
+
+    .table tbody tr:hover {
+      background: hsl(210 40% 96%);
+    }
+
+    .table tbody tr.selected {
+      background: hsl(221 83% 94%) !important;
+    }
+
+    .table tbody tr.paid-row {
+      opacity: 0.6;
+    }
+
+    .table tbody tr.paid-row td {
+      text-decoration: line-through;
+      text-decoration-color: var(--muted-foreground);
+    }
+
+    .table tbody tr {
+      border-left: 3px solid transparent;
+    }
+
+    .table tbody tr.receita-row {
+      border-left-color: var(--success);
+    }
+
+    .table tbody tr.despesa-row {
+      border-left-color: var(--destructive);
+    }
+
+    /* ===== CHECKBOX ===== */
+    .checkbox {
+      width: 1rem;
+      height: 1rem;
+      border: 1px solid var(--primary);
+      border-radius: 0.25rem;
+      appearance: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--background);
+    }
+
+    .checkbox:checked {
+      background: var(--primary);
+    }
+
+    .checkbox:checked::after {
+      content: '';
+      width: 0.5rem;
+      height: 0.5rem;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/contain no-repeat;
+    }
+
+    /* ===== STATUS BADGES ===== */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+    }
+
+    .badge-pago { background: var(--success-bg); color: var(--success); }
+    .badge-pendente { background: var(--warning-bg); color: hsl(38 92% 40%); }
+    .badge-vencido { background: var(--destructive-bg); color: var(--destructive); }
+
+    /* ===== REC/DESP TAGS ===== */
+    .tag-recdesp {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.625rem;
+      font-weight: 600;
+      border-radius: 0.25rem;
+    }
+
+    .tag-receita { background: var(--success-bg); color: var(--success); }
+    .tag-despesa { background: var(--destructive-bg); color: var(--destructive); }
+
+    .tag-recdesp svg {
+      width: 0.625rem;
+      height: 0.625rem;
+    }
+
+    /* ===== AVATAR / PARTNER ===== */
+    .partner-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .avatar {
+      width: 1.875rem;
+      height: 1.875rem;
+      border-radius: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.625rem;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    /* ===== SELEÇÃO ===== */
+    .selection-count {
+      font-size: 0.75rem;
+      color: var(--muted-foreground);
+    }
+
+    /* ===== COLUMN FILTER DROPDOWN ===== */
+    .column-filter-dropdown {
+      position: absolute;
+      min-width: 220px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      z-index: 999;
+      padding: 0.5rem;
+      display: none;
+    }
+
+    .column-filter-dropdown.open {
+      display: block;
+    }
+
+    .column-filter-actions,
+    .column-filter-selectors {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .column-filter-actions {
+      margin-bottom: 0.5rem;
+    }
+
+    .column-filter-search {
+      margin-bottom: 0.5rem;
+    }
+
+    .column-filter-search input {
+      width: 100%;
+      height: 1.75rem;
+      padding: 0 0.5rem;
+      font-size: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) - 2px);
+      background: var(--background);
+      color: var(--foreground);
+    }
+
+    .column-filter-list {
+      max-height: 220px;
+      overflow: auto;
+      margin-top: 0.5rem;
+      padding-right: 0.25rem;
+    }
+
+    .column-filter-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.25rem 0.25rem;
+      font-size: 0.75rem;
+      color: var(--foreground);
+    }
+
+    .column-filter-item input {
+      width: 0.875rem;
+      height: 0.875rem;
+    }
+
+    .btn-small {
+      height: 1.5rem;
+      padding: 0 0.5rem;
+      font-size: 0.6875rem;
+    }
+
+    .partner-name {
+      font-weight: 500;
+      color: var(--foreground);
+    }
+
+    /* ===== CURRENCY VALUES ===== */
+    .value-positive { color: var(--success); font-weight: 600; }
+    .value-negative { color: var(--destructive); font-weight: 600; }
+
+    /* ===== NOTAS PENDENTES UI ===== */
+    .hidden { display: none !important; }
+
+    #loadingOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    #loadingText {
+      background: var(--background);
+      border: 1px solid var(--border);
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      color: var(--foreground);
+    }
+
+    #toastContainer {
+      position: fixed;
+      right: 1rem;
+      top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      z-index: 1100;
+    }
+
+    .toast {
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--background);
+      font-size: 0.75rem;
+      color: var(--foreground);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .toast-info { border-color: hsl(221 83% 85%); background: var(--info-bg); color: var(--info); }
+    .toast-sucesso { border-color: hsl(142 76% 85%); background: var(--success-bg); color: var(--success); }
+    .toast-erro { border-color: hsl(0 84% 85%); background: var(--destructive-bg); color: var(--destructive); }
+
+    .badge-ate30 { background: hsl(142 76% 94%); color: hsl(142 76% 36%); }
+    .badge-31a60 { background: hsl(38 92% 94%); color: hsl(38 92% 40%); }
+    .badge-mais60 { background: hsl(0 84% 94%); color: hsl(0 84% 60%); }
+
+    .dias-cell {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .dias-indicator {
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 9999px;
+      display: inline-block;
+    }
+
+    .dias-ok { background: var(--success); }
+    .dias-alerta { background: var(--warning); }
+    .dias-critico { background: var(--destructive); }
+
+    .vendedor-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.5rem;
+      border-radius: 9999px;
+      background: var(--muted);
+      color: var(--foreground);
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .tipfat-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .tipfat-I { background: hsl(142 76% 94%); color: hsl(142 76% 36%); }
+    .tipfat-A { background: hsl(221 83% 94%); color: hsl(221 83% 53%); }
+    .tipfat-default { background: var(--muted); color: var(--muted-foreground); }
+
+    /* ===== TIPO TITULO ===== */
+    .tipo-titulo-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+    }
+
+    .tipo-titulo-icon {
+      width: 1.25rem;
+      height: 1.25rem;
+      border-radius: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tipo-titulo-icon svg {
+      width: 0.75rem;
+      height: 0.75rem;
+    }
+
+    .tipo-boleto .tipo-titulo-icon { background: hsl(142 76% 94%); color: hsl(142 76% 36%); }
+    .tipo-pix .tipo-titulo-icon { background: hsl(172 66% 94%); color: hsl(172 66% 36%); }
+    .tipo-cartao .tipo-titulo-icon { background: hsl(262 83% 94%); color: hsl(262 83% 48%); }
+    .tipo-dinheiro .tipo-titulo-icon { background: hsl(142 76% 94%); color: hsl(142 76% 36%); }
+    .tipo-cheque .tipo-titulo-icon { background: hsl(215 16% 94%); color: hsl(215 16% 47%); }
+    .tipo-promissoria .tipo-titulo-icon { background: hsl(38 92% 94%); color: hsl(38 92% 40%); }
+    .tipo-credito .tipo-titulo-icon { background: hsl(262 83% 94%); color: hsl(262 83% 48%); }
+
+    /* ===== PAGINATION BAR ===== */
+    .pagination-bar {
+      flex-shrink: 0;
+      border-top: 1px solid var(--border);
+      background: hsl(210 40% 96.1% / 0.3);
+      padding: 0.375rem 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+    }
+
+    .record-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--muted-foreground);
+    }
+
+    .record-info .highlight {
+      font-weight: 500;
+      color: var(--foreground);
+    }
+
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .btn-icon {
+      width: 1.75rem;
+      height: 1.75rem;
+      padding: 0;
+      border: none;
+      background: transparent;
+      border-radius: calc(var(--radius) - 2px);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease;
+    }
+
+    .btn-icon:hover:not(:disabled) {
+      background: hsl(210 40% 96.1%);
+    }
+
+    .btn-icon:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-icon svg {
+      width: 1rem;
+      height: 1rem;
+    }
+
+    .page-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0 0.5rem;
+      margin: 0 0.25rem;
+      background: var(--background);
+      border-radius: calc(var(--radius) - 2px);
+      border: 1px solid var(--border);
+    }
+
+    .page-indicator span {
+      color: var(--muted-foreground);
+    }
+
+    .page-indicator .current-page {
+      font-weight: 500;
+      color: var(--foreground);
+    }
+
+    .page-input {
+      width: 3.5rem;
+      height: 1.5rem;
+      font-size: 0.75rem;
+      text-align: center;
+      padding: 0.25rem;
+      border: none;
+      background: transparent;
+      color: var(--foreground);
+      font-family: inherit;
+    }
+
+    .page-input:focus {
+      outline: none;
+    }
+
+    .page-size-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .page-size-select {
+      height: 1.75rem;
+      width: 5rem;
+      font-size: 0.75rem;
+      padding: 0 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) - 2px);
+      background: var(--background);
+      color: var(--foreground);
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .page-size-select:focus {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    .page-size-label {
+      color: var(--muted-foreground);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1024px) {
+      .status-cards {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .status-cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .search-input {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== STATUS CARDS (KPIs) ===== -->
+  <div class="status-cards">
+    <div class="status-card total">
+      <div class="status-card-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+          <path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1Z"/>
+        </svg>
+      </div>
+      <div class="status-card-content">
+        <div class="status-card-label">Total Notas</div>
+        <div class="status-card-value" id="kpiTotal">0</div>
+      </div>
+    </div>
+    <div class="status-card receitas">
+      <div class="status-card-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <div class="status-card-content">
+        <div class="status-card-label">Valor Total</div>
+        <div class="status-card-value" id="kpiValor">R$ 0,00</div>
+      </div>
+    </div>
+    <div class="status-card despesas">
+      <div class="status-card-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <div class="status-card-content">
+        <div class="status-card-label">Até 30 dias</div>
+        <div class="status-card-value" id="kpiAte30">0</div>
+      </div>
+    </div>
+    <div class="status-card aberto">
+      <div class="status-card-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </div>
+      <div class="status-card-content">
+        <div class="status-card-label">31-60 dias</div>
+        <div class="status-card-value" id="kpi31a60">0</div>
+      </div>
+    </div>
+    <div class="status-card vencido">
+      <div class="status-card-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+      <div class="status-card-content">
+        <div class="status-card-label">&gt; 60 dias</div>
+        <div class="status-card-value" id="kpiMais60">0</div>
+      </div>
+    </div>
+    <div class="status-card pago">
+      <div class="status-card-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+      </div>
+      <div class="status-card-content">
+        <div class="status-card-label">Mais antiga</div>
+        <div class="status-card-value" id="kpiMaisAntiga">0 dias</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TOOLBAR / FILTROS ===== -->
+  <div class="toolbar">
+    <div class="toolbar-title">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>
+      <span>Dados do banco de dados</span>
+    </div>
+    <div class="toolbar-spacer"></div>
+    <div class="search-input">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="m21 21-4.3-4.3"/>
+      </svg>
+      <input type="text" id="searchInput" placeholder="Buscar parceiro, código, nota...">
+    </div>
+    <select class="filter-select" id="filterStatus">
+      <option value="">Todos</option>
+      <option value="ate30">Até 30d</option>
+      <option value="31a60">31-60d</option>
+      <option value="mais60">&gt;60d</option>
+    </select>
+    <select class="filter-select" id="filterVendedor"></select>
+    <span class="selection-count" id="selectionCount">0 selecionado(s)</span>
+    <button class="btn" id="clearSelection" disabled>Limpar seleção</button>
+    <button class="btn btn-primary" id="btnAtualizar">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 2v6h-6"/>
+        <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
+        <path d="M3 22v-6h6"/>
+        <path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
+      </svg>
+      Atualizar
+    </button>
+    <button class="btn" id="btnExportar">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Exportar CSV
+    </button>
+  </div>
+
+  <!-- ===== TABLE ===== -->
+  <div class="table-container">
+    <table class="table" id="dataTable">
+      <thead>
+        <tr>
+          <th style="width: 40px;"><input type="checkbox" class="checkbox" id="selectAll"></th>
+          <th style="width: 80px;" data-column="status">
+            <div class="table-header-cell">Status
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+          <th style="width: 110px;" data-column="nunota">
+            <div class="table-header-cell">Nº Único
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+          <th style="width: 90px;" data-column="numnota">
+            <div class="table-header-cell">Nº Nota
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+          <th style="width: 90px;" data-column="codparc">
+            <div class="table-header-cell">Cód. Parc.
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+          <th style="width: 260px;" data-column="parceiro">
+            <div class="table-header-cell">Parceiro
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+          <th style="width: 140px;" data-column="vendedor">
+            <div class="table-header-cell">Vendedor
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+          <th style="width: 90px;" data-column="diasAberto">
+            <div class="table-header-cell">Dias
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+          <th style="width: 110px;" data-column="dtfatur">
+            <div class="table-header-cell">Dt Fatur.
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+          <th style="width: 110px;" data-column="dtneg">
+            <div class="table-header-cell">Dt Negoc.
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+          <th style="width: 120px;" data-column="vlrnota">
+            <div class="table-header-cell">Valor
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+          <th style="width: 120px;" data-column="nunotaped">
+            <div class="table-header-cell">Nº Pedido
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+          <th style="width: 110px;" data-column="tipfatparc">
+            <div class="table-header-cell">Tipo Fat.
+              <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </div>
+            <div class="resize-handle"></div>
+          </th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <!-- Dados serão inseridos via JS no Bloco 2 -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== COLUMN FILTER DROPDOWN ===== -->
+  <div class="column-filter-dropdown" id="columnFilterDropdown">
+    <div class="column-filter-actions">
+      <button class="btn btn-small" type="button" data-sort="asc">A-Z</button>
+      <button class="btn btn-small" type="button" data-sort="desc">Z-A</button>
+    </div>
+    <div class="column-filter-search">
+      <input type="text" id="columnFilterSearch" placeholder="Buscar...">
+    </div>
+    <div class="column-filter-selectors">
+      <button class="btn btn-small" type="button" data-select="all">Todos</button>
+      <button class="btn btn-small" type="button" data-select="none">Nenhum</button>
+    </div>
+    <div class="column-filter-list" id="columnFilterList"></div>
+  </div>
+
+  <!-- ===== PAGINATION BAR ===== -->
+  <div class="pagination-bar">
+    <div class="record-info">
+      <span>Mostrando <span class="highlight" id="recordStart">1</span> - <span class="highlight" id="recordEnd">800</span> de <span class="highlight" id="recordTotal">800</span></span>
+    </div>
+    <div class="pagination-controls">
+      <button class="btn-icon" id="btnFirst" title="Primeira página (Alt+Home)" disabled>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="11 17 6 12 11 7"></polyline>
+          <polyline points="18 17 13 12 18 7"></polyline>
+        </svg>
+      </button>
+      <button class="btn-icon" id="btnPrev" title="Página anterior (Alt+←)" disabled>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <div class="page-indicator">
+        <span>Página</span>
+        <input type="number" class="page-input" id="pageInput" value="1" min="1" max="1">
+        <span>de</span>
+        <span class="current-page" id="totalPages">1</span>
+      </div>
+      <button class="btn-icon" id="btnNext" title="Próxima página (Alt+→)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+      <button class="btn-icon" id="btnLast" title="Última página (Alt+End)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="13 17 18 12 13 7"></polyline>
+          <polyline points="6 17 11 12 6 7"></polyline>
+        </svg>
+      </button>
+    </div>
+    <div class="page-size-container">
+      <select class="page-size-select" id="pageSize">
+        <option value="50">50</option>
+        <option value="100" selected>100</option>
+        <option value="200">200</option>
+        <option value="500">500</option>
+      </select>
+      <span class="page-size-label">por página</span>
+    </div>
+  </div>
+
+  <div id="loadingOverlay" class="hidden">
+    <div id="loadingText">Carregando dados...</div>
+  </div>
+  <div id="toastContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/gh/wansleynery/SankhyaJX/jx.min.js"></script>
+  <script>
+    // =============================================
+    // DASHBOARD NOTAS PENDENTES - ES5 COMPATÍVEL
+    // Integração com Sankhya via SankhyaJX
+    // =============================================
+
+    // ===== CONFIGURAÇÃO =====
+    var CONFIG = {
+      CODEMP: 1,
+      CODTIPOPER: 1009,
+      CODTIPVENDA: 301,
+      DEBUG: true
+    };
+
+    // ===== CONSULTA SQL =====
+    var SQL = 'SELECT ' +
+      'CAB.NUNOTA, ' +
+      'CAB.NUMNOTA, ' +
+      'TRUNC(SYSDATE) - TRUNC(CAB.DTFATUR) AS DIAS_ABERTO, ' +
+      'TO_CHAR(CAB.DTFATUR, \'DD/MM/YYYY\') AS DTFATUR, ' +
+      'TO_CHAR(CAB.DTNEG, \'DD/MM/YYYY\') AS DTNEG, ' +
+      'CAB.CODPARC, ' +
+      'SUBSTR(PAR.NOMEPARC, 1, 40) AS PARCEIRO, ' +
+      'CAB.VLRNOTA, ' +
+      'VEN.APELIDO AS VENDEDOR, ' +
+      'CAB.AD_NUNOTAPED, ' +
+      'PAR.AD_TIPFATPARC ' +
+      'FROM TGFCAB CAB ' +
+      'LEFT JOIN TGFVEN VEN ON CAB.CODVEND = VEN.CODVEND ' +
+      'LEFT JOIN TGFPAR PAR ON CAB.CODPARC = PAR.CODPARC ' +
+      'WHERE CAB.CODEMP = ' + CONFIG.CODEMP + ' ' +
+      'AND CAB.CODTIPOPER = ' + CONFIG.CODTIPOPER + ' ' +
+      'AND CAB.CODTIPVENDA = ' + CONFIG.CODTIPVENDA + ' ' +
+      'AND CAB.STATUSNOTA = \'L\' ' +
+      'AND CAB.PENDENTE = \'S\' ' +
+      'ORDER BY (TRUNC(SYSDATE) - TRUNC(CAB.DTFATUR)) DESC';
+
+    // ===== ESTADO GLOBAL =====
+    var dadosBrutos = [];
+    var dadosFiltrados = [];
+    var vendedoresUnicos = [];
+    var state = {
+      currentPage: 1,
+      pageSize: 100,
+      totalCount: 0,
+      totalPages: 1
+    };
+    var columnFilters = {};
+    var activeFilterColumn = null;
+    var activeFilterHeader = null;
+
+    // ===== ELEMENTOS DO DOM =====
+    var tableBody = document.getElementById('tableBody');
+    var selectAllCheckbox = document.getElementById('selectAll');
+    var pageInput = document.getElementById('pageInput');
+    var pageSizeSelect = document.getElementById('pageSize');
+    var btnFirst = document.getElementById('btnFirst');
+    var btnPrev = document.getElementById('btnPrev');
+    var btnNext = document.getElementById('btnNext');
+    var btnLast = document.getElementById('btnLast');
+    var recordStart = document.getElementById('recordStart');
+    var recordEnd = document.getElementById('recordEnd');
+    var recordTotal = document.getElementById('recordTotal');
+    var totalPagesEl = document.getElementById('totalPages');
+    var selectionCountEl = document.getElementById('selectionCount');
+    var clearSelectionBtn = document.getElementById('clearSelection');
+    var columnFilterDropdown = document.getElementById('columnFilterDropdown');
+    var columnFilterList = document.getElementById('columnFilterList');
+    var columnFilterSearch = document.getElementById('columnFilterSearch');
+    var searchInput = document.getElementById('searchInput');
+    var filterStatus = document.getElementById('filterStatus');
+    var filterVendedor = document.getElementById('filterVendedor');
+    var loadingOverlay = document.getElementById('loadingOverlay');
+    var loadingText = document.getElementById('loadingText');
+    var toastContainer = document.getElementById('toastContainer');
+
+    function getJXRef() {
+      if (typeof JX !== 'undefined') return JX;
+      if (window.parent && window.parent.JX) return window.parent.JX;
+      if (window.top && window.top.JX) return window.top.JX;
+      return undefined;
+    }
+
+    // ===== FUNÇÕES DE DEBUG =====
+    function debug(msg, data) {
+      if (CONFIG.DEBUG) {
+        if (data !== undefined) {
+          console.log('[DEBUG] ' + msg, data);
+        } else {
+          console.log('[DEBUG] ' + msg);
+        }
+      }
+    }
+
+    // ===== FUNÇÕES DE UI =====
+    function loading(show, texto) {
+      if (show) {
+        loadingOverlay.classList.remove('hidden');
+        loadingText.textContent = texto || 'Carregando dados...';
+      } else {
+        loadingOverlay.classList.add('hidden');
+      }
+    }
+
+    function toast(mensagem, tipo) {
+      var toastEl = document.createElement('div');
+      toastEl.className = 'toast toast-' + (tipo || 'info');
+      toastEl.textContent = mensagem;
+      toastContainer.appendChild(toastEl);
+      setTimeout(function() {
+        toastEl.remove();
+      }, 4000);
+    }
+
+    // ===== FUNÇÕES AUXILIARES =====
+    function formatCurrency(value) {
+      var num = parseFloat(value) || 0;
+      return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function calcularStatus(diasAberto) {
+      var dias = parseInt(diasAberto) || 0;
+      if (dias <= 30) return 'ate30';
+      if (dias <= 60) return '31a60';
+      return 'mais60';
+    }
+
+    function getStatusLabel(statusKey) {
+      var labels = {
+        'ate30': 'Até 30d',
+        '31a60': '31-60d',
+        'mais60': '>60d'
+      };
+      return labels[statusKey] || statusKey;
+    }
+
+    function getBadgeClass(statusKey) {
+      var classes = {
+        'ate30': 'badge-ate30',
+        '31a60': 'badge-31a60',
+        'mais60': 'badge-mais60'
+      };
+      return classes[statusKey] || 'badge-pendente';
+    }
+
+    function getDiasIndicatorClass(diasAberto) {
+      var dias = parseInt(diasAberto) || 0;
+      if (dias <= 30) return 'dias-ok';
+      if (dias <= 60) return 'dias-alerta';
+      return 'dias-critico';
+    }
+
+    function gerarIniciais(nome) {
+      if (!nome) return '??';
+      var partes = nome.trim().split(' ');
+      if (partes.length >= 2) {
+        return (partes[0].charAt(0) + partes[partes.length - 1].charAt(0)).toUpperCase();
+      }
+      return nome.substring(0, 2).toUpperCase();
+    }
+
+    function gerarCorAvatar(nome) {
+      if (!nome) return 'hsl(200, 70%, 50%)';
+      var hash = 0;
+      for (var i = 0; i < nome.length; i++) {
+        hash = nome.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      var hue = Math.abs(hash % 360);
+      return 'hsl(' + hue + ', 65%, 45%)';
+    }
+
+    function getTipFatClass(tipo) {
+      if (tipo === 'I') return 'tipfat-I';
+      if (tipo === 'A') return 'tipfat-A';
+      return 'tipfat-default';
+    }
+
+    // ===== CARREGAR DADOS DO SANKHYA =====
+    function carregarDadosSankhya() {
+      debug('Iniciando carregamento de dados...');
+      debug('SQL:', SQL);
+
+      var jxRef = getJXRef();
+      if (typeof jxRef === 'undefined') {
+        debug('JX não disponível');
+        toast('Erro: JX não disponível', 'erro');
+        dadosBrutos = [];
+        dadosFiltrados = [];
+        atualizarInterface();
+        return;
+      }
+
+      if (typeof jxRef.consultar !== 'function') {
+        debug('JX.consultar não é função');
+        toast('Erro: JX.consultar não disponível', 'erro');
+        dadosBrutos = [];
+        dadosFiltrados = [];
+        atualizarInterface();
+        return;
+      }
+
+      loading(true, 'Consultando banco de dados...');
+
+      jxRef.consultar(SQL)
+        .then(function(dados) {
+          loading(false);
+          debug('Retorno da consulta - Tipo:', typeof dados);
+          debug('É array?', Array.isArray(dados));
+
+          dadosBrutos = extrairDadosRetorno(dados);
+          dadosBrutos = normalizarDados(dadosBrutos);
+          debug('Total de registros:', dadosBrutos.length);
+
+          if (dadosBrutos.length > 0) {
+            debug('Primeiro registro:', dadosBrutos[0]);
+            processarDados();
+            toast(dadosBrutos.length + ' notas carregadas', 'sucesso');
+          } else {
+            toast('Nenhum registro encontrado', 'info');
+            dadosFiltrados = [];
+            atualizarInterface();
+          }
+        })
+        .catch(function(erro) {
+          loading(false);
+          debug('Erro na consulta:', erro);
+          var msgErro = erro && erro.message ? erro.message : String(erro);
+          toast('Erro: ' + msgErro, 'erro');
+          dadosBrutos = [];
+          dadosFiltrados = [];
+          atualizarInterface();
+        });
+    }
+
+    function extrairDadosRetorno(dados) {
+      if (dados === null || dados === undefined) {
+        debug('Retorno é NULL/UNDEFINED');
+        return [];
+      }
+
+      if (Array.isArray(dados)) {
+        debug('Retorno é Array direto');
+        return dados;
+      }
+
+      if (typeof dados === 'object') {
+        if (dados.result && Array.isArray(dados.result)) {
+          return dados.result;
+        }
+        if (dados.data && Array.isArray(dados.data)) {
+          return dados.data;
+        }
+        if (dados.rows && Array.isArray(dados.rows)) {
+          return dados.rows;
+        }
+        var keys = Object.keys(dados);
+        for (var i = 0; i < keys.length; i++) {
+          if (Array.isArray(dados[keys[i]])) {
+            return dados[keys[i]];
+          }
+        }
+      }
+
+      debug('Formato não reconhecido, retornando array vazio');
+      return [];
+    }
+
+    function normalizarDados(lista) {
+      if (!Array.isArray(lista)) return [];
+      var normalizados = [];
+      for (var i = 0; i < lista.length; i++) {
+        var row = lista[i] || {};
+        normalizados.push({
+          NUNOTA: row.NUNOTA !== undefined ? row.NUNOTA : row.nunota,
+          NUMNOTA: row.NUMNOTA !== undefined ? row.NUMNOTA : row.numnota,
+          DIAS_ABERTO: row.DIAS_ABERTO !== undefined ? row.DIAS_ABERTO : (row.dias_aberto !== undefined ? row.dias_aberto : row.diasAberto),
+          DTFATUR: row.DTFATUR !== undefined ? row.DTFATUR : (row.dtfatur !== undefined ? row.dtfatur : (row.dtFatur !== undefined ? row.dtFatur : row.dt_fatur)),
+          DTNEG: row.DTNEG !== undefined ? row.DTNEG : (row.dtneg !== undefined ? row.dtneg : (row.dtNeg !== undefined ? row.dtNeg : row.dt_neg)),
+          CODPARC: row.CODPARC !== undefined ? row.CODPARC : row.codparc,
+          PARCEIRO: row.PARCEIRO !== undefined ? row.PARCEIRO : row.parceiro,
+          VLRNOTA: row.VLRNOTA !== undefined ? row.VLRNOTA : row.vlrnota,
+          VENDEDOR: row.VENDEDOR !== undefined ? row.VENDEDOR : row.vendedor,
+          AD_NUNOTAPED: row.AD_NUNOTAPED !== undefined ? row.AD_NUNOTAPED : (row.ad_nunotaped !== undefined ? row.ad_nunotaped : (row.adNunotaped !== undefined ? row.adNunotaped : row.nunotaped)),
+          AD_TIPFATPARC: row.AD_TIPFATPARC !== undefined ? row.AD_TIPFATPARC : (row.ad_tipfatparc !== undefined ? row.ad_tipfatparc : row.tipfatparc)
+        });
+      }
+      return normalizados;
+    }
+
+    // ===== PROCESSAR DADOS =====
+    function processarDados() {
+      debug('Processando dados...');
+
+      vendedoresUnicos = [];
+      var vendedoresMap = {};
+
+      for (var i = 0; i < dadosBrutos.length; i++) {
+        var row = dadosBrutos[i];
+        row._status = calcularStatus(row.DIAS_ABERTO);
+        row._iniciais = gerarIniciais(row.PARCEIRO);
+        row._cor = gerarCorAvatar(row.PARCEIRO);
+
+        var vendedor = row.VENDEDOR || 'SEM VENDEDOR';
+        row._vendedor = vendedor;
+        if (!vendedoresMap[vendedor]) {
+          vendedoresMap[vendedor] = true;
+          vendedoresUnicos.push(vendedor);
+        }
+      }
+
+      vendedoresUnicos.sort();
+      popularFiltroVendedor();
+
+      dadosFiltrados = dadosBrutos.slice();
+      atualizarInterface();
+    }
+
+    function popularFiltroVendedor() {
+      var html = '<option value="">Todos Vendedores</option>';
+      for (var i = 0; i < vendedoresUnicos.length; i++) {
+        html += '<option value="' + vendedoresUnicos[i] + '">' + vendedoresUnicos[i] + '</option>';
+      }
+      filterVendedor.innerHTML = html;
+    }
+
+    // ===== ATUALIZAR INTERFACE =====
+    function atualizarInterface() {
+      calcularKPIs();
+      state.totalCount = dadosFiltrados.length;
+      state.currentPage = 1;
+      updatePagination();
+      renderTable();
+    }
+
+    // ===== CALCULAR KPIs =====
+    function calcularKPIs() {
+      var total = dadosFiltrados.length;
+      var valorTotal = 0;
+      var ate30 = 0;
+      var de31a60 = 0;
+      var mais60 = 0;
+      var maiorDias = 0;
+
+      for (var i = 0; i < dadosFiltrados.length; i++) {
+        var row = dadosFiltrados[i];
+        var valor = parseFloat(row.VLRNOTA) || 0;
+        var dias = parseInt(row.DIAS_ABERTO) || 0;
+
+        valorTotal += valor;
+
+        if (dias <= 30) {
+          ate30++;
+        } else if (dias <= 60) {
+          de31a60++;
+        } else {
+          mais60++;
+        }
+
+        if (dias > maiorDias) {
+          maiorDias = dias;
+        }
+      }
+
+      document.getElementById('kpiTotal').textContent = total;
+      document.getElementById('kpiValor').textContent = 'R$ ' + formatCurrency(valorTotal);
+      document.getElementById('kpiAte30').textContent = ate30;
+      document.getElementById('kpi31a60').textContent = de31a60;
+      document.getElementById('kpiMais60').textContent = mais60;
+      document.getElementById('kpiMaisAntiga').textContent = maiorDias + ' dias';
+    }
+
+    // ===== APLICAR FILTROS =====
+    function aplicarFiltros() {
+      var termoBusca = (searchInput.value || '').toLowerCase().trim();
+      var statusSel = filterStatus.value;
+      var vendedorSel = filterVendedor.value;
+
+      dadosFiltrados = dadosBrutos.filter(function(row) {
+        if (termoBusca) {
+          var campos = [
+            String(row.NUNOTA || ''),
+            String(row.NUMNOTA || ''),
+            String(row.CODPARC || ''),
+            (row.PARCEIRO || '').toLowerCase(),
+            (row._vendedor || '').toLowerCase(),
+            String(row.AD_NUNOTAPED || '')
+          ].join(' ');
+          if (campos.indexOf(termoBusca) === -1) {
+            return false;
+          }
+        }
+
+        if (statusSel && row._status !== statusSel) {
+          return false;
+        }
+
+        if (vendedorSel && (row._vendedor || '') !== vendedorSel) {
+          return false;
+        }
+
+        return true;
+      });
+
+      atualizarInterface();
+    }
+
+    // ===== RENDERIZAR TABELA =====
+    function renderTable() {
+      var startIndex = (state.currentPage - 1) * state.pageSize;
+      var endIndex = Math.min(startIndex + state.pageSize, state.totalCount);
+      var pageData = dadosFiltrados.slice(startIndex, endIndex);
+
+      var html = '';
+      for (var i = 0; i < pageData.length; i++) {
+        var row = pageData[i];
+        var statusKey = row._status;
+        var diasClass = getDiasIndicatorClass(row.DIAS_ABERTO);
+        var tipfatClass = getTipFatClass(row.AD_TIPFATPARC);
+
+        html += '<tr>';
+        html += '<td><input type="checkbox" class="checkbox row-checkbox" data-nunota="' + row.NUNOTA + '"></td>';
+        html += '<td><span class="badge ' + getBadgeClass(statusKey) + '">' + getStatusLabel(statusKey) + '</span></td>';
+        html += '<td>' + (row.NUNOTA || '') + '</td>';
+        html += '<td>' + (row.NUMNOTA || '') + '</td>';
+        html += '<td>' + (row.CODPARC || '') + '</td>';
+        html += '<td><div class="partner-cell">';
+        html += '<div class="avatar" style="background-color: ' + row._cor + ';">' + row._iniciais + '</div>';
+        html += '<span class="partner-name">' + (row.PARCEIRO || '') + '</span>';
+        html += '</div></td>';
+        html += '<td><span class="vendedor-badge">' + (row._vendedor || '-') + '</span></td>';
+        html += '<td><div class="dias-cell">';
+        html += '<span class="dias-indicator ' + diasClass + '"></span>';
+        html += '<span>' + (row.DIAS_ABERTO || 0) + '</span>';
+        html += '</div></td>';
+        html += '<td>' + (row.DTFATUR || '-') + '</td>';
+        html += '<td>' + (row.DTNEG || '-') + '</td>';
+        html += '<td><span class="value-positive">R$ ' + formatCurrency(row.VLRNOTA) + '</span></td>';
+        html += '<td>' + (row.AD_NUNOTAPED || '-') + '</td>';
+        html += '<td><span class="tipfat-badge ' + tipfatClass + '">' + (row.AD_TIPFATPARC || '-') + '</span></td>';
+        html += '</tr>';
+      }
+
+      if (pageData.length === 0) {
+        html = '<tr><td colspan="13" style="text-align: center; padding: 2rem; color: var(--muted-foreground);">Nenhum registro encontrado</td></tr>';
+      }
+
+      tableBody.innerHTML = html;
+      bindRowCheckboxes();
+      updateSelectAllState();
+    }
+
+    // ===== ATUALIZAR PAGINAÇÃO =====
+    function updatePagination() {
+      state.totalPages = Math.ceil(state.totalCount / state.pageSize);
+      if (state.totalPages < 1) state.totalPages = 1;
+      if (state.currentPage > state.totalPages) state.currentPage = state.totalPages;
+
+      var startRecord = state.totalCount === 0 ? 0 : (state.currentPage - 1) * state.pageSize + 1;
+      var endRecord = state.totalCount === 0 ? 0 : Math.min(state.currentPage * state.pageSize, state.totalCount);
+
+      recordStart.textContent = startRecord.toLocaleString('pt-BR');
+      recordEnd.textContent = endRecord.toLocaleString('pt-BR');
+      recordTotal.textContent = state.totalCount.toLocaleString('pt-BR');
+
+      pageInput.value = state.currentPage;
+      pageInput.max = state.totalPages;
+      totalPagesEl.textContent = state.totalPages;
+
+      btnFirst.disabled = state.currentPage === 1;
+      btnPrev.disabled = state.currentPage === 1;
+      btnNext.disabled = state.currentPage === state.totalPages;
+      btnLast.disabled = state.currentPage === state.totalPages;
+    }
+
+    // ===== NAVEGAÇÃO =====
+    function goToPage(page) {
+      var newPage = Math.max(1, Math.min(page, state.totalPages));
+      if (newPage !== state.currentPage) {
+        state.currentPage = newPage;
+        updatePagination();
+        renderTable();
+      }
+    }
+
+    function goToFirst() { goToPage(1); }
+    function goToPrev() { goToPage(state.currentPage - 1); }
+    function goToNext() { goToPage(state.currentPage + 1); }
+    function goToLast() { goToPage(state.totalPages); }
+
+    // ===== CHECKBOX SELECT ALL =====
+    function bindRowCheckboxes() {
+      var rowCheckboxes = document.querySelectorAll('.row-checkbox');
+      for (var i = 0; i < rowCheckboxes.length; i++) {
+        rowCheckboxes[i].addEventListener('change', function() {
+          var row = this.closest('tr');
+          if (row) {
+            if (this.checked) {
+              row.classList.add('selected');
+            } else {
+              row.classList.remove('selected');
+            }
+          }
+          updateSelectAllState();
+        });
+      }
+    }
+
+    function updateSelectAllState() {
+      var rowCheckboxes = document.querySelectorAll('.row-checkbox');
+      var allChecked = true;
+      var someChecked = false;
+      var selectedCount = 0;
+
+      for (var i = 0; i < rowCheckboxes.length; i++) {
+        if (rowCheckboxes[i].checked) {
+          someChecked = true;
+          selectedCount++;
+        } else {
+          allChecked = false;
+        }
+      }
+
+      selectAllCheckbox.checked = allChecked && rowCheckboxes.length > 0;
+      selectAllCheckbox.indeterminate = someChecked && !allChecked;
+      if (selectionCountEl) {
+        selectionCountEl.textContent = selectedCount + ' selecionado(s)';
+      }
+      if (clearSelectionBtn) {
+        clearSelectionBtn.disabled = selectedCount === 0;
+      }
+    }
+
+    selectAllCheckbox.addEventListener('change', function() {
+      var rowCheckboxes = document.querySelectorAll('.row-checkbox');
+      for (var i = 0; i < rowCheckboxes.length; i++) {
+        rowCheckboxes[i].checked = selectAllCheckbox.checked;
+        var row = rowCheckboxes[i].closest('tr');
+        if (row) {
+          if (selectAllCheckbox.checked) {
+            row.classList.add('selected');
+          } else {
+            row.classList.remove('selected');
+          }
+        }
+      }
+      updateSelectAllState();
+    });
+
+    if (clearSelectionBtn) {
+      clearSelectionBtn.addEventListener('click', function() {
+        var rowCheckboxes = document.querySelectorAll('.row-checkbox');
+        for (var i = 0; i < rowCheckboxes.length; i++) {
+          rowCheckboxes[i].checked = false;
+          var row = rowCheckboxes[i].closest('tr');
+          if (row) row.classList.remove('selected');
+        }
+        updateSelectAllState();
+      });
+    }
+
+    // ===== FILTRO POR COLUNA =====
+    function getColumnValue(row, columnKey) {
+      switch (columnKey) {
+        case 'status': return getStatusLabel(row._status);
+        case 'nunota': return String(row.NUNOTA || '');
+        case 'numnota': return String(row.NUMNOTA || '');
+        case 'codparc': return String(row.CODPARC || '');
+        case 'parceiro': return row.PARCEIRO || '';
+        case 'vendedor': return row._vendedor || '';
+        case 'diasAberto': return String(row.DIAS_ABERTO || 0);
+        case 'dtfatur': return row.DTFATUR || '';
+        case 'dtneg': return row.DTNEG || '';
+        case 'vlrnota': return 'R$ ' + formatCurrency(row.VLRNOTA);
+        case 'nunotaped': return String(row.AD_NUNOTAPED || '');
+        case 'tipfatparc': return row.AD_TIPFATPARC || '';
+        default: return '';
+      }
+    }
+
+    function getUniqueValues(columnKey) {
+      var unique = {};
+      for (var i = 0; i < dadosBrutos.length; i++) {
+        var value = getColumnValue(dadosBrutos[i], columnKey);
+        if (!unique[value]) unique[value] = true;
+      }
+      var values = [];
+      for (var key in unique) {
+        if (unique.hasOwnProperty(key)) values.push(key);
+      }
+      return values;
+    }
+
+    function ensureFilterState(columnKey, values) {
+      if (!columnFilters[columnKey]) {
+        var selected = {};
+        for (var i = 0; i < values.length; i++) {
+          selected[values[i]] = true;
+        }
+        columnFilters[columnKey] = { selected: selected, sort: 'asc', search: '' };
+      } else {
+        for (var j = 0; j < values.length; j++) {
+          if (columnFilters[columnKey].selected[values[j]] === undefined) {
+            columnFilters[columnKey].selected[values[j]] = true;
+          }
+        }
+      }
+    }
+
+    function getSortedValues(values, sort) {
+      var list = values.slice();
+      list.sort(function(a, b) {
+        var aVal = a.toLowerCase();
+        var bVal = b.toLowerCase();
+        if (aVal < bVal) return sort === 'desc' ? 1 : -1;
+        if (aVal > bVal) return sort === 'desc' ? -1 : 1;
+        return 0;
+      });
+      return list;
+    }
+
+    function renderFilterList(columnKey) {
+      var values = getUniqueValues(columnKey);
+      ensureFilterState(columnKey, values);
+      var filter = columnFilters[columnKey];
+      var sortedValues = getSortedValues(values, filter.sort);
+      var searchText = filter.search.toLowerCase();
+      var html = '';
+
+      for (var i = 0; i < sortedValues.length; i++) {
+        var value = sortedValues[i];
+        if (searchText && value.toLowerCase().indexOf(searchText) === -1) continue;
+        var checked = filter.selected[value] ? ' checked' : '';
+        html += '<label class="column-filter-item">' +
+          '<input type="checkbox" class="column-filter-checkbox" data-value="' + value + '"' + checked + '>' +
+          '<span>' + value + '</span>' +
+          '</label>';
+      }
+
+      columnFilterList.innerHTML = html;
+      var checkboxes = columnFilterList.querySelectorAll('.column-filter-checkbox');
+      for (var j = 0; j < checkboxes.length; j++) {
+        checkboxes[j].addEventListener('change', function() {
+          var val = this.getAttribute('data-value');
+          columnFilters[columnKey].selected[val] = this.checked;
+          applyColumnFilters();
+        });
+      }
+    }
+
+    function applyColumnFilters() {
+      dadosFiltrados = dadosBrutos.filter(function(row) {
+        for (var key in columnFilters) {
+          if (!columnFilters.hasOwnProperty(key)) continue;
+          var value = getColumnValue(row, key);
+          if (!columnFilters[key].selected[value]) {
+            return false;
+          }
+        }
+        return true;
+      });
+      state.totalCount = dadosFiltrados.length;
+      state.currentPage = 1;
+      calcularKPIs();
+      updatePagination();
+      renderTable();
+    }
+
+    function openColumnFilter(headerEl, columnKey) {
+      activeFilterHeader = headerEl;
+      activeFilterColumn = columnKey;
+      renderFilterList(columnKey);
+      columnFilterSearch.value = columnFilters[columnKey].search || '';
+      columnFilterDropdown.classList.add('open');
+
+      var rect = headerEl.getBoundingClientRect();
+      var dropdownWidth = columnFilterDropdown.offsetWidth || 240;
+      var left = rect.left + window.scrollX;
+      var top = rect.bottom + window.scrollY + 6;
+      if (left + dropdownWidth > window.innerWidth) {
+        left = window.innerWidth - dropdownWidth - 8;
+      }
+      if (left < 8) left = 8;
+      columnFilterDropdown.style.left = left + 'px';
+      columnFilterDropdown.style.top = top + 'px';
+    }
+
+    function closeColumnFilter() {
+      activeFilterColumn = null;
+      activeFilterHeader = null;
+      columnFilterDropdown.classList.remove('open');
+    }
+
+    function initColumnFilters() {
+      var headerCells = document.querySelectorAll('th[data-column] .table-header-cell');
+      for (var i = 0; i < headerCells.length; i++) {
+        headerCells[i].addEventListener('click', function(e) {
+          var th = this.closest('th');
+          if (!th || !th.dataset.column) return;
+          if (e.target.classList.contains('resize-handle')) return;
+          e.stopPropagation();
+          if (activeFilterColumn === th.dataset.column && columnFilterDropdown.classList.contains('open')) {
+            closeColumnFilter();
+            return;
+          }
+          openColumnFilter(th, th.dataset.column);
+        });
+      }
+
+      columnFilterDropdown.addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+
+      document.addEventListener('click', function() {
+        if (columnFilterDropdown.classList.contains('open')) {
+          closeColumnFilter();
+        }
+      });
+
+      columnFilterSearch.addEventListener('input', function() {
+        if (!activeFilterColumn) return;
+        columnFilters[activeFilterColumn].search = columnFilterSearch.value;
+        renderFilterList(activeFilterColumn);
+      });
+
+      var sortButtons = columnFilterDropdown.querySelectorAll('[data-sort]');
+      for (var j = 0; j < sortButtons.length; j++) {
+        sortButtons[j].addEventListener('click', function() {
+          if (!activeFilterColumn) return;
+          columnFilters[activeFilterColumn].sort = this.getAttribute('data-sort');
+          renderFilterList(activeFilterColumn);
+        });
+      }
+
+      var selectButtons = columnFilterDropdown.querySelectorAll('[data-select]');
+      for (var k = 0; k < selectButtons.length; k++) {
+        selectButtons[k].addEventListener('click', function() {
+          if (!activeFilterColumn) return;
+          var values = getUniqueValues(activeFilterColumn);
+          var mode = this.getAttribute('data-select');
+          for (var i2 = 0; i2 < values.length; i2++) {
+            columnFilters[activeFilterColumn].selected[values[i2]] = mode === 'all';
+          }
+          renderFilterList(activeFilterColumn);
+          applyColumnFilters();
+        });
+      }
+    }
+
+    // ===== RESIZE DE COLUNAS =====
+    function initColumnResize() {
+      var resizeHandles = document.querySelectorAll('.resize-handle');
+
+      for (var i = 0; i < resizeHandles.length; i++) {
+        (function(handle) {
+          var isResizing = false;
+          var startX = 0;
+          var startWidth = 0;
+          var th = null;
+
+          handle.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            th = handle.parentElement;
+            startX = e.pageX;
+            startWidth = th.offsetWidth;
+            handle.classList.add('active');
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+            e.preventDefault();
+          });
+
+          document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            var width = startWidth + (e.pageX - startX);
+            if (width >= 50) {
+              th.style.width = width + 'px';
+            }
+          });
+
+          document.addEventListener('mouseup', function() {
+            if (isResizing) {
+              isResizing = false;
+              handle.classList.remove('active');
+              document.body.style.cursor = '';
+              document.body.style.userSelect = '';
+            }
+          });
+        })(resizeHandles[i]);
+      }
+    }
+
+    // ===== EXPORTAR CSV =====
+    function exportarCSV() {
+      if (dadosFiltrados.length === 0) {
+        toast('Nenhum dado para exportar', 'info');
+        return;
+      }
+
+      var headers = ['Nº Único', 'Nº Nota', 'Dias', 'Dt Fatur.', 'Dt Negoc.', 'Cód. Parc.', 'Parceiro', 'Vendedor', 'Valor', 'Nº Pedido', 'Tipo Fat.'];
+      var linhas = [headers.join(';')];
+
+      for (var i = 0; i < dadosFiltrados.length; i++) {
+        var row = dadosFiltrados[i];
+        var linha = [
+          row.NUNOTA || '',
+          row.NUMNOTA || '',
+          row.DIAS_ABERTO || 0,
+          row.DTFATUR || '',
+          row.DTNEG || '',
+          row.CODPARC || '',
+          (row.PARCEIRO || '').replace(/;/g, ','),
+          row.VENDEDOR || '',
+          formatCurrency(row.VLRNOTA).replace('.', ''),
+          row.AD_NUNOTAPED || '',
+          row.AD_TIPFATPARC || ''
+        ];
+        linhas.push(linha.join(';'));
+      }
+
+      var conteudo = linhas.join('\n');
+      var blob = new Blob(['\ufeff' + conteudo], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'notas_pendentes_' + new Date().toISOString().slice(0, 10) + '.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast('CSV exportado com sucesso', 'sucesso');
+    }
+
+    // ===== EVENT LISTENERS =====
+    btnFirst.addEventListener('click', goToFirst);
+    btnPrev.addEventListener('click', goToPrev);
+    btnNext.addEventListener('click', goToNext);
+    btnLast.addEventListener('click', goToLast);
+
+    pageInput.addEventListener('change', function() {
+      var page = parseInt(pageInput.value);
+      if (!isNaN(page)) {
+        goToPage(page);
+      }
+    });
+
+    pageSizeSelect.addEventListener('change', function() {
+      state.pageSize = parseInt(pageSizeSelect.value);
+      state.currentPage = 1;
+      updatePagination();
+      renderTable();
+    });
+
+    searchInput.addEventListener('input', function() {
+      aplicarFiltros();
+    });
+
+    filterStatus.addEventListener('change', function() {
+      aplicarFiltros();
+    });
+
+    filterVendedor.addEventListener('change', function() {
+      aplicarFiltros();
+    });
+
+    document.getElementById('btnAtualizar').addEventListener('click', function() {
+      carregarDadosSankhya();
+    });
+
+    document.getElementById('btnExportar').addEventListener('click', function() {
+      exportarCSV();
+    });
+
+    // ===== ATALHOS DE TECLADO =====
+    document.addEventListener('keydown', function(e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+
+      if (e.altKey) {
+        switch (e.key) {
+          case 'ArrowLeft':
+            e.preventDefault();
+            goToPrev();
+            break;
+          case 'ArrowRight':
+            e.preventDefault();
+            goToNext();
+            break;
+          case 'Home':
+            e.preventDefault();
+            goToFirst();
+            break;
+          case 'End':
+            e.preventDefault();
+            goToLast();
+            break;
+        }
+      }
+    });
+
+    // ===== INICIALIZAÇÃO =====
+    function init() {
+      debug('═══════════════════════════════════════════');
+      debug('DASHBOARD NOTAS PENDENTES - INICIALIZANDO');
+      debug('═══════════════════════════════════════════');
+      debug('Empresa:', CONFIG.CODEMP);
+      debug('TOP:', CONFIG.CODTIPOPER);
+      debug('Tipo Venda:', CONFIG.CODTIPVENDA);
+
+      initColumnResize();
+      initColumnFilters();
+
+      carregarDadosSankhya();
+
+      console.log('Dashboard Notas Pendentes - ES5 carregado!');
+      console.log('Atalhos: Alt+← (anterior), Alt+→ (próxima), Alt+Home (primeira), Alt+End (última)');
+    }
+
+    init();
+  </script>
+
+</body>
+</html>
