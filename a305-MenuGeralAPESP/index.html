@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Menu Geral de Telas - Auto Peças São Paulo</title>
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="_core/css/variables.css">
+    <link rel="stylesheet" href="_core/css/base.css">
+    <link rel="stylesheet" href="_core/css/layout.css">
+    <link rel="stylesheet" href="_core/css/buttons.css">
+    <link rel="stylesheet" href="_core/css/modal.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/custom.css">
+</head>
+<body>
+    <div class="container">
+        <div class="watermark"></div>
+
+        <div class="header">
+            <div class="header-left">
+                <img src="https://i.ibb.co/7tDmPNcX/2.png" alt="Logo APESP" class="header-logo">
+                <div class="header-titulo">
+                    Auto Peças São Paulo
+                    <span class="header-emoji">🏆</span>
+                </div>
+            </div>
+            <div class="header-right">
+                Menu Geral Sankhya
+            </div>
+        </div>
+
+        <div class="versiculo-bar">
+            <div class="versiculo-content">
+                <span class="versiculo-icone">✝️</span>
+                <span id="versiculoDia" class="versiculo-texto">Carregando versículo...</span>
+                <button class="versiculo-btn" onclick="carregarVersiculo()" title="Novo versículo">🔄</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="grid">
+                <!-- Linha 1 -->
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <!-- Linha 2 -->
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <!-- Linha 3 - Itens Ativos -->
+                <a href="javascript:abrirModalCpf();" class="menu-item active">
+                    <div class="icon-wrapper">
+                        <img src="https://i.ibb.co/GvHRRjWd/Design-sem-nome.png" alt="Consultar CPF" style="width: 56px; height: 56px; object-fit: contain;">
+                    </div>
+                    <span>Consultar CPF</span>
+                </a>
+
+                <a href="javascript:abrirTelaInterna(RESOURCE_ID_DASH_ALVO);" class="menu-item active">
+                    <div class="icon-wrapper">
+                        <img src="https://i.ibb.co/XZskFTh6/Design-sem-nome-1.png" alt="Dashboard" style="width: 56px; height: 56px; object-fit: contain;">
+                    </div>
+                    <span>Cotação Rápida<br>Compras</span>
+                </a>
+
+                <a href="javascript:abrirTelaInterna('br.com.sankhya.menu.adicional.nuDsb.327.1');" class="menu-item active">
+                    <div class="icon-wrapper">
+                        <img src="https://i.ibb.co/nqnvghRV/buscaprod.png" alt="Busca Produto" style="width: 56px; height: 56px; object-fit: contain;">
+                    </div>
+                    <span>Busca Produto</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal CPF -->
+    <div id="modalCpfBackdrop" class="modal-backdrop">
+        <div class="modal">
+            <h3>Consulta por CPF</h3>
+            <p>Digite o CPF do cliente para executar a consulta de Score.</p>
+            <input id="inputCpfConsulta" placeholder="000.000.000-00" inputmode="numeric" autocomplete="off" />
+            <div class="modal-actions">
+                <div id="cpfSpinner" class="spinner"></div>
+                <button class="btn btn-secondary" type="button" onclick="fecharModalCpf()" id="btnCancelarCpf">Cancelar</button>
+                <button class="btn btn-primary" type="button" onclick="confirmarCpf()" id="btnExecutarCpf">Executar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Resultado -->
+    <div id="modalResultadoBackdrop" class="modal-backdrop">
+        <div class="modal">
+            <h3>Resultado da Consulta</h3>
+            <div id="resultadoContainer"></div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" type="button" onclick="fecharModalResultado()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/gh/wansleynery/SankhyaJX@main/jx.min.js"></script>
+    <script src="_core/js/utils.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

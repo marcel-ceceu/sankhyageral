@@ -1,0 +1,13 @@
+/* ==========================================================
+   VARIABLES - APESP Core
+   ========================================================== */
+
+:root {
+    --ap-foreground: #0f172a;
+    --ap-muted-foreground: #64748b;
+    --ap-border: #e5e7eb;
+    --ap-surface: #ffffff;
+    --ap-surface-muted: #f8fafc;
+    --ap-shadow: rgba(15, 23, 42, 0.15);
+    --ap-accent: #1e40af;
+}

@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Menu Geral de Telas - Auto Peças São Paulo</title>
+
+    <!-- Core CSS -->
+    <!-- Custom CSS -->
+        <style>
+/* ==========================================================
+   VARIABLES - APESP Core
+   ========================================================== */
+
+:root {
+    --ap-foreground: #0f172a;
+    --ap-muted-foreground: #64748b;
+    --ap-border: #e5e7eb;
+    --ap-surface: #ffffff;
+    --ap-surface-muted: #f8fafc;
+    --ap-shadow: rgba(15, 23, 42, 0.15);
+    --ap-accent: #1e40af;
+}
+
+
+/* ==========================================================
+   BASE - Reset e Tipografia
+   ========================================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--ap-surface);
+    min-height: 100vh;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+
+/* ==========================================================
+   LAYOUT - Container, Header, Grid
+   ========================================================== */
+
+.container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    background: var(--ap-surface);
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    background: linear-gradient(135deg,
+        rgba(30, 58, 138, 0.15) 0%,
+        rgba(30, 64, 175, 0.12) 25%,
+        rgba(37, 99, 235, 0.1) 50%,
+        rgba(30, 64, 175, 0.12) 75%,
+        rgba(30, 58, 138, 0.15) 100%);
+    padding: 16px 24px;
+    border-bottom: 3px solid rgba(15, 23, 42, 0.25);
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-logo {
+    height: 116px;
+    width: auto;
+    border-radius: 6px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.header-titulo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #0f172a;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 4px rgba(255, 255, 255, 0.9),
+                 0 1px 2px rgba(30, 58, 138, 0.1);
+    line-height: 1;
+}
+
+.header-titulo::before {
+    content: '';
+    display: inline-block;
+    width: 5px;
+    height: 50px;
+    background: linear-gradient(180deg, #0f172a 0%, #1e3a8a 50%, #1e40af 100%);
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.header-emoji {
+    display: none;
+}
+
+.header-right {
+    color: #334155;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-shadow: 0 1px 3px rgba(255, 255, 255, 0.8),
+                 0 1px 2px rgba(30, 58, 138, 0.1);
+}
+
+.header-right::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: radial-gradient(circle, #1e40af 0%, #0f172a 100%);
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.content {
+    padding: 32px 24px;
+    position: relative;
+    z-index: 1;
+    background: rgba(250, 250, 250, 0.95);
+    flex: 1;
+    width: 100%;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+    max-width: 100%;
+    width: 100%;
+    margin: 0 auto;
+}
+
+@media (min-width: 1200px) {
+    .grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    .grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 800px) and (max-width: 1199px) {
+    .grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    .content {
+        padding: 28px 20px;
+    }
+    .header, .versiculo-bar {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+}
+
+
+/* ==========================================================
+   BUTTONS - Botões e Spinner
+   ========================================================== */
+
+.btn {
+    border: 0;
+    border-radius: 8px;
+    padding: 11px 20px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: #e5e7eb;
+}
+
+.btn-primary {
+    background: #0f172a;
+    color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: #1e40af;
+}
+
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #e5e7eb;
+    border-top-color: #0f172a;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: none;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+
+/* ==========================================================
+   MODAL - Estrutura de Modais
+   ========================================================== */
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 9999;
+    backdrop-filter: blur(2px);
+}
+
+.modal {
+    width: 100%;
+    max-width: 720px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    padding: 24px;
+    max-height: 88vh;
+    overflow: auto;
+}
+
+.modal h3 {
+    margin: 0 0 12px 0;
+    font-size: 18px;
+    color: #1e293b;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+}
+
+.modal p {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.modal input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    outline: none;
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: all 0.2s;
+}
+
+.modal input:focus {
+    border-color: #0f172a;
+    box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    align-items: center;
+}
+
+
+/* ==========================================================
+   CUSTOM - Menu Geral APESP
+   ========================================================== */
+
+/* Marca d'água Logo APESP */
+.watermark {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px;
+    height: 500px;
+    background-image: url('https://i.ibb.co/bhVrHGM/1.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.06;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.menu-item {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 29px 19px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 168px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.menu-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #0f172a;
+}
+
+.menu-item.active {
+    border-color: #0f172a;
+    background: #f8fafc;
+    border-width: 2px;
+}
+
+.menu-item.active:hover {
+    border-color: #1e40af;
+}
+
+.menu-item.em-construcao {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #fafafa;
+}
+
+.menu-item.em-construcao:hover {
+    transform: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border-color: #e5e7eb;
+}
+
+.icon-wrapper {
+    width: 67px;
+    height: 67px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 17px;
+    border-radius: 10px;
+    background: #f3f4f6;
+}
+
+.menu-item.active .icon-wrapper {
+    background: #e2e8f0;
+}
+
+.menu-item.em-construcao .icon-wrapper {
+    background: #f5f5f5;
+}
+
+.icon-wrapper svg {
+    width: 38px;
+    height: 38px;
+}
+
+.icon-wrapper img {
+    width: 67px !important;
+    height: 67px !important;
+}
+
+.menu-item span {
+    font-size: 16px;
+    font-weight: 500;
+    color: #374151;
+    line-height: 1.4;
+}
+
+.menu-item.active span {
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.menu-item.em-construcao span {
+    color: #9ca3af;
+}
+
+/* Versículo bíblico */
+.versiculo-bar {
+    background: #ffffff;
+    padding: 20px 24px;
+    position: relative;
+    z-index: 1;
+    border-bottom: 2px solid #e5e7eb;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08),
+                0 2px 4px rgba(0, 0, 0, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    width: 100%;
+}
+
+.versiculo-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    max-width: 100%;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.versiculo-icone {
+    font-size: 26px;
+    opacity: 0.8;
+    filter: drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.15));
+}
+
+.versiculo-texto {
+    flex: 1;
+    font-size: 18px;
+    font-style: italic;
+    color: #1e293b;
+    line-height: 1.6;
+    font-weight: 700;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.versiculo-ref {
+    font-style: normal;
+    font-weight: 800;
+    color: #0f172a;
+    margin-left: 10px;
+    white-space: nowrap;
+    text-shadow: 1px 1px 2px rgba(15, 23, 42, 0.2);
+}
+
+.versiculo-btn {
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    color: #0f172a;
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.versiculo-btn:hover {
+    background: #f1f5f9;
+    border-color: #0f172a;
+    transform: rotate(180deg) scale(1.05);
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* Resultado visual */
+.resultado-shell {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+}
+
+.resultado-hero {
+    padding: 20px;
+    background: #0f172a;
+    color: #fff;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: center;
+}
+
+.hero-title {
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: 0.4px;
+    margin-bottom: 4px;
+    opacity: 0.95;
+}
+
+.hero-sub {
+    font-size: 12px;
+    opacity: 0.9;
+    line-height: 1.4;
+}
+
+.badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.16);
+    border: 1px solid rgba(255,255,255,0.22);
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+    justify-self: end;
+}
+
+.resultado-body {
+    padding: 14px;
+    background: #f8f9fa;
+}
+
+.sec-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 12px;
+}
+
+@media (max-width: 560px) {
+    .sec-grid { grid-template-columns: 1fr; }
+    .resultado-hero { grid-template-columns: 1fr; }
+    .badge-status { justify-self: start; }
+}
+
+.card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.card h4 {
+    margin: 0 0 12px 0;
+    font-size: 13px;
+    color: #1e293b;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.kv-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+@media (max-width: 560px) {
+    .kv-grid { grid-template-columns: 1fr; }
+}
+
+.kv {
+    border: 1px solid #f3f4f6;
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.k {
+    font-size: 11px;
+    color: #6b7280;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.v {
+    font-size: 14px;
+    color: #1e293b;
+    font-weight: 600;
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+.v small {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #6c757d;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.score-wrap {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.score-big {
+    text-align: center;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(0,0,0,0.06);
+}
+
+.score-label {
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    opacity: 0.9;
+    margin-bottom: 6px;
+}
+
+.score-num {
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1;
+    margin: 0;
+}
+
+.score-sub {
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.8;
+    margin-top: 6px;
+}
+
+.pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+    white-space: nowrap;
+}
+
+.pill b {
+    font-weight: 700;
+}
+
+.pill.low { border-color: #86efac; background: #f0fdf4; color: #166534; }
+.pill.mid { border-color: #fde047; background: #fefce8; color: #854d0e; }
+.pill.high { border-color: #fca5a5; background: #fef2f2; color: #991b1b; }
+
+.note {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #6c757d;
+    line-height: 1.4;
+}
+
+.mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-weight: 800;
+    font-size: 12px;
+}
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="watermark"></div>
+
+        <div class="header">
+            <div class="header-left">
+                <img src="https://i.ibb.co/7tDmPNcX/2.png" alt="Logo APESP" class="header-logo">
+                <div class="header-titulo">
+                    Auto Peças São Paulo
+                    <span class="header-emoji">🏆</span>
+                </div>
+            </div>
+            <div class="header-right">
+                Menu Geral Sankhya
+            </div>
+        </div>
+
+        <div class="versiculo-bar">
+            <div class="versiculo-content">
+                <span class="versiculo-icone">✝️</span>
+                <span id="versiculoDia" class="versiculo-texto">Carregando versículo...</span>
+                <button class="versiculo-btn" onclick="carregarVersiculo()" title="Novo versículo">🔄</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="grid">
+                <!-- Linha 1 -->
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <!-- Linha 2 -->
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <!-- Linha 3 - Itens Ativos -->
+                <a href="javascript:abrirModalCpf();" class="menu-item active">
+                    <div class="icon-wrapper">
+                        <img src="https://i.ibb.co/GvHRRjWd/Design-sem-nome.png" alt="Consultar CPF" style="width: 56px; height: 56px; object-fit: contain;">
+                    </div>
+                    <span>Consultar CPF</span>
+                </a>
+
+                <a href="javascript:abrirTelaInterna(RESOURCE_ID_DASH_ALVO);" class="menu-item active">
+                    <div class="icon-wrapper">
+                        <img src="https://i.ibb.co/XZskFTh6/Design-sem-nome-1.png" alt="Dashboard" style="width: 56px; height: 56px; object-fit: contain;">
+                    </div>
+                    <span>Cotação Rápida<br>Compras</span>
+                </a>
+
+                <a href="javascript:abrirTelaInterna('br.com.sankhya.menu.adicional.nuDsb.327.1');" class="menu-item active">
+                    <div class="icon-wrapper">
+                        <img src="https://i.ibb.co/nqnvghRV/buscaprod.png" alt="Busca Produto" style="width: 56px; height: 56px; object-fit: contain;">
+                    </div>
+                    <span>Busca Produto</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal CPF -->
+    <div id="modalCpfBackdrop" class="modal-backdrop">
+        <div class="modal">
+            <h3>Consulta por CPF</h3>
+            <p>Digite o CPF do cliente para executar a consulta de Score.</p>
+            <input id="inputCpfConsulta" placeholder="000.000.000-00" inputmode="numeric" autocomplete="off" />
+            <div class="modal-actions">
+                <div id="cpfSpinner" class="spinner"></div>
+                <button class="btn btn-secondary" type="button" onclick="fecharModalCpf()" id="btnCancelarCpf">Cancelar</button>
+                <button class="btn btn-primary" type="button" onclick="confirmarCpf()" id="btnExecutarCpf">Executar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Resultado -->
+    <div id="modalResultadoBackdrop" class="modal-backdrop">
+        <div class="modal">
+            <h3>Resultado da Consulta</h3>
+            <div id="resultadoContainer"></div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" type="button" onclick="fecharModalResultado()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/gh/wansleynery/SankhyaJX@main/jx.min.js"></script>
+        <script>
+/* ==========================================================
+   UTILS - Funções auxiliares
+   ========================================================== */
+
+function formatarCPF(cpf) {
+    if (!cpf || cpf.length !== 11) return cpf || '';
+    return cpf.substring(0, 3) + '.' + cpf.substring(3, 6) + '.' + cpf.substring(6, 9) + '-' + cpf.substring(9, 11);
+}
+
+function escapeHtml(str) {
+    return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+
+/* ==========================================================
+   CONFIG - Menu Geral APESP
+   ========================================================== */
+
+var ID_BOTAO_ROTINA = 124;
+var NOME_PARAMETRO = 'CPF_CONSULTA';
+var RESOURCE_ID_DASH_ALVO = 'br.com.sankhya.menu.adicional.nuDsb.326.1';
+
+
+/* ==========================================================
+   MAIN - Menu Geral APESP
+   ========================================================== */
+
+var VERSICULOS_FALLBACK = [
+    { texto: 'Tudo posso naquele que me fortalece.', ref: 'Filipenses 4:13' },
+    { texto: 'O Senhor é meu pastor e nada me faltará.', ref: 'Salmos 23:1' },
+    { texto: 'Confie no Senhor de todo o seu coração e não se apoie em seu próprio entendimento.', ref: 'Provérbios 3:5' },
+    { texto: 'Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna.', ref: 'João 3:16' },
+    { texto: 'Busquem, pois, em primeiro lugar o Reino de Deus e a sua justiça, e todas essas coisas lhes serão acrescentadas.', ref: 'Mateus 6:33' },
+    { texto: 'Entrega o teu caminho ao Senhor; confia nele, e ele tudo fará.', ref: 'Salmos 37:5' },
+    { texto: 'Não temas, porque eu sou contigo; não te assombres, porque eu sou teu Deus; eu te fortaleço, e te ajudo.', ref: 'Isaías 41:10' },
+    { texto: 'Em tudo dai graças, porque esta é a vontade de Deus em Cristo Jesus para convosco.', ref: '1 Tessalonicenses 5:18' },
+    { texto: 'Alegrem-se sempre no Senhor. Novamente direi: alegrem-se!', ref: 'Filipenses 4:4' },
+    { texto: 'Lança o teu cuidado sobre o Senhor, e ele te susterá; nunca permitirá que o justo seja abalado.', ref: 'Salmos 55:22' },
+    { texto: 'Vinde a mim, todos os que estais cansados e oprimidos, e eu vos aliviarei.', ref: 'Mateus 11:28' },
+    { texto: 'E conhecereis a verdade, e a verdade vos libertará.', ref: 'João 8:32' },
+    { texto: 'Porque eu bem sei os pensamentos que tenho a vosso respeito, diz o Senhor; pensamentos de paz, e não de mal.', ref: 'Jeremias 29:11' }
+];
+
+function carregarVersiculo() {
+    var elemento = document.getElementById('versiculoDia');
+    if (!elemento) return;
+
+    elemento.innerHTML = '<em style="opacity:0.7">Carregando...</em>';
+
+    fetch('https://www.abibliadigital.com.br/api/verses/nvi/random')
+        .then(function(response) {
+            if (!response.ok) throw new Error('API indisponível');
+            return response.json();
+        })
+        .then(function(data) {
+            var texto = data.text || '';
+            var livro = data.book ? data.book.name : '';
+            var capitulo = data.chapter || '';
+            var versiculo = data.number || '';
+            var referencia = livro + ' ' + capitulo + ':' + versiculo;
+
+            elemento.innerHTML = '"' + texto + '"<span class="versiculo-ref">— ' + referencia + '</span>';
+        })
+        .catch(function() {
+            console.warn('API bíblica indisponível, usando fallback local');
+            exibirVersiculoLocal();
+        });
+}
+
+function exibirVersiculoLocal() {
+    var indice = Math.floor(Math.random() * VERSICULOS_FALLBACK.length);
+    var v = VERSICULOS_FALLBACK[indice];
+
+    var elemento = document.getElementById('versiculoDia');
+    if (elemento) {
+        elemento.innerHTML = '"' + v.texto + '"<span class="versiculo-ref">— ' + v.ref + '</span>';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    carregarVersiculo();
+});
+
+function abrirTelaInterna(resourceId) {
+    if (typeof JX !== 'undefined' && typeof JX.abrirPagina === 'function') {
+        JX.abrirPagina(resourceId, {});
+        return;
+    }
+
+    try {
+        window.parent.postMessage({
+            action: 'openApp',
+            resourceId: resourceId
+        }, '*');
+        return;
+    } catch (e) {
+        console.error('postMessage falhou:', e);
+    }
+
+    try {
+        window.top.postMessage({
+            action: 'openApp',
+            resourceId: resourceId
+        }, '*');
+        return;
+    } catch (e) {
+        console.error('top.postMessage falhou:', e);
+    }
+
+    alert('Não foi possível abrir a tela internamente. Verifique o resourceId ou entre em contato com o suporte.');
+}
+
+function abrirModalCpf() {
+    document.getElementById('modalCpfBackdrop').style.display = 'flex';
+    setTimeout(function() {
+        document.getElementById('inputCpfConsulta').focus();
+    }, 0);
+}
+
+function fecharModalCpf() {
+    if (isExecutando) return;
+    document.getElementById('modalCpfBackdrop').style.display = 'none';
+    document.getElementById('inputCpfConsulta').value = '';
+}
+
+function abrirModalResultado(html) {
+    document.getElementById('resultadoContainer').innerHTML = html || "<div style='color:#b00;'>Nenhum conteúdo retornado.</div>";
+    document.getElementById('modalResultadoBackdrop').style.display = 'flex';
+}
+
+function fecharModalResultado() {
+    document.getElementById('modalResultadoBackdrop').style.display = 'none';
+    document.getElementById('resultadoContainer').innerHTML = '';
+}
+
+document.getElementById('modalCpfBackdrop').addEventListener('click', function(e) {
+    if (e.target && e.target.id === 'modalCpfBackdrop') fecharModalCpf();
+});
+document.getElementById('modalResultadoBackdrop').addEventListener('click', function(e) {
+    if (e.target && e.target.id === 'modalResultadoBackdrop') fecharModalResultado();
+});
+
+var isExecutando = false;
+
+function setLoading(loading) {
+    isExecutando = loading;
+    document.getElementById('cpfSpinner').style.display = loading ? 'inline-block' : 'none';
+    document.getElementById('btnExecutarCpf').disabled = loading;
+    document.getElementById('btnCancelarCpf').disabled = loading;
+}
+
+function normalizarCpf(v) { return (v || '').replace(/\D/g, ''); }
+
+async function confirmarCpf() {
+    var cpf = normalizarCpf(document.getElementById('inputCpfConsulta').value);
+
+    if (!cpf) { alert('Informe o CPF.'); return; }
+    if (cpf.length !== 11) { alert('CPF inválido. Deve ter 11 dígitos.'); return; }
+
+    var params = {};
+    params[NOME_PARAMETRO] = cpf;
+
+    try {
+        setLoading(true);
+
+        var res = await JX.acionarBotao(params, { idBotao: ID_BOTAO_ROTINA, tipo: 'JAVA' });
+
+        var htmlRetorno =
+            (res && (res.mensagemRetorno || res.mensagem || res.message)) ||
+            (res && res.data && (res.data.mensagemRetorno || res.data.mensagem || res.data.message)) ||
+            null;
+
+        fecharModalCpf();
+
+        if (htmlRetorno && typeof htmlRetorno === 'string' && htmlRetorno.indexOf('<') >= 0) {
+            abrirModalResultado(htmlRetorno);
+            return;
+        }
+
+        var htmlNovo = await montarResultadoVisualViaBanco(cpf);
+        abrirModalResultado(htmlNovo);
+
+    } catch (err) {
+        console.error(err);
+        alert((err && err.message) || 'Falha ao executar a rotina.');
+    } finally {
+        setLoading(false);
+    }
+}
+
+async function montarResultadoVisualViaBanco(cpf) {
+    var SQL = '\
+        SELECT\
+            DTCONSULTA,\
+            NOMEPARC,\
+            STATUS,\
+            SCORE,\
+            SCOREINFO,\
+            RISCO,\
+            RISCODESC,\
+            VAIPAGAR,\
+            PROBDESC,\
+            COMPORTAMENTO,\
+            PAGDESC,\
+            PERFIL,\
+            PERFILDESC,\
+            CODRETORNO\
+        FROM AD_CONSULTACPF\
+        WHERE CPF = \'' + cpf + '\'\
+        ORDER BY DTCONSULTA DESC\
+        FETCH FIRST 1 ROWS ONLY\
+    ';
+
+    var rows = await JX.consultar(SQL);
+    if (!rows || !rows.length) {
+        return '\
+            <div class="resultado-shell">\
+                <div class="resultado-hero">\
+                    <div>\
+                        <div class="hero-title">📊 Consulta Score Positivo</div>\
+                        <div class="hero-sub">Não foi possível localizar um registro salvo no histórico para este CPF.</div>\
+                    </div>\
+                    <div class="badge-status">⚠️ Sem histórico</div>\
+                </div>\
+                <div class="resultado-body">\
+                    <div class="card">\
+                        <h4>🧾 Identificação</h4>\
+                        <div class="kv-grid">\
+                            <div class="kv">\
+                                <div class="k">CPF</div>\
+                                <div class="v mono">' + escapeHtml(formatarCPF(cpf)) + '</div>\
+                            </div>\
+                            <div class="kv">\
+                                <div class="k">Ação sugerida</div>\
+                                <div class="v">Verifique a execução da rotina e a gravação em AD_CONSULTACPF.</div>\
+                            </div>\
+                        </div>\
+                    </div>\
+                </div>\
+            </div>\
+        ';
+    }
+
+    var r = rows[0];
+
+    var nome = r.NOMEPARC || '---';
+    var status = r.STATUS || '---';
+    var dtConsulta = r.DTCONSULTA || '';
+    var score = Number(r.SCORE || 0);
+    var scoreInfo = r.SCOREINFO || '';
+    var risco = (r.RISCO || '').toString();
+    var riscoDesc = r.RISCODESC || '';
+    var prob = Number(r.VAIPAGAR || 0);
+    var probDesc = r.PROBDESC || '';
+    var comportamento = r.COMPORTAMENTO || '';
+    var pagDesc = r.PAGDESC || '';
+    var perfil = r.PERFIL || '';
+    var perfilDesc = r.PERFILDESC || '';
+    var codRetorno = r.CODRETORNO != null ? String(r.CODRETORNO) : '';
+
+    var scoreBg = 'rgba(220,53,69,0.10)', scoreFg = '#721c24';
+    var scoreLabel = 'Alto risco';
+    if (score >= 700) { scoreBg = 'rgba(40,167,69,0.12)'; scoreFg = '#155724'; scoreLabel = 'Bom score'; }
+    else if (score >= 400) { scoreBg = 'rgba(255,193,7,0.14)'; scoreFg = '#856404'; scoreLabel = 'Score médio'; }
+
+    var riscoUpper = risco.toUpperCase();
+    var riscoClass = 'high';
+    if (riscoUpper === 'BAIXO') riscoClass = 'low';
+    else if (riscoUpper === 'MEDIO' || riscoUpper === 'MÉDIO') riscoClass = 'mid';
+
+    var statusBadge = status ? '✅ ' + escapeHtml(status) : '✅ OK';
+    var dtTxt = dtConsulta ? String(dtConsulta) : '';
+
+    return '\
+        <div class="resultado-shell">\
+            <div class="resultado-hero">\
+                <div>\
+                    <div class="hero-title">📊 Consulta Score Positivo</div>\
+                    <div class="hero-sub">\
+                        Resultado organizado para leitura rápida e decisão.<br>\
+                        <span class="mono">CPF ' + escapeHtml(formatarCPF(cpf)) + '</span>\
+                        ' + (dtTxt ? ' • <span>' + escapeHtml(dtTxt) + '</span>' : '') + '\
+                    </div>\
+                </div>\
+                <div class="badge-status">' + statusBadge + '</div>\
+            </div>\
+            <div class="resultado-body">\
+                <div class="sec-grid">\
+                    <div class="card">\
+                        <h4>🧾 Identificação</h4>\
+                        <div class="kv-grid">\
+                            <div class="kv">\
+                                <div class="k">Cliente</div>\
+                                <div class="v">' + escapeHtml(nome) + '</div>\
+                            </div>\
+                            <div class="kv">\
+                                <div class="k">CPF</div>\
+                                <div class="v mono">' + escapeHtml(formatarCPF(cpf)) + '</div>\
+                            </div>\
+                            <div class="kv">\
+                                <div class="k">Código retorno</div>\
+                                <div class="v">' + (codRetorno ? escapeHtml(codRetorno) : '---') + '</div>\
+                                <div class="v"><small>Útil para suporte/diagnóstico.</small></div>\
+                            </div>\
+                            <div class="kv">\
+                                <div class="k">Status</div>\
+                                <div class="v">' + escapeHtml(status) + '</div>\
+                                <div class="v"><small>Retornado pela API (ou rotina).</small></div>\
+                            </div>\
+                        </div>\
+                    </div>\
+                    <div class="card">\
+                        <h4>⭐ Score</h4>\
+                        <div class="score-wrap">\
+                            <div class="score-big" style="background:' + scoreBg + '; color:' + scoreFg + ';">\
+                                <div class="score-label">' + escapeHtml(scoreLabel) + '</div>\
+                                <div class="score-num">' + (isFinite(score) ? score : 0) + '</div>\
+                                <div class="score-sub">de 1000 pontos</div>\
+                                ' + (scoreInfo ? '<div class="note">' + escapeHtml(scoreInfo) + '</div>' : '') + '\
+                            </div>\
+                            <div class="pill-row">\
+                                ' + (risco ? '<div class="pill ' + riscoClass + '">🎯 Risco: <b>' + escapeHtml(risco) + '</b></div>' : '') + '\
+                                ' + (prob > 0 ? '<div class="pill low">💯 Prob.: <b>' + prob + '%</b></div>' : '') + '\
+                            </div>\
+                            ' + ((riscoDesc || probDesc) ? '\
+                                <div class="note">\
+                                    ' + (riscoDesc ? '<div><b>Risco:</b> ' + escapeHtml(riscoDesc) + '</div>' : '') + '\
+                                    ' + (probDesc ? '<div style="margin-top:6px;"><b>Probabilidade:</b> ' + escapeHtml(probDesc) + '</div>' : '') + '\
+                                </div>' : '') + '\
+                        </div>\
+                    </div>\
+                </div>\
+                <div style="height: 12px;"></div>\
+                <div class="card">\
+                    <h4>📌 Detalhamento</h4>\
+                    <div class="kv-grid">\
+                        <div class="kv">\
+                            <div class="k">Comportamento de pagamento</div>\
+                            <div class="v">' + (comportamento ? escapeHtml(comportamento) : '---') + '</div>\
+                            ' + (pagDesc ? '<div class="v"><small>' + escapeHtml(pagDesc) + '</small></div>' : '') + '\
+                        </div>\
+                        <div class="kv">\
+                            <div class="k">Perfil financeiro</div>\
+                            <div class="v">' + (perfil ? escapeHtml(perfil) : '---') + '</div>\
+                            ' + (perfilDesc ? '<div class="v"><small>' + escapeHtml(perfilDesc) + '</small></div>' : '') + '\
+                        </div>\
+                    </div>\
+                </div>\
+                <div class="note">\
+                    Dica: use o Score + Risco + Probabilidade como triagem rápida; leia o comportamento e perfil para refinar a decisão.\
+                </div>\
+            </div>\
+        </div>\
+    ';
+}
+
+document.getElementById('inputCpfConsulta').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') confirmarCpf();
+    if (e.key === 'Escape') fecharModalCpf();
+});
+
+    </script>
+</body>
+</html>
