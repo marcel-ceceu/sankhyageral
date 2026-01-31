@@ -1096,32 +1096,32 @@
     // 3) DEFINIÇÃO DAS COLUNAS
     // ============================================================
     let COLS = [
-      // ORDEM PRINCIPAL (padrão compacto)
+      // ORDEM PRINCIPAL (conforme solicitado)
       { key: 'CODSIS',        label: 'Cód. Sistema',    width: 90,  align: 'right',  visible: true },
-      { key: 'DTNEG',         label: 'Dt. Neg.',        width: 90,  align: 'center', type: 'date',     visible: true },
-      { key: 'DTINSERT',      label: 'Dt. Insert',      width: 130, align: 'center', type: 'datetime', visible: false },
+      { key: 'NUNOTA',        label: 'Nº Nota',         width: 90,  align: 'right',  type: 'number',  visible: true },
+      { key: 'DTNEG',         label: 'Dt. Neg.',        width: 90,  align: 'center', type: 'date',    visible: true },
+      { key: 'DTINSERT',      label: 'Dt. Insert',      width: 130, align: 'center', type: 'datetime', visible: true },
       { key: 'CODREF',        label: 'Cód. Ref.',       width: 150, align: 'left',   visible: true },
       { key: 'MARCA',         label: 'Marca',           width: 100, align: 'left',   visible: true },
       { key: 'CODORIG',       label: 'Cód. Original',   width: 120, align: 'left',   visible: true },
+      { key: 'GRUPO',         label: 'Grupo',           width: 120, align: 'left',   visible: true },
       { key: 'PRODUTO',       label: 'Produto',         width: 250, align: 'left',   visible: true },
-      { key: 'AUT_STATUS',    label: 'Status Auto',     width: 110, align: 'center', type: 'status',   visible: true },
-      { key: 'SUGESTAO',      label: 'Sugestão',        width: 85,  align: 'right',  type: 'number',   visible: true },
-      { key: 'ORIG_ETQ',      label: 'Etq. Original',   width: 90,  align: 'right',  type: 'number',   visible: true },
-      { key: 'SIM_ETQ',       label: 'Etq. Similar',    width: 90,  align: 'right',  type: 'number',   visible: true },
-      { key: 'USU_DECISAO',   label: 'Decisão',         width: 145, align: 'center', type: 'decisao',  editable: true, visible: true },
-      { key: 'COM_ULTCUS',    label: 'Custo Ult.',      width: 100, align: 'right',  type: 'currency', visible: true },
-      { key: 'FORNECEDOR',    label: 'Fornecedor',      width: 150, align: 'left',   visible: true },
-
-      // --- OUTROS (mantidos no menu de colunas) ---
-      { key: 'NUNOTA',        label: 'Nº Nota',         width: 90,  align: 'right',  type: 'number',   visible: false },
-      { key: 'GRUPO',         label: 'Grupo',           width: 120, align: 'left',   visible: false },
-      { key: 'ABC',           label: 'Curva ABC',       width: 70,  align: 'center', type: 'curva',    visible: false },
-      { key: 'RNK',           label: 'Ranking',         width: 80,  align: 'right',  type: 'number',   visible: false },
+      { key: 'ABC',           label: 'Curva ABC',       width: 70,  align: 'center', type: 'curva',   visible: true },
+      { key: 'RNK',           label: 'Ranking',         width: 80,  align: 'right',  type: 'number',  visible: true },
       { key: 'CATEG_VAL',     label: 'Categ. Valor',    width: 0,   align: 'center', visible: false },
-      { key: 'CATEG',         label: 'Categoria',       width: 120, align: 'center', type: 'categoria', editable: true, visible: false },
-      { key: 'STATUS',        label: 'Status',          width: 110, align: 'center', type: 'status',   visible: false },
-      { key: 'ORIG_MEDMES',   label: 'Média/Mês',       width: 90,  align: 'right',  type: 'decimal',  visible: false },
-      { key: 'USU_QTDPEDIDO', label: 'Qtd. Pedido',     width: 90,  align: 'right',  type: 'number',   visible: false },
+      { key: 'CATEG',         label: 'Categoria',       width: 120, align: 'center', type: 'categoria', editable: true, visible: true },
+      { key: 'STATUS',        label: 'Status',          width: 110, align: 'center', type: 'status',  visible: true },
+      { key: 'AUT_STATUS',    label: 'Status Auto',     width: 110, align: 'center', type: 'status',  visible: true },
+      { key: 'SUGESTAO',      label: 'Sugestão',        width: 85,  align: 'right',  type: 'number',  visible: true },
+      { key: 'ORIG_ETQ',      label: 'Etq. Original',   width: 90,  align: 'right',  type: 'number',  visible: true },
+      { key: 'SIM_ETQ',       label: 'Etq. Similar',    width: 90,  align: 'right',  type: 'number',  visible: true },
+      { key: 'USU_DECISAO',   label: 'Decisão',         width: 145, align: 'center', type: 'decisao',  editable: true, visible: true },
+
+      // --- OUTROS ---
+      { key: 'FORNECEDOR',    label: 'Fornecedor',      width: 150, align: 'left',   visible: true },
+      { key: 'COM_ULTCUS',    label: 'Custo Ult.',      width: 100, align: 'right',  type: 'currency', visible: true },
+      { key: 'ORIG_MEDMES',   label: 'Média/Mês',       width: 90,  align: 'right',  type: 'decimal',  visible: true },
+      { key: 'USU_QTDPEDIDO', label: 'Qtd. Pedido',     width: 90,  align: 'right',  type: 'number',   visible: true },
       { key: 'COM_DTULT',     label: 'Cód. Fornec.',    width: 100, align: 'right',  visible: false },
     ];
 
@@ -2735,33 +2735,6 @@
     if ($chkCotacaoRapida) {
       $chkCotacaoRapida.addEventListener('change', () => {
         state.filtroCotacaoRapida = $chkCotacaoRapida.checked;
-        
-        // Quando DESMARCAR (voltar para "todos os produtos"), limpa todos os filtros
-        // para resetar a visualização como era inicialmente
-        if (!$chkCotacaoRapida.checked) {
-          // Limpa busca global
-          state.globalSearch = '';
-          $globalSearch.value = '';
-          
-          // Limpa ordenação
-          state.sort = { key: null, dir: null };
-          
-          // Limpa filtros rápidos e de menu
-          COLS.forEach(col => {
-            state.quickFilters[col.key] = '';
-            state.menuFilters[col.key] = {
-              operator: 'contains',
-              value: '',
-              selected: new Set(),
-              includeBlanks: true,
-            };
-          });
-          
-          // Fecha popup de filtro se estiver aberto
-          closeMenu();
-        }
-        
-        // Sempre volta para página 1
         state.currentPage = 1;
         render();
       });

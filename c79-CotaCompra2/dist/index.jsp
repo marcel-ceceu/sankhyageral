@@ -13,7 +13,7 @@ atualizado 20/01/2026
    VARIÁVEIS CSS
    ========================================================== */
 :root {
-  --ui-zoom: 1.2;
+  --ui-zoom: 1;
 
   --bg: #ffffff;
   --bg-alt: #f8f9fa;
@@ -121,19 +121,6 @@ body {
   gap: 8px;
 }
 
-.r-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  font-weight: 700;
-  font-size: 12px;
-  color: #fff;
-  background: var(--pri);
-}
-
 .toolbar-spacer { flex: 1; }
 
 .toolbar-search {
@@ -227,22 +214,13 @@ body {
 
 .row-header {
   height: var(--head-height);
-  background: linear-gradient(180deg, #1a73e8 0%, #1557b0 100%);
+  background: var(--bg-alt);
   position: sticky;
   top: 0;
   z-index: 10;
-  font-weight: 700;
-  font-size: 13px;
-  color: #ffffff;
-  border-bottom: 2px solid #0f4aa8;
-}
-
-.row-header .cell.drag-over {
-  background: rgba(255,255,255,0.18);
-}
-
-.row-header .cell.dragging-col {
-  opacity: 0.6;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--tx-muted);
 }
 
 .row-filter {
@@ -341,8 +319,7 @@ body {
 }
 
 .header-label:hover {
-  color: #fff;
-  background: rgba(255,255,255,0.18);
+  color: var(--pri);
 }
 
 .header-label span {
@@ -353,48 +330,46 @@ body {
 
 .sort-icon {
   font-size: 10px;
-  opacity: 0.7;
+  opacity: 0.4;
   transition: opacity 0.2s;
-  color: rgba(255,255,255,0.9);
 }
 
 .sort-icon.active {
   opacity: 1;
-  color: #fff;
+  color: var(--pri);
 }
 
 /* ==========================================================
    BOTÃO MENU (agora usado na LINHA DE FILTRO)  [Ajuste 1]
    ========================================================== */
-/* ===== FILTER BUTTON (Excel Style) ===== */
-.filter-btn {
-  width: 18px;
-  height: 18px;
-  border: none;
+.menu-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: 6px;
   background: transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 2px;
-  color: rgba(255,255,255,0.85);
-  font-size: 10px;
+  color: var(--tx-muted);
+  transition: all 0.2s;
   flex-shrink: 0;
 }
 
-.filter-btn:hover {
-  background: rgba(255,255,255,0.2);
-  color: #fff;
+.menu-btn:hover {
+  background: var(--bg-alt);
+  border-color: var(--bd);
 }
 
-.filter-btn.has-filter {
-  color: #fff;
-  background: rgba(255,255,255,0.28);
+.menu-btn svg {
+  width: 16px;
+  height: 16px;
 }
 
-.filter-btn svg {
-  width: 12px;
-  height: 12px;
+.menu-btn.has-filter {
+  color: var(--pri);
+  background: var(--pri-light);
 }
 
 /* ==========================================================
@@ -480,149 +455,18 @@ body {
 /* ==========================================================
    POPUP DE FILTRO (MENU)
    ========================================================== */
-/* ===== FILTER POPOVER (Excel Classic) ===== */
 .popup {
   position: fixed;
   z-index: 1000;
-  min-width: 220px;
-  max-width: 300px;
+  width: 340px;
   background: var(--bg);
-  border: 1px solid var(--bd2);
-  border-radius: 4px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  border: 1px solid var(--bd);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
   display: none;
 }
 
 .popup.show { display: block; }
-
-.filter-popover-header {
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--bd);
-  background: var(--bg-alt);
-  font-weight: 600;
-  font-size: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.filter-popover-close {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  color: var(--tx-muted);
-  padding: 2px 6px;
-  border-radius: 2px;
-}
-
-.filter-popover-close:hover {
-  background: var(--danger-bg);
-  color: var(--danger);
-}
-
-.filter-sort-section {
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--bd);
-  display: flex;
-  gap: 6px;
-}
-
-.sort-btn {
-  flex: 1;
-  padding: 6px 8px;
-  border: 1px solid var(--bd);
-  border-radius: 4px;
-  background: var(--bg);
-  font-size: 11px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-
-.sort-btn:hover {
-  background: var(--bg-alt);
-  border-color: var(--bd2);
-}
-
-.sort-btn.active {
-  background: var(--pri-light);
-  border-color: var(--pri);
-  color: var(--pri-dark);
-}
-
-.filter-search {
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--bd);
-}
-
-.filter-search input {
-  width: 100%;
-  height: 28px;
-  border: 1px solid var(--bd);
-  border-radius: 4px;
-  padding: 0 8px;
-  font-size: 12px;
-}
-
-.filter-search input:focus {
-  outline: none;
-  border-color: var(--pri);
-}
-
-.filter-actions {
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--bd);
-  display: flex;
-  gap: 8px;
-  background: #fafafa;
-}
-
-.filter-action-btn {
-  background: none;
-  border: none;
-  color: var(--pri);
-  font-size: 11px;
-  cursor: pointer;
-  padding: 2px 4px;
-  border-radius: 2px;
-}
-
-.filter-action-btn:hover {
-  background: var(--pri-light);
-  text-decoration: underline;
-}
-
-.filter-values {
-  max-height: 200px;
-  overflow-y: auto;
-  padding: 4px 0;
-}
-
-.filter-value-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 10px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.filter-value-item:hover {
-  background: var(--bg-alt);
-}
-
-.filter-footer {
-  display: flex;
-  gap: 8px;
-  padding: 8px 10px;
-  border-top: 1px solid var(--bd);
-  background: #fafafa;
-}
-
-.filter-footer .btn { flex: 1; height: 28px; }
 
 .popup-header {
   display: flex;
@@ -661,20 +505,6 @@ body {
   border-bottom: 1px solid var(--bd);
 }
 .popup-section:last-of-type { border-bottom: none; }
-
-.popup-actions,
-.popup-sort {
-  display: flex;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.popup-actions .btn,
-.popup-sort .btn {
-  height: 28px;
-  padding: 0 10px;
-  font-size: 11px;
-}
 
 .popup-label {
   font-size: 10px;
@@ -745,11 +575,6 @@ body {
   white-space: nowrap;
 }
 
-.value-count {
-  font-size: 11px;
-  color: var(--tx-muted);
-}
-
 /* Botões do popup */
 .popup-footer {
   display: flex;
@@ -760,69 +585,6 @@ body {
 }
 
 .popup-footer .btn { flex: 1; }
-
-/* ==========================================================
-   ACTIVE FILTERS BAR
-   ========================================================== */
-.active-filters {
-  display: none;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--bd);
-  background: var(--bg-alt);
-}
-
-.active-filters.show { display: flex; }
-
-.filter-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: var(--pri-light);
-  color: var(--pri-dark);
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.filter-tag .filter-tag-remove {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(26, 115, 232, 0.15);
-  color: var(--pri-dark);
-  cursor: pointer;
-  font-size: 12px;
-  line-height: 1;
-}
-
-.filter-tag .filter-tag-remove:hover {
-  background: rgba(26, 115, 232, 0.3);
-}
-
-.filter-clear-all {
-  margin-left: auto;
-  height: 26px;
-  padding: 0 10px;
-  border: 1px solid var(--bd);
-  border-radius: 999px;
-  background: var(--bg);
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--tx-muted);
-  cursor: pointer;
-}
-
-.filter-clear-all:hover {
-  color: var(--tx);
-  background: var(--bg-alt);
-  border-color: var(--bd2);
-}
 
 /* ==========================================================
    RODAPÉ (PAGINAÇÃO & INFO)
@@ -920,35 +682,6 @@ body {
 .text-danger { color: var(--danger); }
 .font-mono { font-family: 'Consolas', 'Monaco', monospace; }
 
-/* Destaques de colunas */
-.cell-custo-ultimo {
-  color: var(--danger);
-  font-weight: 700;
-}
-
-.cell-fornecedor {
-  font-weight: 700;
-}
-
-/* Destaque visual: LIN (linha) vs SIM (similar) */
-.row-data .cell-linha {
-  background: #fff7ed;
-  border-left: 3px solid #f59e0b;
-}
-
-.row-data .cell-similar {
-  background: #f5faff;
-  border-left: 3px solid #60a5fa;
-}
-
-.row-header .cell-linha {
-  box-shadow: inset 0 -3px 0 #f59e0b;
-}
-
-.row-header .cell-similar {
-  box-shadow: inset 0 -3px 0 #60a5fa;
-}
-
 /* ===== TOOLTIP SIMILARES (compacto) ===== */
 .lupa-similar { cursor: help; margin-left: 6px; font-size: 14px; opacity: 0.7; transition: opacity 0.2s; }
 .lupa-similar:hover, .lupa-similar.on { opacity: 1; }
@@ -985,19 +718,6 @@ body {
   line-height: 1;
   filter: drop-shadow(0 1px 2px rgba(30, 142, 62, 0.25));
 }
-
-/* ==========================================================
-   DESTAQUE COLUNA ESTOQUE ORIGINAL (DESATIVADO - campos não existem)
-   ========================================================== */
-/* .cell-estoque-original {
-  background: #e3f2fd !important;
-}
-
-.icon-estoque {
-  margin-left: 4px;
-  font-size: 11px;
-  opacity: 0.6;
-} */
 
 /* ==========================================================
    TOGGLE SWITCH - COTAÇÃO RÁPIDA
@@ -1283,344 +1003,6 @@ body {
   margin-left: 4px;
 }
 
-/* ==========================================================
-   TABS
-   ========================================================== */
-.tabs {
-  display: flex;
-  gap: 6px;
-  padding: 6px 10px 0;
-  border-bottom: 1px solid var(--bd);
-  background: var(--bg-alt);
-}
-
-.tab-btn {
-  border: 1px solid var(--bd);
-  border-bottom: none;
-  background: #e5e7eb;
-  color: var(--tx);
-  padding: 6px 12px;
-  border-radius: 8px 8px 0 0;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  position: relative;
-  top: 1px;
-}
-
-.tab-btn.active {
-  background: #fff;
-  color: var(--tx);
-  border-color: var(--bd);
-  box-shadow: 0 -1px 0 #fff;
-}
-
-.tab-section {
-  display: none;
-  flex: 1;
-  min-height: 0;
-}
-
-.tab-section.active {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-/* ==========================================================
-   ABA 2 (KANBAN) - LAYOUT
-   ========================================================== */
-.tab2-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background: var(--bg);
-  border-bottom: 1px solid var(--bd);
-}
-
-.tab2-header-left h2 {
-  font-size: 18px;
-  font-weight: 800;
-  margin-bottom: 4px;
-}
-
-.tab2-header-left p {
-  color: var(--tx-muted);
-  font-size: 12px;
-}
-
-.tab2-header-right {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.tab2-search-box {
-  padding: 8px 12px;
-  border: 1px solid var(--bd);
-  border-radius: 10px;
-  font-size: 12px;
-  width: 240px;
-  background: var(--bg);
-}
-
-.tab2-filter {
-  padding: 8px 10px;
-  border: 1px solid var(--bd);
-  border-radius: 10px;
-  font-size: 12px;
-  background: var(--bg);
-}
-
-.tab2-btn {
-  padding: 8px 14px;
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-  background: var(--pri);
-  color: white;
-}
-
-.tab2-summary-bar {
-  display: flex;
-  gap: 12px;
-  padding: 12px 16px;
-  background: var(--bg-page);
-  border-bottom: 1px solid var(--bd);
-}
-
-.tab2-summary-card {
-  background: var(--bg);
-  padding: 12px 16px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-
-.tab2-summary-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-}
-
-.tab2-summary-card.urgente .tab2-summary-icon { background: #FFEBE9; }
-.tab2-summary-card.pendente .tab2-summary-icon { background: #FFF4E5; }
-.tab2-summary-card.ok .tab2-summary-icon { background: #E8F9ED; }
-.tab2-summary-card.sem .tab2-summary-icon { background: #f3f4f6; }
-
-.tab2-summary-info .number {
-  font-size: 18px;
-  font-weight: 800;
-}
-
-.tab2-summary-card.urgente .number { color: var(--danger); }
-.tab2-summary-card.pendente .number { color: var(--warning); }
-.tab2-summary-card.ok .number { color: var(--success); }
-.tab2-summary-card.sem .number { color: var(--tx-muted); }
-
-.tab2-summary-info .label {
-  font-size: 10px;
-  color: var(--tx-muted);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.tab2-kanban {
-  display: grid;
-  grid-template-columns: 1fr 1.5fr 1fr 1fr;
-  gap: 16px;
-  padding: 12px 16px 16px;
-  flex: 1;
-  min-height: 0;
-}
-
-.tab2-column {
-  background: var(--bg);
-  border-radius: 16px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-  min-height: 0;
-}
-
-.tab2-column-header {
-  padding: 14px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.tab2-column.urgente .tab2-column-header { background: linear-gradient(135deg, #FFEBE9 0%, #FFF 100%); }
-.tab2-column.pendente .tab2-column-header { background: linear-gradient(135deg, #FFF4E5 0%, #FFF 100%); }
-.tab2-column.ok .tab2-column-header { background: linear-gradient(135deg, #E8F9ED 0%, #FFF 100%); }
-.tab2-column.sem .tab2-column-header { background: linear-gradient(135deg, #f3f4f6 0%, #FFF 100%); }
-
-.tab2-column-title {
-  font-size: 13px;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.tab2-column.urgente .tab2-column-title { color: var(--danger); }
-.tab2-column.pendente .tab2-column-title { color: var(--warning); }
-.tab2-column.ok .tab2-column-title { color: var(--success); }
-.tab2-column.sem .tab2-column-title { color: var(--tx-muted); }
-
-.tab2-column-count {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.tab2-column.urgente .tab2-column-count { background: var(--danger); color: white; }
-.tab2-column.pendente .tab2-column-count { background: var(--warning); color: white; }
-.tab2-column.ok .tab2-column-count { background: var(--success); color: white; }
-.tab2-column.sem .tab2-column-count { background: #9ca3af; color: white; }
-
-.tab2-cards-area {
-  flex: 1;
-  overflow-y: auto;
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.tab2-product-card {
-  background: var(--bg-page);
-  border-radius: 12px;
-  padding: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.tab2-product-card:hover {
-  transform: scale(1.01);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-.tab2-card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 8px;
-}
-
-.tab2-product-name {
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.3;
-  flex: 1;
-  margin-right: 8px;
-}
-
-.tab2-grupo-tag {
-  font-size: 10px;
-  color: var(--tx-muted);
-  margin-top: 4px;
-}
-
-.tab2-curva {
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 10px;
-  font-weight: 800;
-  color: white;
-}
-
-.tab2-curva.A { background: linear-gradient(135deg, #7C3AED, #9333EA); }
-.tab2-curva.B { background: linear-gradient(135deg, #3B82F6, #2563EB); }
-.tab2-curva.C { background: linear-gradient(135deg, #64748B, #475569); }
-.tab2-curva.D { background: linear-gradient(135deg, #94A3B8, #64748B); }
-
-.tab2-card-details {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-
-.tab2-detail-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.tab2-detail-label {
-  font-size: 9px;
-  color: var(--tx-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  margin-bottom: 2px;
-}
-
-.tab2-detail-value {
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.tab2-detail-value.marca {
-  color: var(--pri);
-}
-
-.tab2-card-actions {
-  display: flex;
-  gap: 6px;
-}
-
-.tab2-card-btn {
-  flex: 1;
-  padding: 8px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.tab2-card-btn.comprar {
-  background: var(--pri);
-  color: white;
-}
-
-.tab2-card-btn.comprar:hover {
-  background: var(--pri-dark);
-}
-
-.tab2-card-btn.ignorar {
-  background: var(--bg);
-  color: var(--tx-muted);
-}
-
-.tab2-card-btn.ignorar:hover {
-  background: #e5e5e7;
-}
-
-.tab2-card-btn.done {
-  background: #D1FAE5;
-  color: var(--success);
-}
-
 </style>
 </head>
 <body>
@@ -1630,7 +1012,6 @@ body {
       <!-- ==================== TOOLBAR ==================== -->
       <div class="toolbar">
         <div class="toolbar-title">
-          <span class="r-badge">R</span>
           <span>📦</span>
           <span>Reposição - Decisão de Compras</span>
         </div>
@@ -1638,6 +1019,10 @@ body {
         <div class="toolbar-search">
           <input type="text" id="globalSearch" placeholder="Pesquisar em todas as colunas...">
         </div>
+        <label class="cotacao-rapida-container" id="cotacaoRapidaContainer">
+          <input type="checkbox" id="chkCotacaoRapida">
+          <span class="cotacao-rapida-label">⭐ Filtrar para Cotação Rápida</span>
+        </label>
         <div class="dropdown-cols">
           <button class="btn" id="btnToggleCols">⚙️ Colunas ▼</button>
           <div class="dropdown-menu" id="menuCols"></div>
@@ -1647,137 +1032,39 @@ body {
         <button class="btn" id="btnExport">📋 Exportar</button>
       </div>
 
-      <!-- ==================== TABS ==================== -->
-      <div class="tabs">
-        <button class="tab-btn active" data-tab="cotacao">#1. Cotação Rápida</button>
-        <button class="tab-btn" data-tab="todos">#2. Todos os Produtos</button>
-        <button class="tab-btn" data-tab="kanban">Kanban</button>
-      </div>
-
-      <!-- ==================== ABA 1: TABELA ==================== -->
-      <div class="tab-section tab-section-table active" id="tabTable">
-        <!-- ==================== ACTIVE FILTERS BAR ==================== -->
-        <div class="active-filters" id="activeFiltersBar"></div>
-        <!-- ==================== GRID ==================== -->
-        <div class="grid-wrapper">
-          <div class="grid-scroll" id="gridScroll">
-            <div class="loading" id="loading">Carregando dados...</div>
-          </div>
-        </div>
-
-        <!-- ==================== FOOTER ==================== -->
-        <div class="footer">
-          <div class="footer-info">
-            <span id="selectionInfo">0 selecionado(s)</span>
-            <span class="text-muted">|</span>
-            <span id="totalInfo">0 registros</span>
-          </div>
-          <div class="footer-spacer"></div>
-          <div class="pagination">
-            <span>Exibir:</span>
-            <select id="pageSize">
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50" selected>50</option>
-              <option value="100">100</option>
-            </select>
-            <button id="btnPrev">◀ Anterior</button>
-            <span class="page-info" id="pageInfo">1 de 1</span>
-            <button id="btnNext">Próximo ▶</button>
-          </div>
+      <!-- ==================== GRID ==================== -->
+      <div class="grid-wrapper">
+        <div class="grid-scroll" id="gridScroll">
+          <div class="loading" id="loading">Carregando dados...</div>
         </div>
       </div>
 
-      <!-- ==================== ABA 2: KANBAN (Decisão) ==================== -->
-      <div class="tab-section tab-section-kanban" id="tabKanban">
-        <div class="tab2-header">
-          <div class="tab2-header-left">
-            <h2>Decisão de Compras</h2>
-            <p><span id="tab2Total">0</span> itens aguardando análise</p>
-          </div>
-          <div class="tab2-header-right">
-            <input type="text" class="tab2-search-box" id="tab2Search" placeholder="Buscar produto ou marca...">
-            <select class="tab2-filter" id="tab2DecisionFilter">
-              <option value="ALL">Todas as decisões</option>
-              <option value="PROCESSAR">Processar</option>
-              <option value="ANALISAR">Analisar</option>
-              <option value="IGNORAR">Ignorar</option>
-              <option value="SEM">Sem decisão</option>
-            </select>
-            <button class="tab2-btn" id="tab2Refresh">Atualizar</button>
-          </div>
+      <!-- ==================== FOOTER ==================== -->
+      <div class="footer">
+        <div class="footer-info">
+          <span id="selectionInfo">0 selecionado(s)</span>
+          <span class="text-muted">|</span>
+          <span id="totalInfo">0 registros</span>
         </div>
-
-        <div class="tab2-summary-bar">
-          <div class="tab2-summary-card urgente">
-            <div class="tab2-summary-icon">🔴</div>
-            <div class="tab2-summary-info">
-              <div class="number" id="tab2CountProcessar">0</div>
-              <div class="label">Processar</div>
-            </div>
-          </div>
-          <div class="tab2-summary-card pendente">
-            <div class="tab2-summary-icon">🟡</div>
-            <div class="tab2-summary-info">
-              <div class="number" id="tab2CountAnalisar">0</div>
-              <div class="label">Analisar</div>
-            </div>
-          </div>
-          <div class="tab2-summary-card ok">
-            <div class="tab2-summary-icon">🟢</div>
-            <div class="tab2-summary-info">
-              <div class="number" id="tab2CountIgnorar">0</div>
-              <div class="label">Ignorar</div>
-            </div>
-          </div>
-          <div class="tab2-summary-card sem">
-            <div class="tab2-summary-icon">⚪</div>
-            <div class="tab2-summary-info">
-              <div class="number" id="tab2CountSem">0</div>
-              <div class="label">Sem decisão</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="tab2-kanban">
-          <div class="tab2-column urgente">
-            <div class="tab2-column-header">
-              <span class="tab2-column-title">⚠️ Processar</span>
-              <span class="tab2-column-count" id="tab2ColCountProcessar">0</span>
-            </div>
-            <div class="tab2-cards-area" id="tab2ColProcessar"></div>
-          </div>
-
-          <div class="tab2-column pendente">
-            <div class="tab2-column-header">
-              <span class="tab2-column-title">📋 Analisar</span>
-              <span class="tab2-column-count" id="tab2ColCountAnalisar">0</span>
-            </div>
-            <div class="tab2-cards-area" id="tab2ColAnalisar"></div>
-          </div>
-
-          <div class="tab2-column ok">
-            <div class="tab2-column-header">
-              <span class="tab2-column-title">✅ Ignorar</span>
-              <span class="tab2-column-count" id="tab2ColCountIgnorar">0</span>
-            </div>
-            <div class="tab2-cards-area" id="tab2ColIgnorar"></div>
-          </div>
-
-          <div class="tab2-column sem">
-            <div class="tab2-column-header">
-              <span class="tab2-column-title">⚪ Sem decisão</span>
-              <span class="tab2-column-count" id="tab2ColCountSem">0</span>
-            </div>
-            <div class="tab2-cards-area" id="tab2ColSem"></div>
-          </div>
+        <div class="footer-spacer"></div>
+        <div class="pagination">
+          <span>Exibir:</span>
+          <select id="pageSize">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+          </select>
+          <button id="btnPrev">◀ Anterior</button>
+          <span class="page-info" id="pageInfo">1 de 1</span>
+          <button id="btnNext">Próximo ▶</button>
         </div>
       </div>
     </div>
   </div>
 
   <!-- ==================== POPUP DE FILTRO ==================== -->
-  <div class="popup filter-popover" id="popup"></div>
+  <div class="popup" id="popup"></div>
 
   <!-- ==================== TOOLTIP SIMILARES ==================== -->
   <div class="tooltip-similar" id="tooltipSimilar"></div>
@@ -1795,41 +1082,36 @@ body {
   let DATA = [];
   let DATA_FULL = []; // Todos os registros sem filtro (para tooltip de similares)
 
-  const FILTERS_STORAGE_KEY = 'c78_dash_filters_v1';
-
   // ============================================================
   // 3) DEFINIÇÃO DAS COLUNAS
   // ============================================================
   let COLS = [
-    // ORDEM PRINCIPAL (padrão compacto)
+    // ORDEM PRINCIPAL (conforme solicitado)
     { key: 'CODSIS',        label: 'Cód. Sistema',    width: 90,  align: 'right',  visible: true },
-    { key: 'DTNEG',         label: 'Dt. Neg.',        width: 90,  align: 'center', type: 'date',     visible: true },
-    { key: 'DTINSERT',      label: 'Dt. Insert',      width: 130, align: 'center', type: 'datetime', visible: false },
+    { key: 'NUNOTA',        label: 'Nº Nota',         width: 90,  align: 'right',  type: 'number',  visible: true },
+    { key: 'DTNEG',         label: 'Dt. Neg.',        width: 90,  align: 'center', type: 'date',    visible: true },
+    { key: 'DTINSERT',      label: 'Dt. Insert',      width: 130, align: 'center', type: 'datetime', visible: true },
     { key: 'CODREF',        label: 'Cód. Ref.',       width: 150, align: 'left',   visible: true },
     { key: 'MARCA',         label: 'Marca',           width: 100, align: 'left',   visible: true },
     { key: 'CODORIG',       label: 'Cód. Original',   width: 120, align: 'left',   visible: true },
+    { key: 'GRUPO',         label: 'Grupo',           width: 120, align: 'left',   visible: true },
     { key: 'PRODUTO',       label: 'Produto',         width: 250, align: 'left',   visible: true },
-    { key: 'AUT_STATUS',    label: 'Status Auto',     width: 110, align: 'center', type: 'status',   visible: true },
-    { key: 'SUGESTAO',      label: 'Sugestão',        width: 85,  align: 'right',  type: 'number',   visible: true },
-    { key: 'ORIG_ETQ',      label: 'Etq. Original',   width: 90,  align: 'right',  type: 'number',   visible: true },
-    { key: 'LIN_ETQTT',     label: 'Etq. Linha',      width: 90,  align: 'right',  type: 'number',   visible: true },
-    { key: 'QTDLINHA',      label: 'Qtd. Linha',      width: 80,  align: 'right',  type: 'number',   visible: false },
-    { key: 'DIFLINHA',      label: 'Dif. Linha',      width: 80,  align: 'center', type: 'number',   visible: false },
-    { key: 'SIM_ETQ',       label: 'Etq. Similar',    width: 90,  align: 'right',  type: 'number',   visible: true },
-    { key: 'USU_DECISAO',   label: 'Decisão',         width: 145, align: 'center', type: 'decisao',  editable: true, visible: true },
-    { key: 'COM_ULTCUS',    label: 'Custo Ult.',      width: 100, align: 'right',  type: 'currency', visible: true },
-    { key: 'FORNECEDOR',    label: 'Fornecedor',      width: 150, align: 'left',   visible: true },
-
-    // --- OUTROS (mantidos no menu de colunas) ---
-    { key: 'NUNOTA',        label: 'Nº Nota',         width: 90,  align: 'right',  type: 'number',   visible: false },
-    { key: 'GRUPO',         label: 'Grupo',           width: 120, align: 'left',   visible: false },
-    { key: 'ABC',           label: 'Curva ABC',       width: 70,  align: 'center', type: 'curva',    visible: false },
-    { key: 'RNK',           label: 'Ranking',         width: 80,  align: 'right',  type: 'number',   visible: false },
+    { key: 'ABC',           label: 'Curva ABC',       width: 70,  align: 'center', type: 'curva',   visible: true },
+    { key: 'RNK',           label: 'Ranking',         width: 80,  align: 'right',  type: 'number',  visible: true },
     { key: 'CATEG_VAL',     label: 'Categ. Valor',    width: 0,   align: 'center', visible: false },
-    { key: 'CATEG',         label: 'Categoria',       width: 120, align: 'center', type: 'categoria', editable: true, visible: false },
-    { key: 'STATUS',        label: 'Status',          width: 110, align: 'center', type: 'status',   visible: false },
-    { key: 'ORIG_MEDMES',   label: 'Média/Mês',       width: 90,  align: 'right',  type: 'decimal',  visible: false },
-    { key: 'USU_QTDPEDIDO', label: 'Qtd. Pedido',     width: 90,  align: 'right',  type: 'number',   visible: false },
+    { key: 'CATEG',         label: 'Categoria',       width: 120, align: 'center', type: 'categoria', editable: true, visible: true },
+    { key: 'STATUS',        label: 'Status',          width: 110, align: 'center', type: 'status',  visible: true },
+    { key: 'AUT_STATUS',    label: 'Status Auto',     width: 110, align: 'center', type: 'status',  visible: true },
+    { key: 'SUGESTAO',      label: 'Sugestão',        width: 85,  align: 'right',  type: 'number',  visible: true },
+    { key: 'ORIG_ETQ',      label: 'Etq. Original',   width: 90,  align: 'right',  type: 'number',  visible: true },
+    { key: 'SIM_ETQ',       label: 'Etq. Similar',    width: 90,  align: 'right',  type: 'number',  visible: true },
+    { key: 'USU_DECISAO',   label: 'Decisão',         width: 145, align: 'center', type: 'decisao',  editable: true, visible: true },
+
+    // --- OUTROS ---
+    { key: 'FORNECEDOR',    label: 'Fornecedor',      width: 150, align: 'left',   visible: true },
+    { key: 'COM_ULTCUS',    label: 'Custo Ult.',      width: 100, align: 'right',  type: 'currency', visible: true },
+    { key: 'ORIG_MEDMES',   label: 'Média/Mês',       width: 90,  align: 'right',  type: 'decimal',  visible: true },
+    { key: 'USU_QTDPEDIDO', label: 'Qtd. Pedido',     width: 90,  align: 'right',  type: 'number',   visible: true },
     { key: 'COM_DTULT',     label: 'Cód. Fornec.',    width: 100, align: 'right',  visible: false },
   ];
 
@@ -1837,8 +1119,8 @@ body {
   // 4) ESTADO GLOBAL
   // ============================================================
   const state = {
-    filtroCotacaoRapida: true, // Filtro especial de cotação rápida
-    sort: { key: 'DTNEG', dir: 'desc' },
+    filtroCotacaoRapida: false, // Filtro especial de cotação rápida
+    sort: { key: null, dir: null },
     globalSearch: '',
     quickFilters: {},
     menuFilters: {},
@@ -1846,12 +1128,6 @@ body {
     currentPage: 1,
     pageSize: 50,
     dragColumn: null,
-    activeDataTab: 'cotacao',
-  };
-
-  const tabData = {
-    cotacao: { rows: [], loaded: false },
-    todos: { rows: [], loaded: false },
   };
 
   COLS.forEach(col => {
@@ -1861,7 +1137,6 @@ body {
       value: '',
       selected: new Set(),
       includeBlanks: true,
-      mode: 'all',
     };
   });
 
@@ -1884,29 +1159,7 @@ body {
   const $selectionInfo = document.getElementById('selectionInfo');
   const $totalInfo = document.getElementById('totalInfo');
   const $loading = document.getElementById('loading');
-  const $activeFiltersBar = document.getElementById('activeFiltersBar');
   const $appToast = document.getElementById('appToast');
-  const $tabButtons = document.querySelectorAll('.tab-btn');
-  const $tabTable = document.getElementById('tabTable');
-  const $tabKanban = document.getElementById('tabKanban');
-  const $tab2Search = document.getElementById('tab2Search');
-  const $tab2DecisionFilter = document.getElementById('tab2DecisionFilter');
-  const $tab2Refresh = document.getElementById('tab2Refresh');
-  const $tab2Total = document.getElementById('tab2Total');
-  const $tab2CountProcessar = document.getElementById('tab2CountProcessar');
-  const $tab2CountAnalisar = document.getElementById('tab2CountAnalisar');
-  const $tab2CountIgnorar = document.getElementById('tab2CountIgnorar');
-  const $tab2CountSem = document.getElementById('tab2CountSem');
-  const $tab2ColProcessar = document.getElementById('tab2ColProcessar');
-  const $tab2ColAnalisar = document.getElementById('tab2ColAnalisar');
-  const $tab2ColIgnorar = document.getElementById('tab2ColIgnorar');
-  const $tab2ColSem = document.getElementById('tab2ColSem');
-  const $tab2ColCountProcessar = document.getElementById('tab2ColCountProcessar');
-  const $tab2ColCountAnalisar = document.getElementById('tab2ColCountAnalisar');
-  const $tab2ColCountIgnorar = document.getElementById('tab2ColCountIgnorar');
-  const $tab2ColCountSem = document.getElementById('tab2ColCountSem');
-
-  restoreFilterState();
 
   // ============================================================
   // 6) UTILITÁRIOS
@@ -1927,110 +1180,6 @@ body {
     if (!err) return 'Erro desconhecido';
     if (typeof err === 'string') return err;
     return err.responseText || err.statusMessage || err.message || safeStringify(err);
-  }
-
-  function saveFilterState() {
-    try {
-      const menuFilters = {};
-      Object.keys(state.menuFilters).forEach(key => {
-        const mf = state.menuFilters[key];
-        menuFilters[key] = {
-          operator: mf.operator,
-          value: mf.value,
-          selected: Array.from(mf.selected || []),
-          includeBlanks: mf.includeBlanks,
-          mode: mf.mode || 'all',
-        };
-      });
-      const payload = {
-        quickFilters: { ...state.quickFilters },
-        menuFilters
-      };
-      localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(payload));
-    } catch (e) {}
-  }
-
-  function restoreFilterState() {
-    try {
-      const raw = localStorage.getItem(FILTERS_STORAGE_KEY);
-      if (!raw) return;
-      const saved = JSON.parse(raw);
-      if (saved.quickFilters) {
-        Object.keys(saved.quickFilters).forEach(k => {
-          if (k in state.quickFilters) state.quickFilters[k] = saved.quickFilters[k] || '';
-        });
-      }
-      if (saved.menuFilters) {
-        Object.keys(saved.menuFilters).forEach(k => {
-          if (!(k in state.menuFilters)) return;
-          const s = saved.menuFilters[k];
-          state.menuFilters[k].operator = s.operator || 'contains';
-          state.menuFilters[k].value = s.value || '';
-          state.menuFilters[k].selected = new Set(s.selected || []);
-          state.menuFilters[k].includeBlanks = s.includeBlanks !== false;
-          state.menuFilters[k].mode = s.mode || (state.menuFilters[k].selected.size > 0 ? 'subset' : 'all');
-        });
-      }
-    } catch (e) {}
-  }
-
-  let tab2SearchValue = '';
-  let tab2DecisionFilter = 'ALL';
-
-  function applyTabData(tabId) {
-    const data = tabData[tabId]?.rows || [];
-    DATA = data;
-    DATA_FULL = data;
-    state.currentPage = 1;
-    state.selectedIds.clear();
-    render();
-  }
-
-  function setActiveTab(tab) {
-    $tabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
-    if ($tabTable) $tabTable.classList.toggle('active', tab !== 'kanban');
-    if ($tabKanban) $tabKanban.classList.toggle('active', tab === 'kanban');
-    if (tab === 'kanban') {
-      renderKanban();
-      return;
-    }
-
-    state.activeDataTab = tab;
-    state.filtroCotacaoRapida = tab === 'cotacao';
-    if ($chkCotacaoRapida) $chkCotacaoRapida.checked = state.filtroCotacaoRapida;
-
-    if (tabData[tab]?.loaded) {
-      applyTabData(tab);
-      return;
-    }
-
-    carregarDados(tab === 'cotacao' ? 'cotacao' : 'todos');
-  }
-
-  $tabButtons.forEach(btn => {
-    btn.addEventListener('click', () => setActiveTab(btn.dataset.tab));
-  });
-
-  if ($tab2Search) {
-    $tab2Search.addEventListener('input', () => {
-      tab2SearchValue = $tab2Search.value || '';
-      renderKanban();
-    });
-  }
-
-  if ($tab2DecisionFilter) {
-    $tab2DecisionFilter.addEventListener('change', () => {
-      tab2DecisionFilter = $tab2DecisionFilter.value || 'ALL';
-      renderKanban();
-    });
-  }
-
-  if ($tab2Refresh) {
-    $tab2Refresh.addEventListener('click', () => {
-      if (state.activeDataTab === 'cotacao') carregarDados('cotacao');
-      else if (state.activeDataTab === 'todos') carregarDados('todos');
-      else carregarDados('cotacao');
-    });
   }
 
   function extractRows(resultado) {
@@ -2085,23 +1234,15 @@ body {
   // ===== TOOLTIP SIMILARES (compacto) =====
   const $tip = document.getElementById('tooltipSimilar');
 
-  function mostrarTip(el, html, evt) {
+  function mostrarTip(el, html) {
     if (!$tip) return;
     $tip.innerHTML = html;
     $tip.classList.add('show');
-    const padding = 12;
-    let x = evt ? evt.clientX + padding : null;
-    let y = evt ? evt.clientY + padding : null;
-
-    if (x === null || y === null) {
-      const r = el.getBoundingClientRect();
-      x = r.right + 8;
-      y = r.top - 4;
-    }
-
-    if (x + 320 > innerWidth) x = innerWidth - 320 - 8;
+    const r = el.getBoundingClientRect();
+    let x = r.right + 8, y = r.top - 4;
+    if (x + 320 > innerWidth) x = r.left - 320;
     if (y + $tip.offsetHeight > innerHeight) y = innerHeight - $tip.offsetHeight - 8;
-    $tip.style.cssText = `left:${Math.max(8, x)}px;top:${Math.max(8, y)}px`;
+    $tip.style.cssText = `left:${Math.max(8,x)}px;top:${Math.max(8,y)}px`;
   }
 
   function esconderTip() { if ($tip) $tip.classList.remove('show'); }
@@ -2127,62 +1268,6 @@ body {
     return Array.from(byMarca.entries())
       .map(([marca, qtd]) => ({ marca, qtd }))
       .sort((a, b) => b.qtd - a.qtd);
-  }
-
-  function getLinhaMarcas(row) {
-    const ref = normalize(row.CODREF).trim();
-    const linha = row.LINHA; // 1 = primeira linha (premium), 2 = segunda linha (popular)
-    const codAtual = normalize(row.CODSIS).trim();
-    if (!ref) return [];
-
-    const byProduto = new Map();
-
-    DATA_FULL.forEach(r => {
-      // Filtra por COMPLDESC + LINHA (mesma referência E mesma linha de qualidade)
-      if (normalize(r.CODREF).trim() !== ref) return;
-      if (linha != null && r.LINHA != null && r.LINHA !== linha) return; // Só mesma linha
-      
-      const qtd = parsePtNumber(r.ORIG_ETQ); // Estoque individual, não LIN_ETQTT
-      const codsis = normalize(r.CODSIS).trim();
-      const marca = normalize(r.MARCA).trim() || '(sem marca)';
-      const isAtual = codsis === codAtual;
-
-      byProduto.set(codsis, { marca, qtd, isAtual, codsis });
-    });
-
-    return Array.from(byProduto.values())
-      .sort((a, b) => {
-        // Produto atual primeiro, depois por estoque decrescente
-        if (a.isAtual) return -1;
-        if (b.isAtual) return 1;
-        return b.qtd - a.qtd;
-      });
-  }
-
-  function tipHtmlLinha(ref, itens, linha) {
-    const totalGeral = (itens || []).reduce((acc, r) => acc + parsePtNumber(r.qtd), 0);
-    const linhaLabel = linha === 1 ? '1ª Linha (Premium)' : linha === 2 ? '2ª Linha (Popular)' : 'Linha';
-    const header =
-      `<div class="tooltip-similar-header">${linhaLabel} — Ref: ${escapeHtml(ref)} (LIN: ${formatValue(totalGeral,'number')} un.)</div>`;
-
-    if (!itens || itens.length === 0) {
-      return header + `<div style="padding:8px 0;color:#6b7280">Nenhum produto encontrado nesta linha.</div>`;
-    }
-
-    const lista = itens.map(r => {
-      const corEtq = r.qtd > 0 ? 'color:#22c55e;font-weight:600' : 'color:#9ca3af';
-      const tagAtual = r.isAtual ? ' <span style="color:#f59e0b;font-weight:600">(ATUAL)</span>' : '';
-      return `<div style="padding:5px 0;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center">
-        <span><b style="color:var(--pri)">${escapeHtml(r.marca)}</b> — Cód: ${escapeHtml(r.codsis)}${tagAtual}</span>
-        <span style="${corEtq}">${formatValue(r.qtd, 'number')} un.</span>
-      </div>`;
-    }).join('');
-
-    const footer = `<div style="padding:6px 0;font-weight:600;text-align:right;border-top:2px solid #ddd;margin-top:4px">
-      Total: ${formatValue(totalGeral, 'number')} un. em ${itens.length} produto(s)
-    </div>`;
-
-    return header + lista + footer;
   }
 
   function tipHtml(ref, itens, simTotal, rowData) {
@@ -2559,58 +1644,11 @@ body {
   // ============================================================
   // 7) CARREGAMENTO DE DADOS
   // ============================================================
-  const SQL_MAIN =
-    "WITH CTE_ESTOQUE AS (" +
-      "SELECT EST.CODEMP, EST.CODPROD, EST.ESTOQUE, PRO.COMPLDESC, PRO.PERCEBIDO, " +
-      "SUM(EST.ESTOQUE) OVER (PARTITION BY PRO.COMPLDESC, PRO.PERCEBIDO) AS LIN_ETQTT, " +
-      "SUM(EST.ESTOQUE) OVER (PARTITION BY PRO.COMPLDESC) AS SIM_ETQTT, " +
-      "COUNT(*) OVER (PARTITION BY PRO.COMPLDESC, PRO.PERCEBIDO) AS QTDLINHA, " +
-      "CASE WHEN MAX(PRO.PERCEBIDO) OVER (PARTITION BY PRO.COMPLDESC) = MIN(PRO.PERCEBIDO) OVER (PARTITION BY PRO.COMPLDESC) THEN 1 " +
-      "WHEN MAX(PRO.PERCEBIDO) OVER (PARTITION BY PRO.COMPLDESC) IS NULL THEN 0 ELSE 2 END AS DIFLINHA " +
-      "FROM TGFEST EST LEFT JOIN AVW_PRODUTOCOMPLETO PRO ON PRO.CODPROD = EST.CODPROD WHERE EST.CODEMP = 1" +
-    "), " +
-    "CTE_ULTIMOS AS (" +
-      "SELECT H.NUREG, H.NUNOTA, H.DTNEG, H.DTINSERT, H.CODPROD, H.COMPLDESC, H.DESCRPROD, H.REFFORN, H.MARCA, " +
-      "H.DESCRGRUPOPROD, H.AD_STATUSREP_DES, H.ORIG_COMPRA_ULTI, H.NOMEPARC, H.ORIG_CUSTO_ULTCO, H.ORIG_RANK, " +
-      "H.ORIG_ABC, H.ORIG_PEDVEN_MED, H.SUGESTAO_COMPRA, H.STATUS, H.QTDPEDIDO, H.DECISAO, P.AD_CATCOMPRA, " +
-      "ROW_NUMBER() OVER (PARTITION BY H.CODPROD ORDER BY H.NUREG DESC) AS RN " +
-      "FROM AD_2601COTANEWHIST H JOIN TGFPRO P ON P.CODPROD = H.CODPROD" +
-    "), " +
-    "CTE_COM_ESTOQUE AS (" +
-      "SELECT U.NUREG, U.NUNOTA, U.DTNEG, U.DTINSERT, U.CODPROD, U.COMPLDESC, U.DESCRPROD, U.REFFORN, U.MARCA, " +
-      "U.DESCRGRUPOPROD, U.AD_STATUSREP_DES, U.ORIG_COMPRA_ULTI, U.NOMEPARC, U.ORIG_CUSTO_ULTCO, U.ORIG_RANK, " +
-      "U.ORIG_ABC, U.ORIG_PEDVEN_MED, U.SUGESTAO_COMPRA, U.STATUS, U.QTDPEDIDO, U.DECISAO, U.AD_CATCOMPRA, " +
-      "COALESCE(E.ESTOQUE, 0) AS ORIG_ETQ, " +
-      "COALESCE(E.LIN_ETQTT, 0) AS LIN_ETQTT, " +
-      "COALESCE(E.SIM_ETQTT, 0) AS SIM_ETQTT, " +
-      "COALESCE(E.QTDLINHA, 0) AS QTDLINHA, " +
-      "COALESCE(E.DIFLINHA, 0) AS DIFLINHA, " +
-      "E.PERCEBIDO AS LINHA " +
-      "FROM CTE_ULTIMOS U " +
-      "LEFT JOIN CTE_ESTOQUE E ON E.CODPROD = U.CODPROD AND E.CODEMP = 1 " +
-      "WHERE U.RN = 1" +
-    ") " +
-    "SELECT NUREG, NUNOTA, DTNEG, DTINSERT, CODPROD AS CODSIS, COMPLDESC AS CODREF, " +
-    "DESCRPROD AS PRODUTO, CHR(174) || ' ' || TRIM(REFFORN) AS CODORIG, MARCA, DESCRGRUPOPROD AS GRUPO, " +
-    "AD_CATCOMPRA AS CATEG_VAL, OPTION_LABEL('TGFPRO','AD_CATCOMPRA', AD_CATCOMPRA) AS CATEG, " +
-    "AD_STATUSREP_DES AS STATUS, ORIG_COMPRA_ULTI AS COM_DTULT, NOMEPARC AS FORNECEDOR, " +
-    "ORIG_CUSTO_ULTCO AS COM_ULTCUS, ORIG_RANK AS RNK, ORIG_ABC AS ABC, " +
-    "ORIG_ETQ, LIN_ETQTT, SIM_ETQTT AS SIM_ETQ, QTDLINHA, DIFLINHA, LINHA, " +
-    "ORIG_PEDVEN_MED AS ORIG_MEDMES, SUGESTAO_COMPRA AS SUGESTAO, STATUS AS AUT_STATUS, " +
-    "QTDPEDIDO AS USU_QTDPEDIDO, DECISAO AS USU_DECISAO " +
-    "FROM CTE_COM_ESTOQUE ORDER BY CODPROD";
+  const SQL_MAIN = "WITH CTE_ULTIMOS AS (SELECT H.NUREG, H.NUNOTA, H.DTNEG, H.DTINSERT, H.CODPROD, H.COMPLDESC, H.DESCRPROD, H.REFFORN, H.MARCA, H.DESCRGRUPOPROD, H.AD_STATUSREP_DES, H.ORIG_COMPRA_ULTI, H.NOMEPARC, H.ORIG_CUSTO_ULTCO, H.ORIG_RANK, H.ORIG_ABC, H.ORIG_PEDVEN_MED, H.SUGESTAO_COMPRA, H.STATUS, H.QTDPEDIDO, H.DECISAO, P.AD_CATCOMPRA, ROW_NUMBER() OVER (PARTITION BY H.CODPROD ORDER BY H.NUREG DESC) AS RN FROM AD_2601COTANEWHIST H JOIN TGFPRO P ON P.CODPROD = H.CODPROD), CTE_COM_ESTOQUE AS (SELECT U.NUREG, U.NUNOTA, U.DTNEG, U.DTINSERT, U.CODPROD, U.COMPLDESC, U.DESCRPROD, U.REFFORN, U.MARCA, U.DESCRGRUPOPROD, U.AD_STATUSREP_DES, U.ORIG_COMPRA_ULTI, U.NOMEPARC, U.ORIG_CUSTO_ULTCO, U.ORIG_RANK, U.ORIG_ABC, U.ORIG_PEDVEN_MED, U.SUGESTAO_COMPRA, U.STATUS, U.QTDPEDIDO, U.DECISAO, U.AD_CATCOMPRA, COALESCE(E.ESTOQUE, 0) AS ORIG_ETQ FROM CTE_ULTIMOS U LEFT JOIN TGFEST E ON E.CODPROD = U.CODPROD AND E.CODEMP = 1 WHERE U.RN = 1) SELECT NUREG, NUNOTA, DTNEG, DTINSERT, CODPROD AS CODSIS, COMPLDESC AS CODREF, DESCRPROD AS PRODUTO, REFFORN AS CODORIG, MARCA, DESCRGRUPOPROD AS GRUPO, AD_CATCOMPRA AS CATEG_VAL, OPTION_LABEL('TGFPRO','AD_CATCOMPRA', AD_CATCOMPRA) AS CATEG, AD_STATUSREP_DES AS STATUS, ORIG_COMPRA_ULTI AS COM_DTULT, NOMEPARC AS FORNECEDOR, ORIG_CUSTO_ULTCO AS COM_ULTCUS, ORIG_RANK AS RNK, ORIG_ABC AS ABC, ORIG_ETQ, SUM(ORIG_ETQ) OVER (PARTITION BY COMPLDESC) AS SIM_ETQ, ORIG_PEDVEN_MED AS ORIG_MEDMES, SUGESTAO_COMPRA AS SUGESTAO, STATUS AS AUT_STATUS, QTDPEDIDO AS USU_QTDPEDIDO, DECISAO AS USU_DECISAO FROM CTE_COM_ESTOQUE ORDER BY CODPROD";
 
-  const SQL_COTACAO_WHERE =
-    "WHERE STATUS IN ('1-CRITICO','2-ATENCAO','4-AVALIAR') " +
-    "AND AD_CATCOMPRA IN (2,4) " +
-    "AND (DECISAO IS NULL OR UPPER(DECISAO) <> 'IGNORAR') " +
-    "AND NVL(SUGESTAO_COMPRA, 0) > 0";
-
-  function carregarDados(mode) {
+  function carregarDados() {
     $loading.style.display = 'flex';
-    $loading.textContent = mode === 'cotacao'
-      ? 'Carregando cotação rápida...'
-      : 'Carregando todos os produtos...';
+    $loading.textContent = 'Carregando dados...';
 
     if (typeof JX === 'undefined') {
       console.error('❌ ERRO: JX não está definido');
@@ -2630,34 +1668,22 @@ body {
       
       var offsetInicio = (loteAtual - 1) * tamanhoPagina + 1;
       var offsetFim = loteAtual * tamanhoPagina;
-      var whereSql = mode === 'cotacao' ? ' ' + SQL_COTACAO_WHERE + ' ' : ' ';
       
       // SQL paginado usando ROWNUM (Oracle)
       var sqlPaginado = 
         'SELECT * FROM (' +
         '  SELECT ' +
         '    NUREG, NUNOTA, DTNEG, DTINSERT, CODPROD AS CODSIS, COMPLDESC AS CODREF, ' +
-        '    DESCRPROD AS PRODUTO, CHR(174) || \' \' || TRIM(REFFORN) AS CODORIG, MARCA, DESCRGRUPOPROD AS GRUPO, ' +
+        '    DESCRPROD AS PRODUTO, REFFORN AS CODORIG, MARCA, DESCRGRUPOPROD AS GRUPO, ' +
         '    AD_CATCOMPRA AS CATEG_VAL, OPTION_LABEL(\'TGFPRO\',\'AD_CATCOMPRA\', AD_CATCOMPRA) AS CATEG, ' +
         '    AD_STATUSREP_DES AS STATUS, ORIG_COMPRA_ULTI AS COM_DTULT, NOMEPARC AS FORNECEDOR, ' +
-        '    ORIG_CUSTO_ULTCO AS COM_ULTCUS, ORIG_RANK AS RNK, ORIG_ABC AS ABC, ' +
-        '    ORIG_ETQ, LIN_ETQTT, SIM_ETQTT AS SIM_ETQ, QTDLINHA, DIFLINHA, LINHA, ' +
+        '    ORIG_CUSTO_ULTCO AS COM_ULTCUS, ORIG_RANK AS RNK, ORIG_ABC AS ABC, ORIG_ETQ, ' +
+        '    SUM(ORIG_ETQ) OVER (PARTITION BY COMPLDESC) AS SIM_ETQ, ' +
         '    ORIG_PEDVEN_MED AS ORIG_MEDMES, SUGESTAO_COMPRA AS SUGESTAO, STATUS AS AUT_STATUS, ' +
         '    QTDPEDIDO AS USU_QTDPEDIDO, DECISAO AS USU_DECISAO, ' +
-        '    ROW_NUMBER() OVER (ORDER BY DTNEG DESC, CODPROD) AS RN ' +
+        '    ROW_NUMBER() OVER (ORDER BY CODPROD) AS RN ' +
         '  FROM (' +
-        '    WITH CTE_ESTOQUE AS (' +
-        '      SELECT EST.CODEMP, EST.CODPROD, EST.ESTOQUE, PRO.COMPLDESC, PRO.PERCEBIDO, ' +
-        '        SUM(EST.ESTOQUE) OVER (PARTITION BY PRO.COMPLDESC, PRO.PERCEBIDO) AS LIN_ETQTT, ' +
-        '        SUM(EST.ESTOQUE) OVER (PARTITION BY PRO.COMPLDESC) AS SIM_ETQTT, ' +
-        '        COUNT(*) OVER (PARTITION BY PRO.COMPLDESC, PRO.PERCEBIDO) AS QTDLINHA, ' +
-        '        CASE WHEN MAX(PRO.PERCEBIDO) OVER (PARTITION BY PRO.COMPLDESC) = MIN(PRO.PERCEBIDO) OVER (PARTITION BY PRO.COMPLDESC) THEN 1 ' +
-        '        WHEN MAX(PRO.PERCEBIDO) OVER (PARTITION BY PRO.COMPLDESC) IS NULL THEN 0 ELSE 2 END AS DIFLINHA ' +
-        '      FROM TGFEST EST ' +
-        '      LEFT JOIN AVW_PRODUTOCOMPLETO PRO ON PRO.CODPROD = EST.CODPROD ' +
-        '      WHERE EST.CODEMP = 1' +
-        '    ), ' +
-        '    CTE_ULTIMOS AS (' +
+        '    WITH CTE_ULTIMOS AS (' +
         '      SELECT H.NUREG, H.NUNOTA, H.DTNEG, H.DTINSERT, H.CODPROD, H.COMPLDESC, H.DESCRPROD, ' +
         '        H.REFFORN, H.MARCA, H.DESCRGRUPOPROD, H.AD_STATUSREP_DES, H.ORIG_COMPRA_ULTI, ' +
         '        H.NOMEPARC, H.ORIG_CUSTO_ULTCO, H.ORIG_RANK, H.ORIG_ABC, H.ORIG_PEDVEN_MED, ' +
@@ -2671,22 +1697,16 @@ body {
         '        U.REFFORN, U.MARCA, U.DESCRGRUPOPROD, U.AD_STATUSREP_DES, U.ORIG_COMPRA_ULTI, ' +
         '        U.NOMEPARC, U.ORIG_CUSTO_ULTCO, U.ORIG_RANK, U.ORIG_ABC, U.ORIG_PEDVEN_MED, ' +
         '        U.SUGESTAO_COMPRA, U.STATUS, U.QTDPEDIDO, U.DECISAO, U.AD_CATCOMPRA, ' +
-        '        COALESCE(E.ESTOQUE, 0) AS ORIG_ETQ, ' +
-        '        COALESCE(E.LIN_ETQTT, 0) AS LIN_ETQTT, ' +
-        '        COALESCE(E.SIM_ETQTT, 0) AS SIM_ETQTT, ' +
-        '        COALESCE(E.QTDLINHA, 0) AS QTDLINHA, ' +
-        '        COALESCE(E.DIFLINHA, 0) AS DIFLINHA, ' +
-        '        E.PERCEBIDO AS LINHA ' +
+        '        COALESCE(E.ESTOQUE, 0) AS ORIG_ETQ ' +
         '      FROM CTE_ULTIMOS U ' +
-        '      LEFT JOIN CTE_ESTOQUE E ON E.CODPROD = U.CODPROD AND E.CODEMP = 1 ' +
+        '      LEFT JOIN TGFEST E ON E.CODPROD = U.CODPROD AND E.CODEMP = 1 ' +
         '      WHERE U.RN = 1' +
         '    ) ' +
-        '    SELECT * FROM CTE_COM_ESTOQUE' + whereSql +
+        '    SELECT * FROM CTE_COM_ESTOQUE' +
         '  )' +
         ') WHERE RN >= ' + offsetInicio + ' AND RN <= ' + offsetFim;
       
-      $loading.textContent = (mode === 'cotacao' ? 'Cotação Rápida' : 'Todos os Produtos') +
-        ' — lote ' + loteAtual + ' (' + todosRegistros.length + ' registros)...';
+      $loading.textContent = 'Carregando lote ' + loteAtual + ' (' + todosRegistros.length + ' registros)...';
       
       JX.consultar(sqlPaginado)
         .then(function(resultado) {
@@ -2737,28 +1757,20 @@ body {
       
       DATA = todosRegistros;
       DATA_FULL = todosRegistros;
-      if (mode === 'cotacao') {
-        tabData.cotacao = { rows: todosRegistros, loaded: true };
-      } else {
-        tabData.todos = { rows: todosRegistros, loaded: true };
-      }
       
       console.log('✅ CARREGAMENTO COMPLETO:', todosRegistros.length, 'registros');
-      if (mode !== 'cotacao') {
-        console.log('📊 Esperado: ~26.039 registros');
-      }
+      console.log('📊 Esperado: ~26.039 registros');
       
-      if (mode !== 'cotacao' && todosRegistros.length >= 20000) {
+      if (todosRegistros.length >= 20000) {
         console.log('✅ Todos os registros foram carregados com sucesso!');
-      } else if (mode !== 'cotacao' && todosRegistros.length >= 5000) {
+      } else if (todosRegistros.length >= 5000) {
         console.warn('⚠️ Carregados ' + todosRegistros.length + ' registros. Esperado: ~26.039');
-      } else if (mode !== 'cotacao') {
+      } else {
         console.error('❌ ATENÇÃO: Apenas ' + todosRegistros.length + ' registros! Verifique a consulta.');
       }
       
-        $loading.style.display = 'none';
-        render();
-        renderKanban();
+      $loading.style.display = 'none';
+      render();
     }
     
     // Iniciar carregamento
@@ -2822,13 +1834,20 @@ body {
 
     result = result.filter(row => {
       for (const col of COLS) {
+        const quick = state.quickFilters[col.key].trim().toLowerCase();
+        if (quick && !normalize(row[col.key]).toLowerCase().includes(quick)) return false;
+      }
+      return true;
+    });
+
+    result = result.filter(row => {
+      for (const col of COLS) {
         const menu = state.menuFilters[col.key];
         const cellValue = row[col.key];
 
-        if (menu.mode === 'none') return false;
         if (isBlank(cellValue) && !menu.includeBlanks) return false;
         if (!matchesOperator(cellValue, menu.operator, menu.value)) return false;
-        if (menu.mode === 'subset' && menu.selected.size > 0 && !menu.selected.has(normalize(cellValue))) return false;
+        if (menu.selected.size > 0 && !menu.selected.has(normalize(cellValue))) return false;
       }
       return true;
     });
@@ -3022,107 +2041,6 @@ body {
     return cols.join(' ');
   }
 
-  function applyTemplateToRows() {
-    const template = getGridTemplate();
-    if (!$grid) return;
-    $grid.querySelectorAll('.row').forEach(row => {
-      row.style.gridTemplateColumns = template;
-    });
-  }
-
-  function getColLabel(key) {
-    const col = COLS.find(c => c.key === key);
-    return col ? col.label : key;
-  }
-
-  function clearAllFilters() {
-    state.globalSearch = '';
-    if ($globalSearch) $globalSearch.value = '';
-    state.sort = { key: null, dir: null };
-    state.selectedIds.clear();
-    state.currentPage = 1;
-
-    COLS.forEach(col => {
-      state.quickFilters[col.key] = '';
-      state.menuFilters[col.key] = {
-        operator: 'contains',
-        value: '',
-        selected: new Set(),
-        includeBlanks: true,
-        mode: 'all',
-      };
-    });
-
-    // reset filtro cotação rápida conforme aba ativa
-    state.filtroCotacaoRapida = state.activeDataTab === 'cotacao';
-    if ($chkCotacaoRapida) $chkCotacaoRapida.checked = state.filtroCotacaoRapida;
-
-    closeMenu();
-    saveFilterState();
-    render();
-  }
-
-  function renderActiveFilters() {
-    if (!$activeFiltersBar) return;
-    const entries = Object.entries(state.menuFilters || {});
-    const active = entries.filter(([, v]) => {
-      if (v.mode === 'none') return true;
-      if (v.mode === 'subset') return v.selected.size > 0;
-      if (v.mode === 'all') return false;
-      return v.selected.size > 0;
-    });
-
-    if (active.length === 0) {
-      $activeFiltersBar.classList.remove('show');
-      $activeFiltersBar.innerHTML = '';
-      return;
-    }
-
-    $activeFiltersBar.classList.add('show');
-    const tagsHtml = active.map(([key, v]) => {
-      let text = '';
-      if (v.mode === 'none') {
-        text = 'Nenhum';
-      } else {
-        const total = v.selected.size;
-        text = total <= 2
-          ? Array.from(v.selected).map(s => s === '' ? '(Vazios)' : s).join(', ')
-          : `${total} selecionado(s)`;
-      }
-      return `
-        <span class="filter-tag" data-col="${escapeHtml(key)}">
-          ${escapeHtml(getColLabel(key))}: ${escapeHtml(text)}
-          <span class="filter-tag-remove" title="Remover filtro">✕</span>
-        </span>
-      `;
-    }).join('');
-    $activeFiltersBar.innerHTML = tagsHtml + `
-      <button class="filter-clear-all" data-action="clear-all">Limpar tudo</button>
-    `;
-  }
-
-  if ($activeFiltersBar) {
-    $activeFiltersBar.addEventListener('click', (e) => {
-      const clearBtn = e.target.closest('[data-action="clear-all"]');
-      if (clearBtn) {
-        clearAllFilters();
-        return;
-      }
-      const btn = e.target.closest('.filter-tag-remove');
-      if (!btn) return;
-      const tag = btn.closest('.filter-tag');
-      if (!tag) return;
-      const colKey = tag.getAttribute('data-col');
-      if (!colKey || !state.menuFilters[colKey]) return;
-      state.menuFilters[colKey].selected = new Set();
-      state.menuFilters[colKey].mode = 'all';
-      state.menuFilters[colKey].includeBlanks = true;
-      state.currentPage = 1;
-      saveFilterState();
-      render();
-    });
-  }
-
   // ============================================================
   // 12) RENDERIZAÇÃO
   // ============================================================
@@ -3159,8 +2077,6 @@ body {
         const colIdx = COLS.indexOf(col); // Índice real no array COLS
         const cell = document.createElement('div');
         cell.className = 'cell';
-        if (col.key === 'LIN_ETQTT') cell.classList.add('cell-linha');
-        if (col.key === 'SIM_ETQ') cell.classList.add('cell-similar');
         cell.setAttribute('data-col-idx', colIdx);
 
         const content = document.createElement('div');
@@ -3179,43 +2095,14 @@ body {
 
         label.addEventListener('click', () => toggleSort(col.key));
 
-        const filterBtn = document.createElement('button');
-        filterBtn.className = 'filter-btn';
-        const mf = state.menuFilters[col.key];
-        const hasFilter = mf && mf.mode && mf.mode !== 'all';
-        if (hasFilter) filterBtn.classList.add('has-filter');
-        filterBtn.innerHTML = `
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M3 5h18l-7 8v5l-4 2v-7L3 5z"></path>
-          </svg>
-        `;
-        filterBtn.title = 'Filtro';
-        filterBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          openMenu(col, filterBtn);
-        });
-
         label.addEventListener('dragstart', (e) => {
-          cell.classList.add('dragging-col');
           state.dragColumn = colIdx;
           e.dataTransfer.effectAllowed = 'move';
-        });
-
-        label.addEventListener('dragend', () => {
-          cell.classList.remove('dragging-col');
-          if ($grid) {
-            $grid.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-          }
         });
 
         cell.addEventListener('dragover', (e) => {
           e.preventDefault();
           e.dataTransfer.dropEffect = 'move';
-          cell.classList.add('drag-over');
-        });
-
-        cell.addEventListener('dragleave', () => {
-          cell.classList.remove('drag-over');
         });
 
         cell.addEventListener('drop', (e) => {
@@ -3227,7 +2114,6 @@ body {
             COLS.splice(toIdx, 0, moved);
             render();
           }
-          cell.classList.remove('drag-over');
           state.dragColumn = null;
         });
 
@@ -3237,7 +2123,6 @@ body {
         resizer.addEventListener('mousedown', (e) => startResize(e, colIdx));
 
         content.appendChild(label);
-        content.appendChild(filterBtn);
         content.appendChild(resizer);
         cell.appendChild(content);
         header.appendChild(cell);
@@ -3245,10 +2130,68 @@ body {
 
       $grid.appendChild(header);
 
+      // ----- FILTER ROW -----
+      const filterRow = document.createElement('div');
+      filterRow.className = 'row row-filter';
+      filterRow.style.gridTemplateColumns = template;
+
+      const filterSelectCell = document.createElement('div');
+      filterSelectCell.className = 'cell cell-select';
+      filterSelectCell.innerHTML = '<span class="text-muted">✓</span>';
+      filterRow.appendChild(filterSelectCell);
+
+      visibleCols.forEach(col => {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.style.padding = '2px 6px';
+
+        // Ajuste 1: input + menu ao lado direito
+        const wrap = document.createElement('div');
+        wrap.className = 'filter-cell-wrap';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'filter-input';
+        input.placeholder = 'Filtrar...';
+        input.value = state.quickFilters[col.key];
+        input.addEventListener('input', () => {
+          state.quickFilters[col.key] = input.value;
+          state.currentPage = 1;
+          renderBody();
+          updatePagination();
+        });
+
+        const menuBtn = document.createElement('button');
+        menuBtn.className = 'menu-btn';
+
+        const mf = state.menuFilters[col.key];
+        const hasFilter = mf.value || mf.selected.size > 0 || mf.operator !== 'contains' || mf.includeBlanks === false;
+        if (hasFilter) menuBtn.classList.add('has-filter');
+
+        // ícone 3 pontos (vertical)
+        menuBtn.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <circle cx="12" cy="5" r="2"></circle>
+            <circle cx="12" cy="12" r="2"></circle>
+            <circle cx="12" cy="19" r="2"></circle>
+          </svg>
+        `;
+        menuBtn.title = 'Filtro avançado';
+        menuBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openMenu(col, menuBtn);
+        });
+
+        wrap.appendChild(input);
+        wrap.appendChild(menuBtn);
+        cell.appendChild(wrap);
+        filterRow.appendChild(cell);
+      });
+
+      $grid.appendChild(filterRow);
+
       renderBody();
       updatePagination();
-      renderActiveFilters();
-      renderKanban();
     } catch (err) {
       console.error('❌ Erro no render()', err);
       try {
@@ -3300,10 +2243,6 @@ body {
         cell.className = 'cell';
         if (col.align === 'right') cell.classList.add('cell-right');
         if (col.align === 'center') cell.classList.add('cell-center');
-        if (col.key === 'COM_ULTCUS') cell.classList.add('cell-custo-ultimo');
-        if (col.key === 'FORNECEDOR') cell.classList.add('cell-fornecedor');
-        if (col.key === 'LIN_ETQTT') cell.classList.add('cell-linha');
-        if (col.key === 'SIM_ETQ') cell.classList.add('cell-similar');
 
         const value = rowData[col.key];
 
@@ -3374,50 +2313,8 @@ body {
               lupa.className = 'lupa-similar on';
               lupa.textContent = '🔍';
 
-              const tipHtmlContent = tipHtml(rowData.CODREF, similares, simTotal, rowData);
-              lupa.addEventListener('mouseenter', (e) => {
-                mostrarTip(lupa, tipHtmlContent, e);
-              });
-              lupa.addEventListener('mousemove', (e) => {
-                mostrarTip(lupa, tipHtmlContent, e);
-              });
-              lupa.addEventListener('mouseleave', esconderTip);
-
-              wrap.appendChild(lupa);
-            }
-
-            cell.innerHTML = '';
-            cell.appendChild(wrap);
-            cell.title = normalize(value);
-          }
-          // --- coluna LIN_ETQTT: lupa + tooltip de marcas por linha ---
-          else if (col.key === 'LIN_ETQTT') {
-            const qtd = formatValue(value, 'number');
-            const linTotal = parsePtNumber(value);
-            const marcas = linTotal > 0 ? getLinhaMarcas(rowData) : [];
-
-            const wrap = document.createElement('div');
-            wrap.style.display = 'flex';
-            wrap.style.alignItems = 'center';
-            wrap.style.justifyContent = col.align === 'right' ? 'flex-end' : 'flex-start';
-            wrap.style.width = '100%';
-            wrap.style.gap = '6px';
-
-            const spanVal = document.createElement('span');
-            spanVal.innerHTML = qtd;
-            wrap.appendChild(spanVal);
-
-            if (linTotal > 0 && marcas.length > 0) {
-              const lupa = document.createElement('span');
-              lupa.className = 'lupa-similar on';
-              lupa.textContent = '🔍';
-
-              const tipHtmlContent = tipHtmlLinha(rowData.CODREF, marcas, rowData.LINHA);
-              lupa.addEventListener('mouseenter', (e) => {
-                mostrarTip(lupa, tipHtmlContent, e);
-              });
-              lupa.addEventListener('mousemove', (e) => {
-                mostrarTip(lupa, tipHtmlContent, e);
+              lupa.addEventListener('mouseenter', () => {
+                mostrarTip(lupa, tipHtml(rowData.CODREF, similares, simTotal, rowData));
               });
               lupa.addEventListener('mouseleave', esconderTip);
 
@@ -3478,131 +2375,6 @@ body {
   }
 
   // ============================================================
-  // 12.5) ABA 2 (KANBAN) - RENDERIZAÇÃO
-  // ============================================================
-  function getDecisionValue(row) {
-    const val = normalize(row.USU_DECISAO).trim().toUpperCase();
-    if (val === 'PROCESSAR' || val === 'ANALISAR' || val === 'IGNORAR') return val;
-    return 'SEM';
-  }
-
-  function matchesTab2Search(row) {
-    const q = normalize(tab2SearchValue).toLowerCase().trim();
-    if (!q) return true;
-    const hay = [
-      row.PRODUTO,
-      row.CODREF,
-      row.MARCA,
-      row.GRUPO,
-      row.FORNECEDOR
-    ].map(v => normalize(v).toLowerCase()).join(' ');
-    return hay.includes(q);
-  }
-
-  function matchesTab2Decision(row) {
-    if (!tab2DecisionFilter || tab2DecisionFilter === 'ALL') return true;
-    return getDecisionValue(row) === tab2DecisionFilter;
-  }
-
-  function buildCardHtml(row) {
-    const curva = normalize(row.ABC).toUpperCase() || 'D';
-    const ranking = row.RNK ? `#${formatValue(row.RNK, 'number')}` : '-';
-    const marca = normalize(row.MARCA) || '-';
-    const produto = normalize(row.PRODUTO) || '-';
-    const grupo = normalize(row.GRUPO) || '-';
-    const decisao = getDecisionValue(row);
-
-    const actions = decisao === 'IGNORAR'
-      ? '<button class="tab2-card-btn done" disabled>✓ Ignorado</button>'
-      : `
-        <button class="tab2-card-btn ignorar" data-action="IGNORAR">Ignorar</button>
-        <button class="tab2-card-btn analisar" data-action="ANALISAR">Analisar</button>
-        <button class="tab2-card-btn comprar" data-action="PROCESSAR">Comprar</button>
-      `;
-
-    return `
-      <div class="tab2-product-card" data-nureg="${escapeHtml(row.NUREG)}">
-        <div class="tab2-card-top">
-          <div>
-            <div class="tab2-product-name">${escapeHtml(produto)}</div>
-            <div class="tab2-grupo-tag">${escapeHtml(grupo)}</div>
-          </div>
-          <span class="tab2-curva ${escapeHtml(curva)}">${escapeHtml(curva)}</span>
-        </div>
-        <div class="tab2-card-details">
-          <div class="tab2-detail-item">
-            <span class="tab2-detail-label">Marca</span>
-            <span class="tab2-detail-value marca">${escapeHtml(marca)}</span>
-          </div>
-          <div class="tab2-detail-item">
-            <span class="tab2-detail-label">Ranking</span>
-            <span class="tab2-detail-value">${escapeHtml(ranking)}</span>
-          </div>
-        </div>
-        <div class="tab2-card-actions">
-          ${actions}
-        </div>
-      </div>
-    `;
-  }
-
-  function renderKanban() {
-    if (!$tabKanban || !$tab2ColProcessar || !$tab2ColAnalisar || !$tab2ColIgnorar || !$tab2ColSem) return;
-
-    const rows = getVisibleRows().filter(r => matchesTab2Search(r) && matchesTab2Decision(r));
-
-    const processar = rows.filter(r => getDecisionValue(r) === 'PROCESSAR');
-    const analisar = rows.filter(r => getDecisionValue(r) === 'ANALISAR');
-    const ignorar = rows.filter(r => getDecisionValue(r) === 'IGNORAR');
-    const sem = rows.filter(r => getDecisionValue(r) === 'SEM');
-
-    if ($tab2Total) $tab2Total.textContent = String(rows.length);
-    if ($tab2CountProcessar) $tab2CountProcessar.textContent = String(processar.length);
-    if ($tab2CountAnalisar) $tab2CountAnalisar.textContent = String(analisar.length);
-    if ($tab2CountIgnorar) $tab2CountIgnorar.textContent = String(ignorar.length);
-    if ($tab2CountSem) $tab2CountSem.textContent = String(sem.length);
-
-    if ($tab2ColCountProcessar) $tab2ColCountProcessar.textContent = String(processar.length);
-    if ($tab2ColCountAnalisar) $tab2ColCountAnalisar.textContent = String(analisar.length);
-    if ($tab2ColCountIgnorar) $tab2ColCountIgnorar.textContent = String(ignorar.length);
-    if ($tab2ColCountSem) $tab2ColCountSem.textContent = String(sem.length);
-
-    $tab2ColProcessar.innerHTML = processar.map(buildCardHtml).join('') || '<div class="text-muted">Sem itens.</div>';
-    $tab2ColAnalisar.innerHTML = analisar.map(buildCardHtml).join('') || '<div class="text-muted">Sem itens.</div>';
-    $tab2ColIgnorar.innerHTML = ignorar.map(buildCardHtml).join('') || '<div class="text-muted">Sem itens.</div>';
-    $tab2ColSem.innerHTML = sem.map(buildCardHtml).join('') || '<div class="text-muted">Sem itens.</div>';
-  }
-
-  $tabKanban.addEventListener('click', async (e) => {
-    const btn = e.target.closest('.tab2-card-btn');
-    if (!btn) return;
-    const card = btn.closest('.tab2-product-card');
-    if (!card) return;
-
-    const nureg = card.dataset.nureg;
-    if (!nureg) return;
-
-    const novoValor = btn.dataset.action;
-    if (!novoValor) return;
-
-    const rowData = DATA.find(r => String(r.NUREG) === String(nureg));
-    if (!rowData) return;
-
-    btn.disabled = true;
-    btn.classList.add('is-loading');
-    const ok = await salvarDropdown(DROPDOWN_CONFIG.decisao, nureg, novoValor);
-    btn.classList.remove('is-loading');
-    btn.disabled = false;
-
-    if (ok) {
-      rowData.USU_DECISAO = novoValor;
-      showToast('✅ Salvo');
-      render();
-      renderKanban();
-    }
-  });
-
-  // ============================================================
   // 13) MENU DE FILTRO (POPUP) - mantido
   // ============================================================
   function openMenu(col, anchorEl) {
@@ -3615,43 +2387,23 @@ body {
     $popup.classList.add('show');
 
     const menu = state.menuFilters[col.key];
-    const valueCounts = {};
-    DATA.forEach(r => {
-      const v = normalize(r[col.key]);
-      valueCounts[v] = (valueCounts[v] || 0) + 1;
-    });
-    const distinctValues = Object.keys(valueCounts).sort((a, b) =>
+    const distinctValues = [...new Set(DATA.map(r => normalize(r[col.key])))].sort((a, b) =>
       a.toLowerCase().localeCompare(b.toLowerCase())
     );
 
-    let tempSelected;
-    if (menu.mode === 'subset') tempSelected = new Set(menu.selected);
-    else if (menu.mode === 'none') tempSelected = new Set();
-    else tempSelected = new Set(distinctValues);
-
     $popup.innerHTML = `
-      <div class="filter-popover-header">
-        <div>${escapeHtml(col.label)}</div>
-        <button class="filter-popover-close" id="popupClose">✕</button>
+      <div class="popup-header">
+        <div class="popup-title">${escapeHtml(col.label)}</div>
+        <button class="popup-close" id="popupClose">✕</button>
       </div>
 
-      <div class="filter-sort-section">
-        <button class="sort-btn ${state.sort.key === col.key && state.sort.dir === 'asc' ? 'active' : ''}" id="popupSortAsc">A → Z</button>
-        <button class="sort-btn ${state.sort.key === col.key && state.sort.dir === 'desc' ? 'active' : ''}" id="popupSortDesc">Z → A</button>
+      <div class="popup-section">
+        <div class="popup-label">Selecionar Valores</div>
+        <input type="text" class="value-search" id="popupSearch" placeholder="Buscar valores...">
+        <div class="value-list" id="popupValueList"></div>
       </div>
 
-      <div class="filter-search">
-        <input type="text" id="popupSearch" placeholder="Buscar valores...">
-      </div>
-
-      <div class="filter-actions">
-        <button class="filter-action-btn" id="popupSelectAll">Selecionar visíveis</button>
-        <button class="filter-action-btn" id="popupSelectNone">Desmarcar visíveis</button>
-      </div>
-
-      <div class="filter-values" id="popupValueList"></div>
-
-      <div class="filter-footer">
+      <div class="popup-footer">
         <button class="btn" id="popupClear">Limpar</button>
         <button class="btn btn-primary" id="popupApply">Aplicar</button>
       </div>
@@ -3662,36 +2414,48 @@ body {
     const $valueList = document.getElementById('popupValueList');
     const $clear = document.getElementById('popupClear');
     const $apply = document.getElementById('popupApply');
-    const $selectAll = document.getElementById('popupSelectAll');
-    const $selectNone = document.getElementById('popupSelectNone');
-    const $sortAsc = document.getElementById('popupSortAsc');
-    const $sortDesc = document.getElementById('popupSortDesc');
-
-    function getFilteredValues() {
-      const search = $search.value.toLowerCase();
-      return distinctValues.filter(v => v.toLowerCase().includes(search));
-    }
 
     function renderValueList() {
-      const filtered = getFilteredValues();
+      const search = $search.value.toLowerCase();
+      const filtered = distinctValues.filter(v => v.toLowerCase().includes(search));
 
       $valueList.innerHTML = '';
 
+      const blankItem = document.createElement('div');
+      blankItem.className = 'value-item';
+      blankItem.innerHTML = `
+        <input type="checkbox" ${menu.selected.has('') || menu.selected.size === 0 ? 'checked' : ''}>
+        <span><em>(Vazios)</em></span>
+      `;
+      blankItem.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (menu.selected.has('')) menu.selected.delete('');
+        else menu.selected.add('');
+        renderValueList();
+      });
+      $valueList.appendChild(blankItem);
+
       filtered.forEach(val => {
+        if (val === '') return;
+
         const item = document.createElement('div');
-        item.className = 'filter-value-item';
-        const checked = tempSelected.has(val);
-        const label = val === '' ? '(Vazios)' : val;
-        const count = valueCounts[val] || 0;
+        item.className = 'value-item';
+        const checked = menu.selected.size === 0 || menu.selected.has(val);
         item.innerHTML = `
           <input type="checkbox" ${checked ? 'checked' : ''}>
-          <span>${escapeHtml(label)}</span>
-          <span class="value-count">${count}</span>
+          <span>${escapeHtml(val)}</span>
         `;
         item.addEventListener('click', (e) => {
           e.stopPropagation();
-          if (tempSelected.has(val)) tempSelected.delete(val);
-          else tempSelected.add(val);
+          if (menu.selected.has(val)) {
+            menu.selected.delete(val);
+          } else {
+            if (menu.selected.size === 0) {
+              distinctValues.forEach(v => { if (v !== val) menu.selected.add(v); });
+            } else {
+              menu.selected.add(val);
+            }
+          }
           renderValueList();
         });
         $valueList.appendChild(item);
@@ -3703,62 +2467,20 @@ body {
 
     $close.addEventListener('click', closeMenu);
 
-    if ($sortAsc) {
-      $sortAsc.addEventListener('click', () => {
-        state.sort = { key: col.key, dir: 'asc' };
-        render();
-      });
-    }
-
-    if ($sortDesc) {
-      $sortDesc.addEventListener('click', () => {
-        state.sort = { key: col.key, dir: 'desc' };
-        render();
-      });
-    }
-
-    if ($selectAll) {
-      $selectAll.addEventListener('click', () => {
-        getFilteredValues().forEach(v => tempSelected.add(v));
-        renderValueList();
-      });
-    }
-
-    if ($selectNone) {
-      $selectNone.addEventListener('click', () => {
-        getFilteredValues().forEach(v => tempSelected.delete(v));
-        renderValueList();
-      });
-    }
-
     $clear.addEventListener('click', () => {
       state.menuFilters[col.key] = {
         operator: 'contains',
         value: '',
         selected: new Set(),
         includeBlanks: true,
-        mode: 'all',
       };
       closeMenu();
-      saveFilterState();
       render();
     });
 
     $apply.addEventListener('click', () => {
-      if (tempSelected.size === 0) {
-        menu.mode = 'none';
-        menu.selected = new Set();
-      } else if (tempSelected.size === distinctValues.length) {
-        menu.mode = 'all';
-        menu.selected = new Set();
-      } else {
-        menu.mode = 'subset';
-        menu.selected = new Set(tempSelected);
-      }
-      menu.includeBlanks = tempSelected.has('') || menu.mode === 'all';
       state.currentPage = 1;
       closeMenu();
-      saveFilterState();
       render();
     });
   }
@@ -3775,7 +2497,6 @@ body {
   // 14) REDIMENSIONAMENTO DE COLUNAS
   // ============================================================
   let resizing = null;
-  let resizeRaf = 0;
 
   function startResize(e, colIdx) {
     e.preventDefault();
@@ -3785,7 +2506,6 @@ body {
       idx: colIdx,
       startX: e.clientX,
       startWidth: COLS[colIdx].width,
-      lastX: e.clientX,
     };
 
     document.addEventListener('mousemove', onResize);
@@ -3794,29 +2514,14 @@ body {
 
   function onResize(e) {
     if (!resizing) return;
-    resizing.lastX = e.clientX;
-    if (resizeRaf) return;
-    resizeRaf = requestAnimationFrame(() => {
-      resizeRaf = 0;
-      if (!resizing) return;
-      const diff = resizing.lastX - resizing.startX;
-      const newWidth = clamp(resizing.startWidth + diff, 60, 600);
-      COLS[resizing.idx].width = newWidth;
-      applyTemplateToRows();
-    });
+
+    const diff = e.clientX - resizing.startX;
+    const newWidth = clamp(resizing.startWidth + diff, 60, 600);
+    COLS[resizing.idx].width = newWidth;
+    render();
   }
 
   function stopResize() {
-    if (resizeRaf) {
-      cancelAnimationFrame(resizeRaf);
-      resizeRaf = 0;
-    }
-    if (resizing && typeof resizing.lastX === 'number') {
-      const diff = resizing.lastX - resizing.startX;
-      const newWidth = clamp(resizing.startWidth + diff, 60, 600);
-      COLS[resizing.idx].width = newWidth;
-      applyTemplateToRows();
-    }
     resizing = null;
     document.removeEventListener('mousemove', onResize);
     document.removeEventListener('mouseup', stopResize);
@@ -3878,12 +2583,32 @@ body {
 
   $btnRefresh.addEventListener('click', () => {
     state.selectedIds.clear();
-    if (state.activeDataTab === 'cotacao') carregarDados('cotacao');
-    else carregarDados('todos');
+    carregarDados();
   });
 
   $btnClear.addEventListener('click', () => {
-    clearAllFilters();
+    state.globalSearch = '';
+    $globalSearch.value = '';
+    state.sort = { key: null, dir: null };
+    state.selectedIds.clear();
+    state.currentPage = 1;
+
+    COLS.forEach(col => {
+      state.quickFilters[col.key] = '';
+      state.menuFilters[col.key] = {
+        operator: 'contains',
+        value: '',
+        selected: new Set(),
+        includeBlanks: true,
+      };
+    });
+
+    // reset filtro cotação rápida
+    state.filtroCotacaoRapida = false;
+    if ($chkCotacaoRapida) $chkCotacaoRapida.checked = false;
+
+    closeMenu();
+    render();
   });
 
 
@@ -4008,7 +2733,7 @@ body {
   // ============================================================
   // 19) INICIALIZAÇÃO
   // ============================================================
-  setActiveTab('cotacao');
+  carregarDados();
 
 })();
 

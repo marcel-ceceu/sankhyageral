@@ -5,41 +5,36 @@
   let DATA = [];
   let DATA_FULL = []; // Todos os registros sem filtro (para tooltip de similares)
 
-  const FILTERS_STORAGE_KEY = 'c78_dash_filters_v1';
-
   // ============================================================
   // 3) DEFINIÇÃO DAS COLUNAS
   // ============================================================
   let COLS = [
-    // ORDEM PRINCIPAL (padrão compacto)
+    // ORDEM PRINCIPAL (conforme solicitado)
     { key: 'CODSIS',        label: 'Cód. Sistema',    width: 90,  align: 'right',  visible: true },
-    { key: 'DTNEG',         label: 'Dt. Neg.',        width: 90,  align: 'center', type: 'date',     visible: true },
-    { key: 'DTINSERT',      label: 'Dt. Insert',      width: 130, align: 'center', type: 'datetime', visible: false },
+    { key: 'NUNOTA',        label: 'Nº Nota',         width: 90,  align: 'right',  type: 'number',  visible: true },
+    { key: 'DTNEG',         label: 'Dt. Neg.',        width: 90,  align: 'center', type: 'date',    visible: true },
+    { key: 'DTINSERT',      label: 'Dt. Insert',      width: 130, align: 'center', type: 'datetime', visible: true },
     { key: 'CODREF',        label: 'Cód. Ref.',       width: 150, align: 'left',   visible: true },
     { key: 'MARCA',         label: 'Marca',           width: 100, align: 'left',   visible: true },
     { key: 'CODORIG',       label: 'Cód. Original',   width: 120, align: 'left',   visible: true },
+    { key: 'GRUPO',         label: 'Grupo',           width: 120, align: 'left',   visible: true },
     { key: 'PRODUTO',       label: 'Produto',         width: 250, align: 'left',   visible: true },
-    { key: 'AUT_STATUS',    label: 'Status Auto',     width: 110, align: 'center', type: 'status',   visible: true },
-    { key: 'SUGESTAO',      label: 'Sugestão',        width: 85,  align: 'right',  type: 'number',   visible: true },
-    { key: 'ORIG_ETQ',      label: 'Etq. Original',   width: 90,  align: 'right',  type: 'number',   visible: true },
-    { key: 'LIN_ETQTT',     label: 'Etq. Linha',      width: 90,  align: 'right',  type: 'number',   visible: true },
-    { key: 'QTDLINHA',      label: 'Qtd. Linha',      width: 80,  align: 'right',  type: 'number',   visible: false },
-    { key: 'DIFLINHA',      label: 'Dif. Linha',      width: 80,  align: 'center', type: 'number',   visible: false },
-    { key: 'SIM_ETQ',       label: 'Etq. Similar',    width: 90,  align: 'right',  type: 'number',   visible: true },
-    { key: 'USU_DECISAO',   label: 'Decisão',         width: 145, align: 'center', type: 'decisao',  editable: true, visible: true },
-    { key: 'COM_ULTCUS',    label: 'Custo Ult.',      width: 100, align: 'right',  type: 'currency', visible: true },
-    { key: 'FORNECEDOR',    label: 'Fornecedor',      width: 150, align: 'left',   visible: true },
-
-    // --- OUTROS (mantidos no menu de colunas) ---
-    { key: 'NUNOTA',        label: 'Nº Nota',         width: 90,  align: 'right',  type: 'number',   visible: false },
-    { key: 'GRUPO',         label: 'Grupo',           width: 120, align: 'left',   visible: false },
-    { key: 'ABC',           label: 'Curva ABC',       width: 70,  align: 'center', type: 'curva',    visible: false },
-    { key: 'RNK',           label: 'Ranking',         width: 80,  align: 'right',  type: 'number',   visible: false },
+    { key: 'ABC',           label: 'Curva ABC',       width: 70,  align: 'center', type: 'curva',   visible: true },
+    { key: 'RNK',           label: 'Ranking',         width: 80,  align: 'right',  type: 'number',  visible: true },
     { key: 'CATEG_VAL',     label: 'Categ. Valor',    width: 0,   align: 'center', visible: false },
-    { key: 'CATEG',         label: 'Categoria',       width: 120, align: 'center', type: 'categoria', editable: true, visible: false },
-    { key: 'STATUS',        label: 'Status',          width: 110, align: 'center', type: 'status',   visible: false },
-    { key: 'ORIG_MEDMES',   label: 'Média/Mês',       width: 90,  align: 'right',  type: 'decimal',  visible: false },
-    { key: 'USU_QTDPEDIDO', label: 'Qtd. Pedido',     width: 90,  align: 'right',  type: 'number',   visible: false },
+    { key: 'CATEG',         label: 'Categoria',       width: 120, align: 'center', type: 'categoria', editable: true, visible: true },
+    { key: 'STATUS',        label: 'Status',          width: 110, align: 'center', type: 'status',  visible: true },
+    { key: 'AUT_STATUS',    label: 'Status Auto',     width: 110, align: 'center', type: 'status',  visible: true },
+    { key: 'SUGESTAO',      label: 'Sugestão',        width: 85,  align: 'right',  type: 'number',  visible: true },
+    { key: 'ORIG_ETQ',      label: 'Etq. Original',   width: 90,  align: 'right',  type: 'number',  visible: true },
+    { key: 'SIM_ETQ',       label: 'Etq. Similar',    width: 90,  align: 'right',  type: 'number',  visible: true },
+    { key: 'USU_DECISAO',   label: 'Decisão',         width: 145, align: 'center', type: 'decisao',  editable: true, visible: true },
+
+    // --- OUTROS ---
+    { key: 'FORNECEDOR',    label: 'Fornecedor',      width: 150, align: 'left',   visible: true },
+    { key: 'COM_ULTCUS',    label: 'Custo Ult.',      width: 100, align: 'right',  type: 'currency', visible: true },
+    { key: 'ORIG_MEDMES',   label: 'Média/Mês',       width: 90,  align: 'right',  type: 'decimal',  visible: true },
+    { key: 'USU_QTDPEDIDO', label: 'Qtd. Pedido',     width: 90,  align: 'right',  type: 'number',   visible: true },
     { key: 'COM_DTULT',     label: 'Cód. Fornec.',    width: 100, align: 'right',  visible: false },
   ];
 
@@ -47,8 +42,8 @@
   // 4) ESTADO GLOBAL
   // ============================================================
   const state = {
-    filtroCotacaoRapida: true, // Filtro especial de cotação rápida
-    sort: { key: 'DTNEG', dir: 'desc' },
+    filtroCotacaoRapida: false, // Filtro especial de cotação rápida
+    sort: { key: null, dir: null },
     globalSearch: '',
     quickFilters: {},
     menuFilters: {},
@@ -56,12 +51,6 @@
     currentPage: 1,
     pageSize: 50,
     dragColumn: null,
-    activeDataTab: 'cotacao',
-  };
-
-  const tabData = {
-    cotacao: { rows: [], loaded: false },
-    todos: { rows: [], loaded: false },
   };
 
   COLS.forEach(col => {
@@ -71,7 +60,6 @@
       value: '',
       selected: new Set(),
       includeBlanks: true,
-      mode: 'all',
     };
   });
 
@@ -94,29 +82,7 @@
   const $selectionInfo = document.getElementById('selectionInfo');
   const $totalInfo = document.getElementById('totalInfo');
   const $loading = document.getElementById('loading');
-  const $activeFiltersBar = document.getElementById('activeFiltersBar');
   const $appToast = document.getElementById('appToast');
-  const $tabButtons = document.querySelectorAll('.tab-btn');
-  const $tabTable = document.getElementById('tabTable');
-  const $tabKanban = document.getElementById('tabKanban');
-  const $tab2Search = document.getElementById('tab2Search');
-  const $tab2DecisionFilter = document.getElementById('tab2DecisionFilter');
-  const $tab2Refresh = document.getElementById('tab2Refresh');
-  const $tab2Total = document.getElementById('tab2Total');
-  const $tab2CountProcessar = document.getElementById('tab2CountProcessar');
-  const $tab2CountAnalisar = document.getElementById('tab2CountAnalisar');
-  const $tab2CountIgnorar = document.getElementById('tab2CountIgnorar');
-  const $tab2CountSem = document.getElementById('tab2CountSem');
-  const $tab2ColProcessar = document.getElementById('tab2ColProcessar');
-  const $tab2ColAnalisar = document.getElementById('tab2ColAnalisar');
-  const $tab2ColIgnorar = document.getElementById('tab2ColIgnorar');
-  const $tab2ColSem = document.getElementById('tab2ColSem');
-  const $tab2ColCountProcessar = document.getElementById('tab2ColCountProcessar');
-  const $tab2ColCountAnalisar = document.getElementById('tab2ColCountAnalisar');
-  const $tab2ColCountIgnorar = document.getElementById('tab2ColCountIgnorar');
-  const $tab2ColCountSem = document.getElementById('tab2ColCountSem');
-
-  restoreFilterState();
 
   // ============================================================
   // 6) UTILITÁRIOS
@@ -137,110 +103,6 @@
     if (!err) return 'Erro desconhecido';
     if (typeof err === 'string') return err;
     return err.responseText || err.statusMessage || err.message || safeStringify(err);
-  }
-
-  function saveFilterState() {
-    try {
-      const menuFilters = {};
-      Object.keys(state.menuFilters).forEach(key => {
-        const mf = state.menuFilters[key];
-        menuFilters[key] = {
-          operator: mf.operator,
-          value: mf.value,
-          selected: Array.from(mf.selected || []),
-          includeBlanks: mf.includeBlanks,
-          mode: mf.mode || 'all',
-        };
-      });
-      const payload = {
-        quickFilters: { ...state.quickFilters },
-        menuFilters
-      };
-      localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(payload));
-    } catch (e) {}
-  }
-
-  function restoreFilterState() {
-    try {
-      const raw = localStorage.getItem(FILTERS_STORAGE_KEY);
-      if (!raw) return;
-      const saved = JSON.parse(raw);
-      if (saved.quickFilters) {
-        Object.keys(saved.quickFilters).forEach(k => {
-          if (k in state.quickFilters) state.quickFilters[k] = saved.quickFilters[k] || '';
-        });
-      }
-      if (saved.menuFilters) {
-        Object.keys(saved.menuFilters).forEach(k => {
-          if (!(k in state.menuFilters)) return;
-          const s = saved.menuFilters[k];
-          state.menuFilters[k].operator = s.operator || 'contains';
-          state.menuFilters[k].value = s.value || '';
-          state.menuFilters[k].selected = new Set(s.selected || []);
-          state.menuFilters[k].includeBlanks = s.includeBlanks !== false;
-          state.menuFilters[k].mode = s.mode || (state.menuFilters[k].selected.size > 0 ? 'subset' : 'all');
-        });
-      }
-    } catch (e) {}
-  }
-
-  let tab2SearchValue = '';
-  let tab2DecisionFilter = 'ALL';
-
-  function applyTabData(tabId) {
-    const data = tabData[tabId]?.rows || [];
-    DATA = data;
-    DATA_FULL = data;
-    state.currentPage = 1;
-    state.selectedIds.clear();
-    render();
-  }
-
-  function setActiveTab(tab) {
-    $tabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
-    if ($tabTable) $tabTable.classList.toggle('active', tab !== 'kanban');
-    if ($tabKanban) $tabKanban.classList.toggle('active', tab === 'kanban');
-    if (tab === 'kanban') {
-      renderKanban();
-      return;
-    }
-
-    state.activeDataTab = tab;
-    state.filtroCotacaoRapida = tab === 'cotacao';
-    if ($chkCotacaoRapida) $chkCotacaoRapida.checked = state.filtroCotacaoRapida;
-
-    if (tabData[tab]?.loaded) {
-      applyTabData(tab);
-      return;
-    }
-
-    carregarDados(tab === 'cotacao' ? 'cotacao' : 'todos');
-  }
-
-  $tabButtons.forEach(btn => {
-    btn.addEventListener('click', () => setActiveTab(btn.dataset.tab));
-  });
-
-  if ($tab2Search) {
-    $tab2Search.addEventListener('input', () => {
-      tab2SearchValue = $tab2Search.value || '';
-      renderKanban();
-    });
-  }
-
-  if ($tab2DecisionFilter) {
-    $tab2DecisionFilter.addEventListener('change', () => {
-      tab2DecisionFilter = $tab2DecisionFilter.value || 'ALL';
-      renderKanban();
-    });
-  }
-
-  if ($tab2Refresh) {
-    $tab2Refresh.addEventListener('click', () => {
-      if (state.activeDataTab === 'cotacao') carregarDados('cotacao');
-      else if (state.activeDataTab === 'todos') carregarDados('todos');
-      else carregarDados('cotacao');
-    });
   }
 
   function extractRows(resultado) {
@@ -295,23 +157,15 @@
   // ===== TOOLTIP SIMILARES (compacto) =====
   const $tip = document.getElementById('tooltipSimilar');
 
-  function mostrarTip(el, html, evt) {
+  function mostrarTip(el, html) {
     if (!$tip) return;
     $tip.innerHTML = html;
     $tip.classList.add('show');
-    const padding = 12;
-    let x = evt ? evt.clientX + padding : null;
-    let y = evt ? evt.clientY + padding : null;
-
-    if (x === null || y === null) {
-      const r = el.getBoundingClientRect();
-      x = r.right + 8;
-      y = r.top - 4;
-    }
-
-    if (x + 320 > innerWidth) x = innerWidth - 320 - 8;
+    const r = el.getBoundingClientRect();
+    let x = r.right + 8, y = r.top - 4;
+    if (x + 320 > innerWidth) x = r.left - 320;
     if (y + $tip.offsetHeight > innerHeight) y = innerHeight - $tip.offsetHeight - 8;
-    $tip.style.cssText = `left:${Math.max(8, x)}px;top:${Math.max(8, y)}px`;
+    $tip.style.cssText = `left:${Math.max(8,x)}px;top:${Math.max(8,y)}px`;
   }
 
   function esconderTip() { if ($tip) $tip.classList.remove('show'); }
@@ -337,62 +191,6 @@
     return Array.from(byMarca.entries())
       .map(([marca, qtd]) => ({ marca, qtd }))
       .sort((a, b) => b.qtd - a.qtd);
-  }
-
-  function getLinhaMarcas(row) {
-    const ref = normalize(row.CODREF).trim();
-    const linha = row.LINHA; // 1 = primeira linha (premium), 2 = segunda linha (popular)
-    const codAtual = normalize(row.CODSIS).trim();
-    if (!ref) return [];
-
-    const byProduto = new Map();
-
-    DATA_FULL.forEach(r => {
-      // Filtra por COMPLDESC + LINHA (mesma referência E mesma linha de qualidade)
-      if (normalize(r.CODREF).trim() !== ref) return;
-      if (linha != null && r.LINHA != null && r.LINHA !== linha) return; // Só mesma linha
-      
-      const qtd = parsePtNumber(r.ORIG_ETQ); // Estoque individual, não LIN_ETQTT
-      const codsis = normalize(r.CODSIS).trim();
-      const marca = normalize(r.MARCA).trim() || '(sem marca)';
-      const isAtual = codsis === codAtual;
-
-      byProduto.set(codsis, { marca, qtd, isAtual, codsis });
-    });
-
-    return Array.from(byProduto.values())
-      .sort((a, b) => {
-        // Produto atual primeiro, depois por estoque decrescente
-        if (a.isAtual) return -1;
-        if (b.isAtual) return 1;
-        return b.qtd - a.qtd;
-      });
-  }
-
-  function tipHtmlLinha(ref, itens, linha) {
-    const totalGeral = (itens || []).reduce((acc, r) => acc + parsePtNumber(r.qtd), 0);
-    const linhaLabel = linha === 1 ? '1ª Linha (Premium)' : linha === 2 ? '2ª Linha (Popular)' : 'Linha';
-    const header =
-      `<div class="tooltip-similar-header">${linhaLabel} — Ref: ${escapeHtml(ref)} (LIN: ${formatValue(totalGeral,'number')} un.)</div>`;
-
-    if (!itens || itens.length === 0) {
-      return header + `<div style="padding:8px 0;color:#6b7280">Nenhum produto encontrado nesta linha.</div>`;
-    }
-
-    const lista = itens.map(r => {
-      const corEtq = r.qtd > 0 ? 'color:#22c55e;font-weight:600' : 'color:#9ca3af';
-      const tagAtual = r.isAtual ? ' <span style="color:#f59e0b;font-weight:600">(ATUAL)</span>' : '';
-      return `<div style="padding:5px 0;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center">
-        <span><b style="color:var(--pri)">${escapeHtml(r.marca)}</b> — Cód: ${escapeHtml(r.codsis)}${tagAtual}</span>
-        <span style="${corEtq}">${formatValue(r.qtd, 'number')} un.</span>
-      </div>`;
-    }).join('');
-
-    const footer = `<div style="padding:6px 0;font-weight:600;text-align:right;border-top:2px solid #ddd;margin-top:4px">
-      Total: ${formatValue(totalGeral, 'number')} un. em ${itens.length} produto(s)
-    </div>`;
-
-    return header + lista + footer;
   }
 
   function tipHtml(ref, itens, simTotal, rowData) {
@@ -769,58 +567,11 @@
   // ============================================================
   // 7) CARREGAMENTO DE DADOS
   // ============================================================
-  const SQL_MAIN =
-    "WITH CTE_ESTOQUE AS (" +
-      "SELECT EST.CODEMP, EST.CODPROD, EST.ESTOQUE, PRO.COMPLDESC, PRO.PERCEBIDO, " +
-      "SUM(EST.ESTOQUE) OVER (PARTITION BY PRO.COMPLDESC, PRO.PERCEBIDO) AS LIN_ETQTT, " +
-      "SUM(EST.ESTOQUE) OVER (PARTITION BY PRO.COMPLDESC) AS SIM_ETQTT, " +
-      "COUNT(*) OVER (PARTITION BY PRO.COMPLDESC, PRO.PERCEBIDO) AS QTDLINHA, " +
-      "CASE WHEN MAX(PRO.PERCEBIDO) OVER (PARTITION BY PRO.COMPLDESC) = MIN(PRO.PERCEBIDO) OVER (PARTITION BY PRO.COMPLDESC) THEN 1 " +
-      "WHEN MAX(PRO.PERCEBIDO) OVER (PARTITION BY PRO.COMPLDESC) IS NULL THEN 0 ELSE 2 END AS DIFLINHA " +
-      "FROM TGFEST EST LEFT JOIN AVW_PRODUTOCOMPLETO PRO ON PRO.CODPROD = EST.CODPROD WHERE EST.CODEMP = 1" +
-    "), " +
-    "CTE_ULTIMOS AS (" +
-      "SELECT H.NUREG, H.NUNOTA, H.DTNEG, H.DTINSERT, H.CODPROD, H.COMPLDESC, H.DESCRPROD, H.REFFORN, H.MARCA, " +
-      "H.DESCRGRUPOPROD, H.AD_STATUSREP_DES, H.ORIG_COMPRA_ULTI, H.NOMEPARC, H.ORIG_CUSTO_ULTCO, H.ORIG_RANK, " +
-      "H.ORIG_ABC, H.ORIG_PEDVEN_MED, H.SUGESTAO_COMPRA, H.STATUS, H.QTDPEDIDO, H.DECISAO, P.AD_CATCOMPRA, " +
-      "ROW_NUMBER() OVER (PARTITION BY H.CODPROD ORDER BY H.NUREG DESC) AS RN " +
-      "FROM AD_2601COTANEWHIST H JOIN TGFPRO P ON P.CODPROD = H.CODPROD" +
-    "), " +
-    "CTE_COM_ESTOQUE AS (" +
-      "SELECT U.NUREG, U.NUNOTA, U.DTNEG, U.DTINSERT, U.CODPROD, U.COMPLDESC, U.DESCRPROD, U.REFFORN, U.MARCA, " +
-      "U.DESCRGRUPOPROD, U.AD_STATUSREP_DES, U.ORIG_COMPRA_ULTI, U.NOMEPARC, U.ORIG_CUSTO_ULTCO, U.ORIG_RANK, " +
-      "U.ORIG_ABC, U.ORIG_PEDVEN_MED, U.SUGESTAO_COMPRA, U.STATUS, U.QTDPEDIDO, U.DECISAO, U.AD_CATCOMPRA, " +
-      "COALESCE(E.ESTOQUE, 0) AS ORIG_ETQ, " +
-      "COALESCE(E.LIN_ETQTT, 0) AS LIN_ETQTT, " +
-      "COALESCE(E.SIM_ETQTT, 0) AS SIM_ETQTT, " +
-      "COALESCE(E.QTDLINHA, 0) AS QTDLINHA, " +
-      "COALESCE(E.DIFLINHA, 0) AS DIFLINHA, " +
-      "E.PERCEBIDO AS LINHA " +
-      "FROM CTE_ULTIMOS U " +
-      "LEFT JOIN CTE_ESTOQUE E ON E.CODPROD = U.CODPROD AND E.CODEMP = 1 " +
-      "WHERE U.RN = 1" +
-    ") " +
-    "SELECT NUREG, NUNOTA, DTNEG, DTINSERT, CODPROD AS CODSIS, COMPLDESC AS CODREF, " +
-    "DESCRPROD AS PRODUTO, CHR(174) || ' ' || TRIM(REFFORN) AS CODORIG, MARCA, DESCRGRUPOPROD AS GRUPO, " +
-    "AD_CATCOMPRA AS CATEG_VAL, OPTION_LABEL('TGFPRO','AD_CATCOMPRA', AD_CATCOMPRA) AS CATEG, " +
-    "AD_STATUSREP_DES AS STATUS, ORIG_COMPRA_ULTI AS COM_DTULT, NOMEPARC AS FORNECEDOR, " +
-    "ORIG_CUSTO_ULTCO AS COM_ULTCUS, ORIG_RANK AS RNK, ORIG_ABC AS ABC, " +
-    "ORIG_ETQ, LIN_ETQTT, SIM_ETQTT AS SIM_ETQ, QTDLINHA, DIFLINHA, LINHA, " +
-    "ORIG_PEDVEN_MED AS ORIG_MEDMES, SUGESTAO_COMPRA AS SUGESTAO, STATUS AS AUT_STATUS, " +
-    "QTDPEDIDO AS USU_QTDPEDIDO, DECISAO AS USU_DECISAO " +
-    "FROM CTE_COM_ESTOQUE ORDER BY CODPROD";
+  const SQL_MAIN = "WITH CTE_ULTIMOS AS (SELECT H.NUREG, H.NUNOTA, H.DTNEG, H.DTINSERT, H.CODPROD, H.COMPLDESC, H.DESCRPROD, H.REFFORN, H.MARCA, H.DESCRGRUPOPROD, H.AD_STATUSREP_DES, H.ORIG_COMPRA_ULTI, H.NOMEPARC, H.ORIG_CUSTO_ULTCO, H.ORIG_RANK, H.ORIG_ABC, H.ORIG_PEDVEN_MED, H.SUGESTAO_COMPRA, H.STATUS, H.QTDPEDIDO, H.DECISAO, P.AD_CATCOMPRA, ROW_NUMBER() OVER (PARTITION BY H.CODPROD ORDER BY H.NUREG DESC) AS RN FROM AD_2601COTANEWHIST H JOIN TGFPRO P ON P.CODPROD = H.CODPROD), CTE_COM_ESTOQUE AS (SELECT U.NUREG, U.NUNOTA, U.DTNEG, U.DTINSERT, U.CODPROD, U.COMPLDESC, U.DESCRPROD, U.REFFORN, U.MARCA, U.DESCRGRUPOPROD, U.AD_STATUSREP_DES, U.ORIG_COMPRA_ULTI, U.NOMEPARC, U.ORIG_CUSTO_ULTCO, U.ORIG_RANK, U.ORIG_ABC, U.ORIG_PEDVEN_MED, U.SUGESTAO_COMPRA, U.STATUS, U.QTDPEDIDO, U.DECISAO, U.AD_CATCOMPRA, COALESCE(E.ESTOQUE, 0) AS ORIG_ETQ FROM CTE_ULTIMOS U LEFT JOIN TGFEST E ON E.CODPROD = U.CODPROD AND E.CODEMP = 1 WHERE U.RN = 1) SELECT NUREG, NUNOTA, DTNEG, DTINSERT, CODPROD AS CODSIS, COMPLDESC AS CODREF, DESCRPROD AS PRODUTO, REFFORN AS CODORIG, MARCA, DESCRGRUPOPROD AS GRUPO, AD_CATCOMPRA AS CATEG_VAL, OPTION_LABEL('TGFPRO','AD_CATCOMPRA', AD_CATCOMPRA) AS CATEG, AD_STATUSREP_DES AS STATUS, ORIG_COMPRA_ULTI AS COM_DTULT, NOMEPARC AS FORNECEDOR, ORIG_CUSTO_ULTCO AS COM_ULTCUS, ORIG_RANK AS RNK, ORIG_ABC AS ABC, ORIG_ETQ, SUM(ORIG_ETQ) OVER (PARTITION BY COMPLDESC) AS SIM_ETQ, ORIG_PEDVEN_MED AS ORIG_MEDMES, SUGESTAO_COMPRA AS SUGESTAO, STATUS AS AUT_STATUS, QTDPEDIDO AS USU_QTDPEDIDO, DECISAO AS USU_DECISAO FROM CTE_COM_ESTOQUE ORDER BY CODPROD";
 
-  const SQL_COTACAO_WHERE =
-    "WHERE STATUS IN ('1-CRITICO','2-ATENCAO','4-AVALIAR') " +
-    "AND AD_CATCOMPRA IN (2,4) " +
-    "AND (DECISAO IS NULL OR UPPER(DECISAO) <> 'IGNORAR') " +
-    "AND NVL(SUGESTAO_COMPRA, 0) > 0";
-
-  function carregarDados(mode) {
+  function carregarDados() {
     $loading.style.display = 'flex';
-    $loading.textContent = mode === 'cotacao'
-      ? 'Carregando cotação rápida...'
-      : 'Carregando todos os produtos...';
+    $loading.textContent = 'Carregando dados...';
 
     if (typeof JX === 'undefined') {
       console.error('❌ ERRO: JX não está definido');
@@ -840,34 +591,22 @@
       
       var offsetInicio = (loteAtual - 1) * tamanhoPagina + 1;
       var offsetFim = loteAtual * tamanhoPagina;
-      var whereSql = mode === 'cotacao' ? ' ' + SQL_COTACAO_WHERE + ' ' : ' ';
       
       // SQL paginado usando ROWNUM (Oracle)
       var sqlPaginado = 
         'SELECT * FROM (' +
         '  SELECT ' +
         '    NUREG, NUNOTA, DTNEG, DTINSERT, CODPROD AS CODSIS, COMPLDESC AS CODREF, ' +
-        '    DESCRPROD AS PRODUTO, CHR(174) || \' \' || TRIM(REFFORN) AS CODORIG, MARCA, DESCRGRUPOPROD AS GRUPO, ' +
+        '    DESCRPROD AS PRODUTO, REFFORN AS CODORIG, MARCA, DESCRGRUPOPROD AS GRUPO, ' +
         '    AD_CATCOMPRA AS CATEG_VAL, OPTION_LABEL(\'TGFPRO\',\'AD_CATCOMPRA\', AD_CATCOMPRA) AS CATEG, ' +
         '    AD_STATUSREP_DES AS STATUS, ORIG_COMPRA_ULTI AS COM_DTULT, NOMEPARC AS FORNECEDOR, ' +
-        '    ORIG_CUSTO_ULTCO AS COM_ULTCUS, ORIG_RANK AS RNK, ORIG_ABC AS ABC, ' +
-        '    ORIG_ETQ, LIN_ETQTT, SIM_ETQTT AS SIM_ETQ, QTDLINHA, DIFLINHA, LINHA, ' +
+        '    ORIG_CUSTO_ULTCO AS COM_ULTCUS, ORIG_RANK AS RNK, ORIG_ABC AS ABC, ORIG_ETQ, ' +
+        '    SUM(ORIG_ETQ) OVER (PARTITION BY COMPLDESC) AS SIM_ETQ, ' +
         '    ORIG_PEDVEN_MED AS ORIG_MEDMES, SUGESTAO_COMPRA AS SUGESTAO, STATUS AS AUT_STATUS, ' +
         '    QTDPEDIDO AS USU_QTDPEDIDO, DECISAO AS USU_DECISAO, ' +
-        '    ROW_NUMBER() OVER (ORDER BY DTNEG DESC, CODPROD) AS RN ' +
+        '    ROW_NUMBER() OVER (ORDER BY CODPROD) AS RN ' +
         '  FROM (' +
-        '    WITH CTE_ESTOQUE AS (' +
-        '      SELECT EST.CODEMP, EST.CODPROD, EST.ESTOQUE, PRO.COMPLDESC, PRO.PERCEBIDO, ' +
-        '        SUM(EST.ESTOQUE) OVER (PARTITION BY PRO.COMPLDESC, PRO.PERCEBIDO) AS LIN_ETQTT, ' +
-        '        SUM(EST.ESTOQUE) OVER (PARTITION BY PRO.COMPLDESC) AS SIM_ETQTT, ' +
-        '        COUNT(*) OVER (PARTITION BY PRO.COMPLDESC, PRO.PERCEBIDO) AS QTDLINHA, ' +
-        '        CASE WHEN MAX(PRO.PERCEBIDO) OVER (PARTITION BY PRO.COMPLDESC) = MIN(PRO.PERCEBIDO) OVER (PARTITION BY PRO.COMPLDESC) THEN 1 ' +
-        '        WHEN MAX(PRO.PERCEBIDO) OVER (PARTITION BY PRO.COMPLDESC) IS NULL THEN 0 ELSE 2 END AS DIFLINHA ' +
-        '      FROM TGFEST EST ' +
-        '      LEFT JOIN AVW_PRODUTOCOMPLETO PRO ON PRO.CODPROD = EST.CODPROD ' +
-        '      WHERE EST.CODEMP = 1' +
-        '    ), ' +
-        '    CTE_ULTIMOS AS (' +
+        '    WITH CTE_ULTIMOS AS (' +
         '      SELECT H.NUREG, H.NUNOTA, H.DTNEG, H.DTINSERT, H.CODPROD, H.COMPLDESC, H.DESCRPROD, ' +
         '        H.REFFORN, H.MARCA, H.DESCRGRUPOPROD, H.AD_STATUSREP_DES, H.ORIG_COMPRA_ULTI, ' +
         '        H.NOMEPARC, H.ORIG_CUSTO_ULTCO, H.ORIG_RANK, H.ORIG_ABC, H.ORIG_PEDVEN_MED, ' +
@@ -881,22 +620,16 @@
         '        U.REFFORN, U.MARCA, U.DESCRGRUPOPROD, U.AD_STATUSREP_DES, U.ORIG_COMPRA_ULTI, ' +
         '        U.NOMEPARC, U.ORIG_CUSTO_ULTCO, U.ORIG_RANK, U.ORIG_ABC, U.ORIG_PEDVEN_MED, ' +
         '        U.SUGESTAO_COMPRA, U.STATUS, U.QTDPEDIDO, U.DECISAO, U.AD_CATCOMPRA, ' +
-        '        COALESCE(E.ESTOQUE, 0) AS ORIG_ETQ, ' +
-        '        COALESCE(E.LIN_ETQTT, 0) AS LIN_ETQTT, ' +
-        '        COALESCE(E.SIM_ETQTT, 0) AS SIM_ETQTT, ' +
-        '        COALESCE(E.QTDLINHA, 0) AS QTDLINHA, ' +
-        '        COALESCE(E.DIFLINHA, 0) AS DIFLINHA, ' +
-        '        E.PERCEBIDO AS LINHA ' +
+        '        COALESCE(E.ESTOQUE, 0) AS ORIG_ETQ ' +
         '      FROM CTE_ULTIMOS U ' +
-        '      LEFT JOIN CTE_ESTOQUE E ON E.CODPROD = U.CODPROD AND E.CODEMP = 1 ' +
+        '      LEFT JOIN TGFEST E ON E.CODPROD = U.CODPROD AND E.CODEMP = 1 ' +
         '      WHERE U.RN = 1' +
         '    ) ' +
-        '    SELECT * FROM CTE_COM_ESTOQUE' + whereSql +
+        '    SELECT * FROM CTE_COM_ESTOQUE' +
         '  )' +
         ') WHERE RN >= ' + offsetInicio + ' AND RN <= ' + offsetFim;
       
-      $loading.textContent = (mode === 'cotacao' ? 'Cotação Rápida' : 'Todos os Produtos') +
-        ' — lote ' + loteAtual + ' (' + todosRegistros.length + ' registros)...';
+      $loading.textContent = 'Carregando lote ' + loteAtual + ' (' + todosRegistros.length + ' registros)...';
       
       JX.consultar(sqlPaginado)
         .then(function(resultado) {
@@ -947,28 +680,20 @@
       
       DATA = todosRegistros;
       DATA_FULL = todosRegistros;
-      if (mode === 'cotacao') {
-        tabData.cotacao = { rows: todosRegistros, loaded: true };
-      } else {
-        tabData.todos = { rows: todosRegistros, loaded: true };
-      }
       
       console.log('✅ CARREGAMENTO COMPLETO:', todosRegistros.length, 'registros');
-      if (mode !== 'cotacao') {
-        console.log('📊 Esperado: ~26.039 registros');
-      }
+      console.log('📊 Esperado: ~26.039 registros');
       
-      if (mode !== 'cotacao' && todosRegistros.length >= 20000) {
+      if (todosRegistros.length >= 20000) {
         console.log('✅ Todos os registros foram carregados com sucesso!');
-      } else if (mode !== 'cotacao' && todosRegistros.length >= 5000) {
+      } else if (todosRegistros.length >= 5000) {
         console.warn('⚠️ Carregados ' + todosRegistros.length + ' registros. Esperado: ~26.039');
-      } else if (mode !== 'cotacao') {
+      } else {
         console.error('❌ ATENÇÃO: Apenas ' + todosRegistros.length + ' registros! Verifique a consulta.');
       }
       
-        $loading.style.display = 'none';
-        render();
-        renderKanban();
+      $loading.style.display = 'none';
+      render();
     }
     
     // Iniciar carregamento
@@ -1032,13 +757,20 @@
 
     result = result.filter(row => {
       for (const col of COLS) {
+        const quick = state.quickFilters[col.key].trim().toLowerCase();
+        if (quick && !normalize(row[col.key]).toLowerCase().includes(quick)) return false;
+      }
+      return true;
+    });
+
+    result = result.filter(row => {
+      for (const col of COLS) {
         const menu = state.menuFilters[col.key];
         const cellValue = row[col.key];
 
-        if (menu.mode === 'none') return false;
         if (isBlank(cellValue) && !menu.includeBlanks) return false;
         if (!matchesOperator(cellValue, menu.operator, menu.value)) return false;
-        if (menu.mode === 'subset' && menu.selected.size > 0 && !menu.selected.has(normalize(cellValue))) return false;
+        if (menu.selected.size > 0 && !menu.selected.has(normalize(cellValue))) return false;
       }
       return true;
     });
@@ -1232,107 +964,6 @@
     return cols.join(' ');
   }
 
-  function applyTemplateToRows() {
-    const template = getGridTemplate();
-    if (!$grid) return;
-    $grid.querySelectorAll('.row').forEach(row => {
-      row.style.gridTemplateColumns = template;
-    });
-  }
-
-  function getColLabel(key) {
-    const col = COLS.find(c => c.key === key);
-    return col ? col.label : key;
-  }
-
-  function clearAllFilters() {
-    state.globalSearch = '';
-    if ($globalSearch) $globalSearch.value = '';
-    state.sort = { key: null, dir: null };
-    state.selectedIds.clear();
-    state.currentPage = 1;
-
-    COLS.forEach(col => {
-      state.quickFilters[col.key] = '';
-      state.menuFilters[col.key] = {
-        operator: 'contains',
-        value: '',
-        selected: new Set(),
-        includeBlanks: true,
-        mode: 'all',
-      };
-    });
-
-    // reset filtro cotação rápida conforme aba ativa
-    state.filtroCotacaoRapida = state.activeDataTab === 'cotacao';
-    if ($chkCotacaoRapida) $chkCotacaoRapida.checked = state.filtroCotacaoRapida;
-
-    closeMenu();
-    saveFilterState();
-    render();
-  }
-
-  function renderActiveFilters() {
-    if (!$activeFiltersBar) return;
-    const entries = Object.entries(state.menuFilters || {});
-    const active = entries.filter(([, v]) => {
-      if (v.mode === 'none') return true;
-      if (v.mode === 'subset') return v.selected.size > 0;
-      if (v.mode === 'all') return false;
-      return v.selected.size > 0;
-    });
-
-    if (active.length === 0) {
-      $activeFiltersBar.classList.remove('show');
-      $activeFiltersBar.innerHTML = '';
-      return;
-    }
-
-    $activeFiltersBar.classList.add('show');
-    const tagsHtml = active.map(([key, v]) => {
-      let text = '';
-      if (v.mode === 'none') {
-        text = 'Nenhum';
-      } else {
-        const total = v.selected.size;
-        text = total <= 2
-          ? Array.from(v.selected).map(s => s === '' ? '(Vazios)' : s).join(', ')
-          : `${total} selecionado(s)`;
-      }
-      return `
-        <span class="filter-tag" data-col="${escapeHtml(key)}">
-          ${escapeHtml(getColLabel(key))}: ${escapeHtml(text)}
-          <span class="filter-tag-remove" title="Remover filtro">✕</span>
-        </span>
-      `;
-    }).join('');
-    $activeFiltersBar.innerHTML = tagsHtml + `
-      <button class="filter-clear-all" data-action="clear-all">Limpar tudo</button>
-    `;
-  }
-
-  if ($activeFiltersBar) {
-    $activeFiltersBar.addEventListener('click', (e) => {
-      const clearBtn = e.target.closest('[data-action="clear-all"]');
-      if (clearBtn) {
-        clearAllFilters();
-        return;
-      }
-      const btn = e.target.closest('.filter-tag-remove');
-      if (!btn) return;
-      const tag = btn.closest('.filter-tag');
-      if (!tag) return;
-      const colKey = tag.getAttribute('data-col');
-      if (!colKey || !state.menuFilters[colKey]) return;
-      state.menuFilters[colKey].selected = new Set();
-      state.menuFilters[colKey].mode = 'all';
-      state.menuFilters[colKey].includeBlanks = true;
-      state.currentPage = 1;
-      saveFilterState();
-      render();
-    });
-  }
-
   // ============================================================
   // 12) RENDERIZAÇÃO
   // ============================================================
@@ -1369,8 +1000,6 @@
         const colIdx = COLS.indexOf(col); // Índice real no array COLS
         const cell = document.createElement('div');
         cell.className = 'cell';
-        if (col.key === 'LIN_ETQTT') cell.classList.add('cell-linha');
-        if (col.key === 'SIM_ETQ') cell.classList.add('cell-similar');
         cell.setAttribute('data-col-idx', colIdx);
 
         const content = document.createElement('div');
@@ -1389,43 +1018,14 @@
 
         label.addEventListener('click', () => toggleSort(col.key));
 
-        const filterBtn = document.createElement('button');
-        filterBtn.className = 'filter-btn';
-        const mf = state.menuFilters[col.key];
-        const hasFilter = mf && mf.mode && mf.mode !== 'all';
-        if (hasFilter) filterBtn.classList.add('has-filter');
-        filterBtn.innerHTML = `
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M3 5h18l-7 8v5l-4 2v-7L3 5z"></path>
-          </svg>
-        `;
-        filterBtn.title = 'Filtro';
-        filterBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          openMenu(col, filterBtn);
-        });
-
         label.addEventListener('dragstart', (e) => {
-          cell.classList.add('dragging-col');
           state.dragColumn = colIdx;
           e.dataTransfer.effectAllowed = 'move';
-        });
-
-        label.addEventListener('dragend', () => {
-          cell.classList.remove('dragging-col');
-          if ($grid) {
-            $grid.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-          }
         });
 
         cell.addEventListener('dragover', (e) => {
           e.preventDefault();
           e.dataTransfer.dropEffect = 'move';
-          cell.classList.add('drag-over');
-        });
-
-        cell.addEventListener('dragleave', () => {
-          cell.classList.remove('drag-over');
         });
 
         cell.addEventListener('drop', (e) => {
@@ -1437,7 +1037,6 @@
             COLS.splice(toIdx, 0, moved);
             render();
           }
-          cell.classList.remove('drag-over');
           state.dragColumn = null;
         });
 
@@ -1447,7 +1046,6 @@
         resizer.addEventListener('mousedown', (e) => startResize(e, colIdx));
 
         content.appendChild(label);
-        content.appendChild(filterBtn);
         content.appendChild(resizer);
         cell.appendChild(content);
         header.appendChild(cell);
@@ -1455,10 +1053,68 @@
 
       $grid.appendChild(header);
 
+      // ----- FILTER ROW -----
+      const filterRow = document.createElement('div');
+      filterRow.className = 'row row-filter';
+      filterRow.style.gridTemplateColumns = template;
+
+      const filterSelectCell = document.createElement('div');
+      filterSelectCell.className = 'cell cell-select';
+      filterSelectCell.innerHTML = '<span class="text-muted">✓</span>';
+      filterRow.appendChild(filterSelectCell);
+
+      visibleCols.forEach(col => {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.style.padding = '2px 6px';
+
+        // Ajuste 1: input + menu ao lado direito
+        const wrap = document.createElement('div');
+        wrap.className = 'filter-cell-wrap';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'filter-input';
+        input.placeholder = 'Filtrar...';
+        input.value = state.quickFilters[col.key];
+        input.addEventListener('input', () => {
+          state.quickFilters[col.key] = input.value;
+          state.currentPage = 1;
+          renderBody();
+          updatePagination();
+        });
+
+        const menuBtn = document.createElement('button');
+        menuBtn.className = 'menu-btn';
+
+        const mf = state.menuFilters[col.key];
+        const hasFilter = mf.value || mf.selected.size > 0 || mf.operator !== 'contains' || mf.includeBlanks === false;
+        if (hasFilter) menuBtn.classList.add('has-filter');
+
+        // ícone 3 pontos (vertical)
+        menuBtn.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <circle cx="12" cy="5" r="2"></circle>
+            <circle cx="12" cy="12" r="2"></circle>
+            <circle cx="12" cy="19" r="2"></circle>
+          </svg>
+        `;
+        menuBtn.title = 'Filtro avançado';
+        menuBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openMenu(col, menuBtn);
+        });
+
+        wrap.appendChild(input);
+        wrap.appendChild(menuBtn);
+        cell.appendChild(wrap);
+        filterRow.appendChild(cell);
+      });
+
+      $grid.appendChild(filterRow);
+
       renderBody();
       updatePagination();
-      renderActiveFilters();
-      renderKanban();
     } catch (err) {
       console.error('❌ Erro no render()', err);
       try {
@@ -1510,10 +1166,6 @@
         cell.className = 'cell';
         if (col.align === 'right') cell.classList.add('cell-right');
         if (col.align === 'center') cell.classList.add('cell-center');
-        if (col.key === 'COM_ULTCUS') cell.classList.add('cell-custo-ultimo');
-        if (col.key === 'FORNECEDOR') cell.classList.add('cell-fornecedor');
-        if (col.key === 'LIN_ETQTT') cell.classList.add('cell-linha');
-        if (col.key === 'SIM_ETQ') cell.classList.add('cell-similar');
 
         const value = rowData[col.key];
 
@@ -1584,50 +1236,8 @@
               lupa.className = 'lupa-similar on';
               lupa.textContent = '🔍';
 
-              const tipHtmlContent = tipHtml(rowData.CODREF, similares, simTotal, rowData);
-              lupa.addEventListener('mouseenter', (e) => {
-                mostrarTip(lupa, tipHtmlContent, e);
-              });
-              lupa.addEventListener('mousemove', (e) => {
-                mostrarTip(lupa, tipHtmlContent, e);
-              });
-              lupa.addEventListener('mouseleave', esconderTip);
-
-              wrap.appendChild(lupa);
-            }
-
-            cell.innerHTML = '';
-            cell.appendChild(wrap);
-            cell.title = normalize(value);
-          }
-          // --- coluna LIN_ETQTT: lupa + tooltip de marcas por linha ---
-          else if (col.key === 'LIN_ETQTT') {
-            const qtd = formatValue(value, 'number');
-            const linTotal = parsePtNumber(value);
-            const marcas = linTotal > 0 ? getLinhaMarcas(rowData) : [];
-
-            const wrap = document.createElement('div');
-            wrap.style.display = 'flex';
-            wrap.style.alignItems = 'center';
-            wrap.style.justifyContent = col.align === 'right' ? 'flex-end' : 'flex-start';
-            wrap.style.width = '100%';
-            wrap.style.gap = '6px';
-
-            const spanVal = document.createElement('span');
-            spanVal.innerHTML = qtd;
-            wrap.appendChild(spanVal);
-
-            if (linTotal > 0 && marcas.length > 0) {
-              const lupa = document.createElement('span');
-              lupa.className = 'lupa-similar on';
-              lupa.textContent = '🔍';
-
-              const tipHtmlContent = tipHtmlLinha(rowData.CODREF, marcas, rowData.LINHA);
-              lupa.addEventListener('mouseenter', (e) => {
-                mostrarTip(lupa, tipHtmlContent, e);
-              });
-              lupa.addEventListener('mousemove', (e) => {
-                mostrarTip(lupa, tipHtmlContent, e);
+              lupa.addEventListener('mouseenter', () => {
+                mostrarTip(lupa, tipHtml(rowData.CODREF, similares, simTotal, rowData));
               });
               lupa.addEventListener('mouseleave', esconderTip);
 
@@ -1688,131 +1298,6 @@
   }
 
   // ============================================================
-  // 12.5) ABA 2 (KANBAN) - RENDERIZAÇÃO
-  // ============================================================
-  function getDecisionValue(row) {
-    const val = normalize(row.USU_DECISAO).trim().toUpperCase();
-    if (val === 'PROCESSAR' || val === 'ANALISAR' || val === 'IGNORAR') return val;
-    return 'SEM';
-  }
-
-  function matchesTab2Search(row) {
-    const q = normalize(tab2SearchValue).toLowerCase().trim();
-    if (!q) return true;
-    const hay = [
-      row.PRODUTO,
-      row.CODREF,
-      row.MARCA,
-      row.GRUPO,
-      row.FORNECEDOR
-    ].map(v => normalize(v).toLowerCase()).join(' ');
-    return hay.includes(q);
-  }
-
-  function matchesTab2Decision(row) {
-    if (!tab2DecisionFilter || tab2DecisionFilter === 'ALL') return true;
-    return getDecisionValue(row) === tab2DecisionFilter;
-  }
-
-  function buildCardHtml(row) {
-    const curva = normalize(row.ABC).toUpperCase() || 'D';
-    const ranking = row.RNK ? `#${formatValue(row.RNK, 'number')}` : '-';
-    const marca = normalize(row.MARCA) || '-';
-    const produto = normalize(row.PRODUTO) || '-';
-    const grupo = normalize(row.GRUPO) || '-';
-    const decisao = getDecisionValue(row);
-
-    const actions = decisao === 'IGNORAR'
-      ? '<button class="tab2-card-btn done" disabled>✓ Ignorado</button>'
-      : `
-        <button class="tab2-card-btn ignorar" data-action="IGNORAR">Ignorar</button>
-        <button class="tab2-card-btn analisar" data-action="ANALISAR">Analisar</button>
-        <button class="tab2-card-btn comprar" data-action="PROCESSAR">Comprar</button>
-      `;
-
-    return `
-      <div class="tab2-product-card" data-nureg="${escapeHtml(row.NUREG)}">
-        <div class="tab2-card-top">
-          <div>
-            <div class="tab2-product-name">${escapeHtml(produto)}</div>
-            <div class="tab2-grupo-tag">${escapeHtml(grupo)}</div>
-          </div>
-          <span class="tab2-curva ${escapeHtml(curva)}">${escapeHtml(curva)}</span>
-        </div>
-        <div class="tab2-card-details">
-          <div class="tab2-detail-item">
-            <span class="tab2-detail-label">Marca</span>
-            <span class="tab2-detail-value marca">${escapeHtml(marca)}</span>
-          </div>
-          <div class="tab2-detail-item">
-            <span class="tab2-detail-label">Ranking</span>
-            <span class="tab2-detail-value">${escapeHtml(ranking)}</span>
-          </div>
-        </div>
-        <div class="tab2-card-actions">
-          ${actions}
-        </div>
-      </div>
-    `;
-  }
-
-  function renderKanban() {
-    if (!$tabKanban || !$tab2ColProcessar || !$tab2ColAnalisar || !$tab2ColIgnorar || !$tab2ColSem) return;
-
-    const rows = getVisibleRows().filter(r => matchesTab2Search(r) && matchesTab2Decision(r));
-
-    const processar = rows.filter(r => getDecisionValue(r) === 'PROCESSAR');
-    const analisar = rows.filter(r => getDecisionValue(r) === 'ANALISAR');
-    const ignorar = rows.filter(r => getDecisionValue(r) === 'IGNORAR');
-    const sem = rows.filter(r => getDecisionValue(r) === 'SEM');
-
-    if ($tab2Total) $tab2Total.textContent = String(rows.length);
-    if ($tab2CountProcessar) $tab2CountProcessar.textContent = String(processar.length);
-    if ($tab2CountAnalisar) $tab2CountAnalisar.textContent = String(analisar.length);
-    if ($tab2CountIgnorar) $tab2CountIgnorar.textContent = String(ignorar.length);
-    if ($tab2CountSem) $tab2CountSem.textContent = String(sem.length);
-
-    if ($tab2ColCountProcessar) $tab2ColCountProcessar.textContent = String(processar.length);
-    if ($tab2ColCountAnalisar) $tab2ColCountAnalisar.textContent = String(analisar.length);
-    if ($tab2ColCountIgnorar) $tab2ColCountIgnorar.textContent = String(ignorar.length);
-    if ($tab2ColCountSem) $tab2ColCountSem.textContent = String(sem.length);
-
-    $tab2ColProcessar.innerHTML = processar.map(buildCardHtml).join('') || '<div class="text-muted">Sem itens.</div>';
-    $tab2ColAnalisar.innerHTML = analisar.map(buildCardHtml).join('') || '<div class="text-muted">Sem itens.</div>';
-    $tab2ColIgnorar.innerHTML = ignorar.map(buildCardHtml).join('') || '<div class="text-muted">Sem itens.</div>';
-    $tab2ColSem.innerHTML = sem.map(buildCardHtml).join('') || '<div class="text-muted">Sem itens.</div>';
-  }
-
-  $tabKanban.addEventListener('click', async (e) => {
-    const btn = e.target.closest('.tab2-card-btn');
-    if (!btn) return;
-    const card = btn.closest('.tab2-product-card');
-    if (!card) return;
-
-    const nureg = card.dataset.nureg;
-    if (!nureg) return;
-
-    const novoValor = btn.dataset.action;
-    if (!novoValor) return;
-
-    const rowData = DATA.find(r => String(r.NUREG) === String(nureg));
-    if (!rowData) return;
-
-    btn.disabled = true;
-    btn.classList.add('is-loading');
-    const ok = await salvarDropdown(DROPDOWN_CONFIG.decisao, nureg, novoValor);
-    btn.classList.remove('is-loading');
-    btn.disabled = false;
-
-    if (ok) {
-      rowData.USU_DECISAO = novoValor;
-      showToast('✅ Salvo');
-      render();
-      renderKanban();
-    }
-  });
-
-  // ============================================================
   // 13) MENU DE FILTRO (POPUP) - mantido
   // ============================================================
   function openMenu(col, anchorEl) {
@@ -1825,43 +1310,23 @@
     $popup.classList.add('show');
 
     const menu = state.menuFilters[col.key];
-    const valueCounts = {};
-    DATA.forEach(r => {
-      const v = normalize(r[col.key]);
-      valueCounts[v] = (valueCounts[v] || 0) + 1;
-    });
-    const distinctValues = Object.keys(valueCounts).sort((a, b) =>
+    const distinctValues = [...new Set(DATA.map(r => normalize(r[col.key])))].sort((a, b) =>
       a.toLowerCase().localeCompare(b.toLowerCase())
     );
 
-    let tempSelected;
-    if (menu.mode === 'subset') tempSelected = new Set(menu.selected);
-    else if (menu.mode === 'none') tempSelected = new Set();
-    else tempSelected = new Set(distinctValues);
-
     $popup.innerHTML = `
-      <div class="filter-popover-header">
-        <div>${escapeHtml(col.label)}</div>
-        <button class="filter-popover-close" id="popupClose">✕</button>
+      <div class="popup-header">
+        <div class="popup-title">${escapeHtml(col.label)}</div>
+        <button class="popup-close" id="popupClose">✕</button>
       </div>
 
-      <div class="filter-sort-section">
-        <button class="sort-btn ${state.sort.key === col.key && state.sort.dir === 'asc' ? 'active' : ''}" id="popupSortAsc">A → Z</button>
-        <button class="sort-btn ${state.sort.key === col.key && state.sort.dir === 'desc' ? 'active' : ''}" id="popupSortDesc">Z → A</button>
+      <div class="popup-section">
+        <div class="popup-label">Selecionar Valores</div>
+        <input type="text" class="value-search" id="popupSearch" placeholder="Buscar valores...">
+        <div class="value-list" id="popupValueList"></div>
       </div>
 
-      <div class="filter-search">
-        <input type="text" id="popupSearch" placeholder="Buscar valores...">
-      </div>
-
-      <div class="filter-actions">
-        <button class="filter-action-btn" id="popupSelectAll">Selecionar visíveis</button>
-        <button class="filter-action-btn" id="popupSelectNone">Desmarcar visíveis</button>
-      </div>
-
-      <div class="filter-values" id="popupValueList"></div>
-
-      <div class="filter-footer">
+      <div class="popup-footer">
         <button class="btn" id="popupClear">Limpar</button>
         <button class="btn btn-primary" id="popupApply">Aplicar</button>
       </div>
@@ -1872,36 +1337,48 @@
     const $valueList = document.getElementById('popupValueList');
     const $clear = document.getElementById('popupClear');
     const $apply = document.getElementById('popupApply');
-    const $selectAll = document.getElementById('popupSelectAll');
-    const $selectNone = document.getElementById('popupSelectNone');
-    const $sortAsc = document.getElementById('popupSortAsc');
-    const $sortDesc = document.getElementById('popupSortDesc');
-
-    function getFilteredValues() {
-      const search = $search.value.toLowerCase();
-      return distinctValues.filter(v => v.toLowerCase().includes(search));
-    }
 
     function renderValueList() {
-      const filtered = getFilteredValues();
+      const search = $search.value.toLowerCase();
+      const filtered = distinctValues.filter(v => v.toLowerCase().includes(search));
 
       $valueList.innerHTML = '';
 
+      const blankItem = document.createElement('div');
+      blankItem.className = 'value-item';
+      blankItem.innerHTML = `
+        <input type="checkbox" ${menu.selected.has('') || menu.selected.size === 0 ? 'checked' : ''}>
+        <span><em>(Vazios)</em></span>
+      `;
+      blankItem.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (menu.selected.has('')) menu.selected.delete('');
+        else menu.selected.add('');
+        renderValueList();
+      });
+      $valueList.appendChild(blankItem);
+
       filtered.forEach(val => {
+        if (val === '') return;
+
         const item = document.createElement('div');
-        item.className = 'filter-value-item';
-        const checked = tempSelected.has(val);
-        const label = val === '' ? '(Vazios)' : val;
-        const count = valueCounts[val] || 0;
+        item.className = 'value-item';
+        const checked = menu.selected.size === 0 || menu.selected.has(val);
         item.innerHTML = `
           <input type="checkbox" ${checked ? 'checked' : ''}>
-          <span>${escapeHtml(label)}</span>
-          <span class="value-count">${count}</span>
+          <span>${escapeHtml(val)}</span>
         `;
         item.addEventListener('click', (e) => {
           e.stopPropagation();
-          if (tempSelected.has(val)) tempSelected.delete(val);
-          else tempSelected.add(val);
+          if (menu.selected.has(val)) {
+            menu.selected.delete(val);
+          } else {
+            if (menu.selected.size === 0) {
+              distinctValues.forEach(v => { if (v !== val) menu.selected.add(v); });
+            } else {
+              menu.selected.add(val);
+            }
+          }
           renderValueList();
         });
         $valueList.appendChild(item);
@@ -1913,62 +1390,20 @@
 
     $close.addEventListener('click', closeMenu);
 
-    if ($sortAsc) {
-      $sortAsc.addEventListener('click', () => {
-        state.sort = { key: col.key, dir: 'asc' };
-        render();
-      });
-    }
-
-    if ($sortDesc) {
-      $sortDesc.addEventListener('click', () => {
-        state.sort = { key: col.key, dir: 'desc' };
-        render();
-      });
-    }
-
-    if ($selectAll) {
-      $selectAll.addEventListener('click', () => {
-        getFilteredValues().forEach(v => tempSelected.add(v));
-        renderValueList();
-      });
-    }
-
-    if ($selectNone) {
-      $selectNone.addEventListener('click', () => {
-        getFilteredValues().forEach(v => tempSelected.delete(v));
-        renderValueList();
-      });
-    }
-
     $clear.addEventListener('click', () => {
       state.menuFilters[col.key] = {
         operator: 'contains',
         value: '',
         selected: new Set(),
         includeBlanks: true,
-        mode: 'all',
       };
       closeMenu();
-      saveFilterState();
       render();
     });
 
     $apply.addEventListener('click', () => {
-      if (tempSelected.size === 0) {
-        menu.mode = 'none';
-        menu.selected = new Set();
-      } else if (tempSelected.size === distinctValues.length) {
-        menu.mode = 'all';
-        menu.selected = new Set();
-      } else {
-        menu.mode = 'subset';
-        menu.selected = new Set(tempSelected);
-      }
-      menu.includeBlanks = tempSelected.has('') || menu.mode === 'all';
       state.currentPage = 1;
       closeMenu();
-      saveFilterState();
       render();
     });
   }
@@ -1985,7 +1420,6 @@
   // 14) REDIMENSIONAMENTO DE COLUNAS
   // ============================================================
   let resizing = null;
-  let resizeRaf = 0;
 
   function startResize(e, colIdx) {
     e.preventDefault();
@@ -1995,7 +1429,6 @@
       idx: colIdx,
       startX: e.clientX,
       startWidth: COLS[colIdx].width,
-      lastX: e.clientX,
     };
 
     document.addEventListener('mousemove', onResize);
@@ -2004,29 +1437,14 @@
 
   function onResize(e) {
     if (!resizing) return;
-    resizing.lastX = e.clientX;
-    if (resizeRaf) return;
-    resizeRaf = requestAnimationFrame(() => {
-      resizeRaf = 0;
-      if (!resizing) return;
-      const diff = resizing.lastX - resizing.startX;
-      const newWidth = clamp(resizing.startWidth + diff, 60, 600);
-      COLS[resizing.idx].width = newWidth;
-      applyTemplateToRows();
-    });
+
+    const diff = e.clientX - resizing.startX;
+    const newWidth = clamp(resizing.startWidth + diff, 60, 600);
+    COLS[resizing.idx].width = newWidth;
+    render();
   }
 
   function stopResize() {
-    if (resizeRaf) {
-      cancelAnimationFrame(resizeRaf);
-      resizeRaf = 0;
-    }
-    if (resizing && typeof resizing.lastX === 'number') {
-      const diff = resizing.lastX - resizing.startX;
-      const newWidth = clamp(resizing.startWidth + diff, 60, 600);
-      COLS[resizing.idx].width = newWidth;
-      applyTemplateToRows();
-    }
     resizing = null;
     document.removeEventListener('mousemove', onResize);
     document.removeEventListener('mouseup', stopResize);
@@ -2088,12 +1506,32 @@
 
   $btnRefresh.addEventListener('click', () => {
     state.selectedIds.clear();
-    if (state.activeDataTab === 'cotacao') carregarDados('cotacao');
-    else carregarDados('todos');
+    carregarDados();
   });
 
   $btnClear.addEventListener('click', () => {
-    clearAllFilters();
+    state.globalSearch = '';
+    $globalSearch.value = '';
+    state.sort = { key: null, dir: null };
+    state.selectedIds.clear();
+    state.currentPage = 1;
+
+    COLS.forEach(col => {
+      state.quickFilters[col.key] = '';
+      state.menuFilters[col.key] = {
+        operator: 'contains',
+        value: '',
+        selected: new Set(),
+        includeBlanks: true,
+      };
+    });
+
+    // reset filtro cotação rápida
+    state.filtroCotacaoRapida = false;
+    if ($chkCotacaoRapida) $chkCotacaoRapida.checked = false;
+
+    closeMenu();
+    render();
   });
 
 
@@ -2218,6 +1656,6 @@
   // ============================================================
   // 19) INICIALIZAÇÃO
   // ============================================================
-  setActiveTab('cotacao');
+  carregarDados();
 
 })();
