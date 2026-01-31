@@ -1,0 +1,371 @@
+/* ==========================================================
+   CADASTROS.CSS - Estilos dos Popups de Cadastro
+   Menu Geral APESP - Arquitetura Modular
+   ========================================================== */
+
+/* ══════════════════════════════════════════════════════════════
+   POPUP OVERLAY (compartilhado)
+   ══════════════════════════════════════════════════════════════ */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    padding: 16px;
+}
+
+.popup-overlay.show {
+    display: flex;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   POPUP CONTAINER
+   ══════════════════════════════════════════════════════════════ */
+.popup-cadastro {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 580px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: popupEntrada 0.2s ease-out;
+}
+
+@keyframes popupEntrada {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   POPUP HEADER
+   ══════════════════════════════════════════════════════════════ */
+.popup-cadastro-header {
+    padding: 18px 24px;
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.popup-cadastro-header.verde {
+    background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+}
+
+.popup-cadastro-header h2 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+.popup-cadastro-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.popup-cadastro-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   POPUP BODY
+   ══════════════════════════════════════════════════════════════ */
+.popup-cadastro-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CAMPOS DO FORMULÁRIO
+   ══════════════════════════════════════════════════════════════ */
+.campo-popup {
+    margin-bottom: 18px;
+}
+
+.campo-popup label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #374151;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+}
+
+.campo-popup label.obrigatorio::after {
+    content: ' *';
+    color: #dc2626;
+}
+
+.campo-popup input,
+.campo-popup select {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 14px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+
+.campo-popup input:focus,
+.campo-popup select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.campo-popup input::placeholder {
+    color: #9ca3af;
+}
+
+/* Linha com múltiplos campos */
+.campo-row-popup {
+    display: flex;
+    gap: 16px;
+}
+
+.campo-row-popup .campo-popup {
+    flex: 1;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LOOKUP (Autocomplete)
+   ══════════════════════════════════════════════════════════════ */
+.lookup-popup-wrap {
+    position: relative;
+}
+
+.lookup-popup-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 2px solid #3b82f6;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.lookup-popup-list.show {
+    display: block;
+}
+
+.lookup-popup-item {
+    padding: 12px 14px;
+    cursor: pointer;
+    display: flex;
+    gap: 12px;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 13px;
+    transition: background 0.15s;
+}
+
+.lookup-popup-item:last-child {
+    border-bottom: none;
+}
+
+.lookup-popup-item:hover {
+    background: #eff6ff;
+}
+
+.lookup-popup-item.active {
+    background: #dbeafe;
+    outline: none;
+}
+
+.lookup-popup-item-cod {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-weight: 700;
+    color: #1e40af;
+    min-width: 60px;
+}
+
+.lookup-popup-item-desc {
+    color: #1f2937;
+    flex: 1;
+}
+
+.lookup-popup-loading,
+.lookup-popup-empty {
+    padding: 14px;
+    color: #6b7280;
+    font-size: 13px;
+    text-align: center;
+    font-style: italic;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   POPUP FOOTER
+   ══════════════════════════════════════════════════════════════ */
+.popup-cadastro-footer {
+    padding: 16px 24px;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BOTÕES
+   ══════════════════════════════════════════════════════════════ */
+.btn-popup-cancelar {
+    background: #e5e7eb;
+    color: #374151;
+    border: none;
+    padding: 12px 24px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-popup-cancelar:hover {
+    background: #d1d5db;
+}
+
+.btn-popup-salvar {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    color: #fff;
+    border: none;
+    padding: 12px 28px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.btn-popup-salvar:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+}
+
+.btn-popup-salvar:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-popup-salvar.verde {
+    background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+}
+
+.btn-popup-salvar.verde:hover {
+    box-shadow: 0 4px 12px rgba(21, 128, 61, 0.3);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   POPUP SUCESSO
+   ══════════════════════════════════════════════════════════════ */
+.popup-sucesso {
+    max-width: 420px;
+    text-align: center;
+}
+
+.popup-sucesso .popup-cadastro-header {
+    background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+}
+
+.popup-sucesso-icon {
+    font-size: 48px;
+    margin: 20px 0 10px;
+}
+
+.popup-sucesso-code {
+    background: #1f2937;
+    color: #4ade80;
+    padding: 18px;
+    margin: 16px 24px;
+    border-radius: 8px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 13px;
+    text-align: left;
+    white-space: pre;
+    line-height: 1.6;
+}
+
+.btn-popup-copiar {
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: background 0.2s;
+}
+
+.btn-popup-copiar:hover {
+    background: #2563eb;
+}
+
+.btn-popup-copiar.copiado {
+    background: #22c55e;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVO
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+    .popup-cadastro {
+        max-height: 95vh;
+        border-radius: 12px 12px 0 0;
+        margin-top: auto;
+    }
+    
+    .popup-overlay {
+        align-items: flex-end;
+        padding: 0;
+    }
+    
+    .campo-row-popup {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .popup-cadastro-body {
+        padding: 20px 16px;
+    }
+    
+    .popup-cadastro-footer {
+        padding: 16px;
+    }
+}

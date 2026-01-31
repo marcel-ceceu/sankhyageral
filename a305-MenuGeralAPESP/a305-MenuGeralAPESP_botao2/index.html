@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Menu Geral de Telas - Auto Peças São Paulo</title>
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="_core/css/variables.css">
+    <link rel="stylesheet" href="_core/css/base.css">
+    <link rel="stylesheet" href="_core/css/layout.css">
+    <link rel="stylesheet" href="_core/css/buttons.css">
+    <link rel="stylesheet" href="_core/css/modal.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/custom.css">
+    <link rel="stylesheet" href="css/cadastros.css">
+</head>
+<body>
+    <div class="container">
+        <div class="watermark"></div>
+
+        <div class="header">
+            <div class="header-left">
+                <img src="https://i.ibb.co/7tDmPNcX/2.png" alt="Logo APESP" class="header-logo">
+                <div class="header-titulo">
+                    Auto Peças São Paulo
+                    <span class="header-emoji">🏆</span>
+                </div>
+            </div>
+            <div class="header-right">
+                Menu Geral Sankhya
+            </div>
+        </div>
+
+        <div class="versiculo-bar">
+            <div class="versiculo-content">
+                <span class="versiculo-icone">✝️</span>
+                <span id="versiculoDia" class="versiculo-texto">Carregando versículo...</span>
+                <button class="versiculo-btn" onclick="carregarVersiculo()" title="Novo versículo">🔄</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="grid">
+                <!-- Linha 1 -->
+                <a href="javascript:abrirPopupNovoParceiro();" class="menu-item active">
+                    <div class="icon-wrapper">
+                        <img src="https://i.ibb.co/F4pdsLCS/7.png" alt="Cadastrar Parceiro" style="width: 56px; height: 56px; object-fit: contain;">
+                    </div>
+                    <span>Cadastrar Novo<br>Parceiro</span>
+                </a>
+
+                <a href="javascript:abrirPopupNovoProduto();" class="menu-item active">
+                    <div class="icon-wrapper">
+                        <img src="https://i.ibb.co/PZH4XvBx/buscaprod.png" alt="Cadastrar Produto" style="width: 56px; height: 56px; object-fit: contain;">
+                    </div>
+                    <span>Cadastrar Novo<br>Produto</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <!-- Linha 2 -->
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <!-- Linha 3 - Itens Ativos -->
+                <a href="javascript:abrirModalCpf();" class="menu-item active">
+                    <div class="icon-wrapper">
+                        <img src="https://i.ibb.co/GvHRRjWd/Design-sem-nome.png" alt="Consultar CPF" style="width: 56px; height: 56px; object-fit: contain;">
+                    </div>
+                    <span>Consultar CPF</span>
+                </a>
+
+                <a href="javascript:abrirTelaInterna(RESOURCE_ID_DASH_ALVO);" class="menu-item active">
+                    <div class="icon-wrapper">
+                        <img src="https://i.ibb.co/XZskFTh6/Design-sem-nome-1.png" alt="Dashboard" style="width: 56px; height: 56px; object-fit: contain;">
+                    </div>
+                    <span>Cotação Rápida<br>Compras</span>
+                </a>
+
+                <a href="javascript:abrirTelaInterna('br.com.sankhya.menu.adicional.nuDsb.327.1');" class="menu-item active">
+                    <div class="icon-wrapper">
+                        <img src="https://i.ibb.co/nqnvghRV/buscaprod.png" alt="Busca Produto" style="width: 56px; height: 56px; object-fit: contain;">
+                    </div>
+                    <span>Busca Produto</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+
+                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
+                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
+                            <path d="M1 21h22L12 8 1 21z"/>
+                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
+                        </svg>
+                    </div>
+                    <span>Em Construção</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- MODAL CPF (existente) -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <div id="modalCpfBackdrop" class="modal-backdrop">
+        <div class="modal">
+            <h3>Consulta por CPF</h3>
+            <p>Digite o CPF do cliente para executar a consulta de Score.</p>
+            <input id="inputCpfConsulta" placeholder="000.000.000-00" inputmode="numeric" autocomplete="off" />
+            <div class="modal-actions">
+                <div id="cpfSpinner" class="spinner"></div>
+                <button class="btn btn-secondary" type="button" onclick="fecharModalCpf()" id="btnCancelarCpf">Cancelar</button>
+                <button class="btn btn-primary" type="button" onclick="confirmarCpf()" id="btnExecutarCpf">Executar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Resultado -->
+    <div id="modalResultadoBackdrop" class="modal-backdrop">
+        <div class="modal">
+            <h3>Resultado da Consulta</h3>
+            <div id="resultadoContainer"></div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" type="button" onclick="fecharModalResultado()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- POPUP NOVO PARCEIRO -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <div class="popup-overlay" id="popupNovoParceiro">
+        <div class="popup-cadastro">
+            <div class="popup-cadastro-header">
+                <h2>CADASTRAR NOVO PARCEIRO</h2>
+                <button class="popup-cadastro-close" onclick="fecharPopupNovoParceiro()">&times;</button>
+            </div>
+            <div class="popup-cadastro-body">
+                <!-- Nome -->
+                <div class="campo-popup">
+                    <label class="obrigatorio">Nome do Parceiro</label>
+                    <input type="text" id="parc_nome" placeholder="Digite o nome completo" maxlength="100" autocomplete="off">
+                </div>
+
+                <!-- CPF e Telefone -->
+                <div class="campo-row-popup">
+                    <div class="campo-popup">
+                        <label>CPF (opcional)</label>
+                        <input type="text" id="parc_cpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric" oninput="mascaraCPF(this)" autocomplete="off">
+                    </div>
+                    <div class="campo-popup">
+                        <label class="obrigatorio">Telefone</label>
+                        <input type="text" id="parc_telefone" placeholder="(00) 00000-0000" maxlength="15" inputmode="tel" oninput="mascaraTelefone(this)" autocomplete="off">
+                    </div>
+                </div>
+
+                <!-- CEP -->
+                <div class="campo-popup">
+                    <label class="obrigatorio">CEP</label>
+                    <input type="text" id="parc_cep" placeholder="00000-000" maxlength="9" inputmode="numeric" oninput="mascaraCEP(this)" autocomplete="off">
+                </div>
+
+                <!-- Cidade - Lookup -->
+                <div class="campo-popup">
+                    <label class="obrigatorio">Cidade</label>
+                    <div class="lookup-popup-wrap">
+                        <input type="hidden" id="parc_codcid">
+                        <input type="text" class="lookup-popup-input" id="parc_cidade_input" 
+                               placeholder="Digite código ou nome da cidade..." 
+                               oninput="buscarCidadePopup(this.value)" 
+                               onfocus="mostrarListaCidadePopup()" 
+                               onkeydown="navegarListaCidadePopup(event)"
+                               autocomplete="off">
+                        <div class="lookup-popup-list" id="parc_lista_cidade"></div>
+                    </div>
+                </div>
+
+                <!-- Logradouro - Lookup -->
+                <div class="campo-popup">
+                    <label class="obrigatorio">Logradouro</label>
+                    <div class="lookup-popup-wrap">
+                        <input type="hidden" id="parc_codend">
+                        <input type="text" class="lookup-popup-input" id="parc_logradouro_input" 
+                               placeholder="Digite código ou nome do logradouro..." 
+                               oninput="buscarLogradouroPopup(this.value)" 
+                               onfocus="mostrarListaLogradouroPopup()" 
+                               onkeydown="navegarListaLogradouroPopup(event)"
+                               autocomplete="off">
+                        <div class="lookup-popup-list" id="parc_lista_logradouro"></div>
+                    </div>
+                </div>
+
+                <!-- Número -->
+                <div class="campo-popup">
+                    <label class="obrigatorio">Número</label>
+                    <input type="text" id="parc_numero" placeholder="Número do endereço" maxlength="20" autocomplete="off">
+                </div>
+            </div>
+            <div class="popup-cadastro-footer">
+                <button class="btn-popup-cancelar" onclick="fecharPopupNovoParceiro()">Cancelar</button>
+                <button class="btn-popup-salvar" onclick="salvarParceiro()">Salvar Parceiro</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- POPUP SUCESSO PARCEIRO -->
+    <div class="popup-overlay" id="popupSucessoParceiro">
+        <div class="popup-cadastro popup-sucesso">
+            <div class="popup-cadastro-header">
+                <h2>✓ PARCEIRO INSERIDO!</h2>
+                <button class="popup-cadastro-close" onclick="fecharPopupSucessoParceiro()">&times;</button>
+            </div>
+            <div class="popup-sucesso-icon">🎉</div>
+            <div class="popup-sucesso-code" id="parc_sucesso_code"></div>
+            <button class="btn-popup-copiar" onclick="copiarDadosParceiro()">Copiar</button>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- POPUP NOVO PRODUTO -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <div class="popup-overlay" id="popupNovoProduto">
+        <div class="popup-cadastro">
+            <div class="popup-cadastro-header verde">
+                <h2>CADASTRAR NOVO PRODUTO</h2>
+                <button class="popup-cadastro-close" onclick="fecharPopupNovoProduto()">&times;</button>
+            </div>
+            <div class="popup-cadastro-body">
+                <!-- Nome do Produto -->
+                <div class="campo-popup">
+                    <label class="obrigatorio">Nome do Produto</label>
+                    <input type="text" id="prod_descrprod" placeholder="Digite o nome do produto" maxlength="200" autocomplete="off">
+                </div>
+
+                <!-- Marca - Lookup -->
+                <div class="campo-popup">
+                    <label class="obrigatorio">Marca</label>
+                    <div class="lookup-popup-wrap">
+                        <input type="hidden" id="prod_codmarca">
+                        <input type="hidden" id="prod_nomemarca">
+                        <input type="text" class="lookup-popup-input" id="prod_marca_input" 
+                               placeholder="Digite código ou nome da marca..." 
+                               oninput="buscarMarcaPopup(this.value)" 
+                               onfocus="mostrarListaMarcaPopup()" 
+                               onkeydown="navegarListaMarcaPopup(event)"
+                               autocomplete="off">
+                        <div class="lookup-popup-list" id="prod_lista_marca"></div>
+                    </div>
+                </div>
+
+                <!-- Grupo - Lookup -->
+                <div class="campo-popup">
+                    <label class="obrigatorio">Grupo de Produtos</label>
+                    <div class="lookup-popup-wrap">
+                        <input type="hidden" id="prod_codgrupoprod">
+                        <input type="text" class="lookup-popup-input" id="prod_grupo_input" 
+                               placeholder="Digite código ou nome do grupo..." 
+                               oninput="buscarGrupoPopup(this.value)" 
+                               onfocus="mostrarListaGrupoPopup()" 
+                               onkeydown="navegarListaGrupoPopup(event)"
+                               autocomplete="off">
+                        <div class="lookup-popup-list" id="prod_lista_grupo"></div>
+                    </div>
+                </div>
+
+                <!-- Campos Opcionais -->
+                <div class="campo-row-popup">
+                    <div class="campo-popup">
+                        <label>Código Similar</label>
+                        <input type="text" id="prod_compldesc" placeholder="Código similar (opcional)" maxlength="100" autocomplete="off">
+                    </div>
+                    <div class="campo-popup">
+                        <label>Referência Fornecedor</label>
+                        <input type="text" id="prod_refforn" placeholder="Código do fornecedor" maxlength="50" autocomplete="off">
+                    </div>
+                </div>
+            </div>
+            <div class="popup-cadastro-footer">
+                <button class="btn-popup-cancelar" onclick="fecharPopupNovoProduto()">Cancelar</button>
+                <button class="btn-popup-salvar verde" onclick="salvarProduto()">Salvar Produto</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- POPUP SUCESSO PRODUTO -->
+    <div class="popup-overlay" id="popupSucessoProduto">
+        <div class="popup-cadastro popup-sucesso">
+            <div class="popup-cadastro-header">
+                <h2>✓ PRODUTO INSERIDO!</h2>
+                <button class="popup-cadastro-close" onclick="fecharPopupSucessoProduto()">&times;</button>
+            </div>
+            <div class="popup-sucesso-icon">📦</div>
+            <div class="popup-sucesso-code" id="prod_sucesso_code"></div>
+            <button class="btn-popup-copiar" onclick="copiarDadosProduto()">Copiar</button>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- SCRIPTS -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <script src="https://cdn.jsdelivr.net/gh/wansleynery/SankhyaJX@main/jx.min.js"></script>
+    <script src="_core/js/utils.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/parceiro.js"></script>
+    <script src="js/produto.js"></script>
+    
+    <!-- Inicialização dos cadastros -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Carrega dados dos lookups
+            if (typeof carregarDadosParceiro === 'function') {
+                carregarDadosParceiro();
+            }
+            if (typeof carregarDadosProduto === 'function') {
+                carregarDadosProduto();
+            }
+            
+            // Fechar lookups ao clicar fora
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.lookup-popup-wrap')) {
+                    var listas = document.querySelectorAll('.lookup-popup-list');
+                    for (var i = 0; i < listas.length; i++) {
+                        listas[i].classList.remove('show');
+                    }
+                }
+            });
+            
+            // Tecla ESC fecha popups
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    var overlays = document.querySelectorAll('.popup-overlay.show');
+                    if (overlays.length > 0) {
+                        overlays[overlays.length - 1].classList.remove('show');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -56,6 +56,31 @@ function exibirVersiculoLocal() {
 
 document.addEventListener('DOMContentLoaded', function() {
     carregarVersiculo();
+
+    if (typeof carregarDadosParceiro === 'function') {
+        carregarDadosParceiro();
+    }
+    if (typeof carregarDadosProduto === 'function') {
+        carregarDadosProduto();
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.lookup-popup-wrap')) {
+            var listas = document.querySelectorAll('.lookup-popup-list');
+            for (var i = 0; i < listas.length; i++) {
+                listas[i].classList.remove('show');
+            }
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            var overlays = document.querySelectorAll('.popup-overlay.show');
+            if (overlays.length > 0) {
+                overlays[overlays.length - 1].classList.remove('show');
+            }
+        }
+    });
 });
 
 function abrirTelaInterna(resourceId) {

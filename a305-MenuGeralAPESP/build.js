@@ -17,13 +17,16 @@ const CSS_FILES = [
     '_core/css/layout.css',
     '_core/css/buttons.css',
     '_core/css/modal.css',
-    'css/custom.css'
+    'css/custom.css',
+    'css/cadastros.css'
 ];
 
 const JS_FILES = [
     '_core/js/utils.js',
     'js/config.js',
-    'js/main.js'
+    'js/main.js',
+    'js/parceiro.js',
+    'js/produto.js'
 ];
 
 function readFile(filePath) {

@@ -713,6 +713,379 @@ body {
     font-size: 12px;
 }
 
+
+/* ==========================================================
+   CADASTROS.CSS - Estilos dos Popups de Cadastro
+   Menu Geral APESP - Arquitetura Modular
+   ========================================================== */
+
+/* ══════════════════════════════════════════════════════════════
+   POPUP OVERLAY (compartilhado)
+   ══════════════════════════════════════════════════════════════ */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    padding: 16px;
+}
+
+.popup-overlay.show {
+    display: flex;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   POPUP CONTAINER
+   ══════════════════════════════════════════════════════════════ */
+.popup-cadastro {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 580px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: popupEntrada 0.2s ease-out;
+}
+
+@keyframes popupEntrada {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   POPUP HEADER
+   ══════════════════════════════════════════════════════════════ */
+.popup-cadastro-header {
+    padding: 18px 24px;
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.popup-cadastro-header.verde {
+    background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+}
+
+.popup-cadastro-header h2 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+.popup-cadastro-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.popup-cadastro-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   POPUP BODY
+   ══════════════════════════════════════════════════════════════ */
+.popup-cadastro-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CAMPOS DO FORMULÁRIO
+   ══════════════════════════════════════════════════════════════ */
+.campo-popup {
+    margin-bottom: 18px;
+}
+
+.campo-popup label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #374151;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+}
+
+.campo-popup label.obrigatorio::after {
+    content: ' *';
+    color: #dc2626;
+}
+
+.campo-popup input,
+.campo-popup select {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 14px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+
+.campo-popup input:focus,
+.campo-popup select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.campo-popup input::placeholder {
+    color: #9ca3af;
+}
+
+/* Linha com múltiplos campos */
+.campo-row-popup {
+    display: flex;
+    gap: 16px;
+}
+
+.campo-row-popup .campo-popup {
+    flex: 1;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LOOKUP (Autocomplete)
+   ══════════════════════════════════════════════════════════════ */
+.lookup-popup-wrap {
+    position: relative;
+}
+
+.lookup-popup-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 2px solid #3b82f6;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.lookup-popup-list.show {
+    display: block;
+}
+
+.lookup-popup-item {
+    padding: 12px 14px;
+    cursor: pointer;
+    display: flex;
+    gap: 12px;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 13px;
+    transition: background 0.15s;
+}
+
+.lookup-popup-item:last-child {
+    border-bottom: none;
+}
+
+.lookup-popup-item:hover {
+    background: #eff6ff;
+}
+
+.lookup-popup-item.active {
+    background: #dbeafe;
+    outline: none;
+}
+
+.lookup-popup-item-cod {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-weight: 700;
+    color: #1e40af;
+    min-width: 60px;
+}
+
+.lookup-popup-item-desc {
+    color: #1f2937;
+    flex: 1;
+}
+
+.lookup-popup-loading,
+.lookup-popup-empty {
+    padding: 14px;
+    color: #6b7280;
+    font-size: 13px;
+    text-align: center;
+    font-style: italic;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   POPUP FOOTER
+   ══════════════════════════════════════════════════════════════ */
+.popup-cadastro-footer {
+    padding: 16px 24px;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BOTÕES
+   ══════════════════════════════════════════════════════════════ */
+.btn-popup-cancelar {
+    background: #e5e7eb;
+    color: #374151;
+    border: none;
+    padding: 12px 24px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-popup-cancelar:hover {
+    background: #d1d5db;
+}
+
+.btn-popup-salvar {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    color: #fff;
+    border: none;
+    padding: 12px 28px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.btn-popup-salvar:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+}
+
+.btn-popup-salvar:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-popup-salvar.verde {
+    background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+}
+
+.btn-popup-salvar.verde:hover {
+    box-shadow: 0 4px 12px rgba(21, 128, 61, 0.3);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   POPUP SUCESSO
+   ══════════════════════════════════════════════════════════════ */
+.popup-sucesso {
+    max-width: 420px;
+    text-align: center;
+}
+
+.popup-sucesso .popup-cadastro-header {
+    background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+}
+
+.popup-sucesso-icon {
+    font-size: 48px;
+    margin: 20px 0 10px;
+}
+
+.popup-sucesso-code {
+    background: #1f2937;
+    color: #4ade80;
+    padding: 18px;
+    margin: 16px 24px;
+    border-radius: 8px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 13px;
+    text-align: left;
+    white-space: pre;
+    line-height: 1.6;
+}
+
+.btn-popup-copiar {
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: background 0.2s;
+}
+
+.btn-popup-copiar:hover {
+    background: #2563eb;
+}
+
+.btn-popup-copiar.copiado {
+    background: #22c55e;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVO
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+    .popup-cadastro {
+        max-height: 95vh;
+        border-radius: 12px 12px 0 0;
+        margin-top: auto;
+    }
+    
+    .popup-overlay {
+        align-items: flex-end;
+        padding: 0;
+    }
+    
+    .campo-row-popup {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .popup-cadastro-body {
+        padding: 20px 16px;
+    }
+    
+    .popup-cadastro-footer {
+        padding: 16px;
+    }
+}
+
     </style>
 </head>
 <body>
@@ -743,37 +1116,25 @@ body {
         <div class="content">
             <div class="grid">
                 <!-- Linha 1 -->
-                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                <a href="javascript:abrirPopupNovoParceiro();" class="menu-item active">
                     <div class="icon-wrapper">
-                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
-                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
-                            <path d="M1 21h22L12 8 1 21z"/>
-                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
-                        </svg>
+                        <img src="https://i.ibb.co/F4pdsLCS/7.png" alt="Cadastrar Parceiro" style="width: 56px; height: 56px; object-fit: contain;">
                     </div>
-                    <span>Em Construção</span>
+                    <span>Cadastrar Novo<br>Parceiro</span>
                 </a>
 
-                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                <a href="javascript:abrirPopupNovoProduto();" class="menu-item active">
                     <div class="icon-wrapper">
-                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
-                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
-                            <path d="M1 21h22L12 8 1 21z"/>
-                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
-                        </svg>
+                        <img src="https://i.ibb.co/PZH4XvBx/buscaprod.png" alt="Cadastrar Produto" style="width: 56px; height: 56px; object-fit: contain;">
                     </div>
-                    <span>Em Construção</span>
+                    <span>Cadastrar Novo<br>Produto</span>
                 </a>
 
-                <a href="#" class="menu-item em-construcao" onclick="return false;">
+                <a href="javascript:abrirTelaInterna('br.com.sankhya.menu.adicional.nuDsb.330.1');" class="menu-item active">
                     <div class="icon-wrapper">
-                        <svg viewBox="0 0 24 24" fill="#bdc3c7">
-                            <rect x="2" y="2" width="20" height="4" rx="1" fill="#999"/>
-                            <path d="M1 21h22L12 8 1 21z"/>
-                            <rect x="10" y="14" width="4" height="2" fill="#999"/>
-                        </svg>
+                        <img src="https://i.ibb.co/whWfFjSy/link-c-produtos.png" alt="#207 - Conferir Vinculo de Produtos por Nunota XML" style="width: 56px; height: 56px; object-fit: contain;">
                     </div>
-                    <span>Em Construção</span>
+                    <span>#207- Conferir Vinculo de Produtos<br>por Nunota XML</span>
                 </a>
 
                 <a href="#" class="menu-item em-construcao" onclick="return false;">
@@ -904,6 +1265,175 @@ body {
         </div>
     </div>
 
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- POPUP NOVO PARCEIRO -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <div class="popup-overlay" id="popupNovoParceiro">
+        <div class="popup-cadastro">
+            <div class="popup-cadastro-header">
+                <h2>CADASTRAR NOVO PARCEIRO</h2>
+                <button class="popup-cadastro-close" onclick="fecharPopupNovoParceiro()">&times;</button>
+            </div>
+            <div class="popup-cadastro-body">
+                <!-- Nome -->
+                <div class="campo-popup">
+                    <label class="obrigatorio">Nome do Parceiro</label>
+                    <input type="text" id="parc_nome" placeholder="Digite o nome completo" maxlength="100" autocomplete="off">
+                </div>
+
+                <!-- CPF e Telefone -->
+                <div class="campo-row-popup">
+                    <div class="campo-popup">
+                        <label>CPF (opcional)</label>
+                        <input type="text" id="parc_cpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric" oninput="mascaraCPF(this)" autocomplete="off">
+                    </div>
+                    <div class="campo-popup">
+                        <label class="obrigatorio">Telefone</label>
+                        <input type="text" id="parc_telefone" placeholder="(00) 00000-0000" maxlength="15" inputmode="tel" oninput="mascaraTelefone(this)" autocomplete="off">
+                    </div>
+                </div>
+
+                <!-- CEP -->
+                <div class="campo-popup">
+                    <label class="obrigatorio">CEP</label>
+                    <input type="text" id="parc_cep" placeholder="00000-000" maxlength="9" inputmode="numeric" oninput="mascaraCEP(this)" autocomplete="off">
+                </div>
+
+                <!-- Cidade - Lookup -->
+                <div class="campo-popup">
+                    <label class="obrigatorio">Cidade</label>
+                    <div class="lookup-popup-wrap">
+                        <input type="hidden" id="parc_codcid">
+                        <input type="text" class="lookup-popup-input" id="parc_cidade_input" 
+                               placeholder="Digite código ou nome da cidade..." 
+                               oninput="buscarCidadePopup(this.value)" 
+                               onfocus="mostrarListaCidadePopup()" 
+                               onkeydown="navegarListaCidadePopup(event)"
+                               autocomplete="off">
+                        <div class="lookup-popup-list" id="parc_lista_cidade"></div>
+                    </div>
+                </div>
+
+                <!-- Logradouro - Lookup -->
+                <div class="campo-popup">
+                    <label class="obrigatorio">Logradouro</label>
+                    <div class="lookup-popup-wrap">
+                        <input type="hidden" id="parc_codend">
+                        <input type="text" class="lookup-popup-input" id="parc_logradouro_input" 
+                               placeholder="Digite código ou nome do logradouro..." 
+                               oninput="buscarLogradouroPopup(this.value)" 
+                               onfocus="mostrarListaLogradouroPopup()" 
+                               onkeydown="navegarListaLogradouroPopup(event)"
+                               autocomplete="off">
+                        <div class="lookup-popup-list" id="parc_lista_logradouro"></div>
+                    </div>
+                </div>
+
+                <!-- Número -->
+                <div class="campo-popup">
+                    <label class="obrigatorio">Número</label>
+                    <input type="text" id="parc_numero" placeholder="Número do endereço" maxlength="20" autocomplete="off">
+                </div>
+            </div>
+            <div class="popup-cadastro-footer">
+                <button class="btn-popup-cancelar" onclick="fecharPopupNovoParceiro()">Cancelar</button>
+                <button class="btn-popup-salvar" onclick="salvarParceiro()">Salvar Parceiro</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- POPUP SUCESSO PARCEIRO -->
+    <div class="popup-overlay" id="popupSucessoParceiro">
+        <div class="popup-cadastro popup-sucesso">
+            <div class="popup-cadastro-header">
+                <h2>✓ PARCEIRO INSERIDO!</h2>
+                <button class="popup-cadastro-close" onclick="fecharPopupSucessoParceiro()">&times;</button>
+            </div>
+            <div class="popup-sucesso-icon">🎉</div>
+            <div class="popup-sucesso-code" id="parc_sucesso_code"></div>
+            <button class="btn-popup-copiar" onclick="copiarDadosParceiro()">Copiar</button>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- POPUP NOVO PRODUTO -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <div class="popup-overlay" id="popupNovoProduto">
+        <div class="popup-cadastro">
+            <div class="popup-cadastro-header verde">
+                <h2>CADASTRAR NOVO PRODUTO</h2>
+                <button class="popup-cadastro-close" onclick="fecharPopupNovoProduto()">&times;</button>
+            </div>
+            <div class="popup-cadastro-body">
+                <!-- Nome do Produto -->
+                <div class="campo-popup">
+                    <label class="obrigatorio">Nome do Produto</label>
+                    <input type="text" id="prod_descrprod" placeholder="Digite o nome do produto" maxlength="200" autocomplete="off">
+                </div>
+
+                <!-- Marca - Lookup -->
+                <div class="campo-popup">
+                    <label class="obrigatorio">Marca</label>
+                    <div class="lookup-popup-wrap">
+                        <input type="hidden" id="prod_codmarca">
+                        <input type="hidden" id="prod_nomemarca">
+                        <input type="text" class="lookup-popup-input" id="prod_marca_input" 
+                               placeholder="Digite código ou nome da marca..." 
+                               oninput="buscarMarcaPopup(this.value)" 
+                               onfocus="mostrarListaMarcaPopup()" 
+                               onkeydown="navegarListaMarcaPopup(event)"
+                               autocomplete="off">
+                        <div class="lookup-popup-list" id="prod_lista_marca"></div>
+                    </div>
+                </div>
+
+                <!-- Grupo - Lookup -->
+                <div class="campo-popup">
+                    <label class="obrigatorio">Grupo de Produtos</label>
+                    <div class="lookup-popup-wrap">
+                        <input type="hidden" id="prod_codgrupoprod">
+                        <input type="text" class="lookup-popup-input" id="prod_grupo_input" 
+                               placeholder="Digite código ou nome do grupo..." 
+                               oninput="buscarGrupoPopup(this.value)" 
+                               onfocus="mostrarListaGrupoPopup()" 
+                               onkeydown="navegarListaGrupoPopup(event)"
+                               autocomplete="off">
+                        <div class="lookup-popup-list" id="prod_lista_grupo"></div>
+                    </div>
+                </div>
+
+                <!-- Campos Opcionais -->
+                <div class="campo-row-popup">
+                    <div class="campo-popup">
+                        <label>Código Similar</label>
+                        <input type="text" id="prod_compldesc" placeholder="Código similar (opcional)" maxlength="100" autocomplete="off">
+                    </div>
+                    <div class="campo-popup">
+                        <label>Referência Fornecedor</label>
+                        <input type="text" id="prod_refforn" placeholder="Código do fornecedor" maxlength="50" autocomplete="off">
+                    </div>
+                </div>
+            </div>
+            <div class="popup-cadastro-footer">
+                <button class="btn-popup-cancelar" onclick="fecharPopupNovoProduto()">Cancelar</button>
+                <button class="btn-popup-salvar verde" onclick="salvarProduto()">Salvar Produto</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- POPUP SUCESSO PRODUTO -->
+    <div class="popup-overlay" id="popupSucessoProduto">
+        <div class="popup-cadastro popup-sucesso">
+            <div class="popup-cadastro-header">
+                <h2>✓ PRODUTO INSERIDO!</h2>
+                <button class="popup-cadastro-close" onclick="fecharPopupSucessoProduto()">&times;</button>
+            </div>
+            <div class="popup-sucesso-icon">📦</div>
+            <div class="popup-sucesso-code" id="prod_sucesso_code"></div>
+            <button class="btn-popup-copiar" onclick="copiarDadosProduto()">Copiar</button>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/gh/wansleynery/SankhyaJX@main/jx.min.js"></script>
         <script>
@@ -932,7 +1462,7 @@ function escapeHtml(str) {
 
 var ID_BOTAO_ROTINA = 124;
 var NOME_PARAMETRO = 'CPF_CONSULTA';
-var RESOURCE_ID_DASH_ALVO = 'br.com.sankhya.menu.adicional.nuDsb.326.1';
+var RESOURCE_ID_DASH_ALVO = 'br.com.sankhya.menu.adicional.nuDsb.325.1';
 
 
 /* ==========================================================
@@ -993,6 +1523,31 @@ function exibirVersiculoLocal() {
 
 document.addEventListener('DOMContentLoaded', function() {
     carregarVersiculo();
+
+    if (typeof carregarDadosParceiro === 'function') {
+        carregarDadosParceiro();
+    }
+    if (typeof carregarDadosProduto === 'function') {
+        carregarDadosProduto();
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.lookup-popup-wrap')) {
+            var listas = document.querySelectorAll('.lookup-popup-list');
+            for (var i = 0; i < listas.length; i++) {
+                listas[i].classList.remove('show');
+            }
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            var overlays = document.querySelectorAll('.popup-overlay.show');
+            if (overlays.length > 0) {
+                overlays[overlays.length - 1].classList.remove('show');
+            }
+        }
+    });
 });
 
 function abrirTelaInterna(resourceId) {
@@ -1272,6 +1827,781 @@ document.getElementById('inputCpfConsulta').addEventListener('keydown', function
     if (e.key === 'Enter') confirmarCpf();
     if (e.key === 'Escape') fecharModalCpf();
 });
+
+
+/* ==========================================================
+   PARCEIRO.JS - Cadastro de Novo Parceiro
+   Menu Geral APESP - Arquitetura Modular
+   ========================================================== */
+
+var CIDADES_POPUP = [];
+var LOGRADOUROS_POPUP = [];
+var cidadeIndexPopup = -1;
+var logradouroIndexPopup = -1;
+var ultimoParceiroInserido = {};
+var ID_ROTINA_PARCEIRO = 128;
+
+// ══════════════════════════════════════════════════════════════
+// CARREGAR DADOS PARA LOOKUPS
+// ══════════════════════════════════════════════════════════════
+function carregarDadosParceiro() {
+    JX.consultar("SELECT CODCID, NOMECID, UF FROM TSICID ORDER BY NOMECID")
+        .then(function(r) { 
+            CIDADES_POPUP = r || []; 
+            console.log('[Parceiro] Cidades carregadas:', CIDADES_POPUP.length);
+        })
+        .catch(function(e) { console.error('[Parceiro] Erro cidades:', e); });
+
+    JX.consultar("SELECT CODEND, NOMEEND, TIPO FROM TSIEND ORDER BY NOMEEND")
+        .then(function(r) { 
+            LOGRADOUROS_POPUP = r || []; 
+            console.log('[Parceiro] Logradouros carregados:', LOGRADOUROS_POPUP.length);
+        })
+        .catch(function(e) { console.error('[Parceiro] Erro logradouros:', e); });
+}
+
+// ══════════════════════════════════════════════════════════════
+// ABRIR / FECHAR POPUP
+// ══════════════════════════════════════════════════════════════
+function abrirPopupNovoParceiro() {
+    document.getElementById('popupNovoParceiro').classList.add('show');
+    setTimeout(function() { 
+        document.getElementById('parc_nome').focus(); 
+    }, 100);
+}
+
+function fecharPopupNovoParceiro() {
+    document.getElementById('popupNovoParceiro').classList.remove('show');
+    limparCamposParceiro();
+}
+
+function limparCamposParceiro() {
+    var campos = ['parc_nome','parc_cpf','parc_telefone','parc_cep','parc_codcid','parc_cidade_input','parc_codend','parc_logradouro_input','parc_numero'];
+    for (var i = 0; i < campos.length; i++) {
+        var el = document.getElementById(campos[i]);
+        if (el) el.value = '';
+    }
+    var listaCid = document.getElementById('parc_lista_cidade');
+    var listaLog = document.getElementById('parc_lista_logradouro');
+    if (listaCid) listaCid.classList.remove('show');
+    if (listaLog) listaLog.classList.remove('show');
+    cidadeIndexPopup = -1;
+    logradouroIndexPopup = -1;
+}
+
+// ══════════════════════════════════════════════════════════════
+// LOOKUP CIDADE
+// ══════════════════════════════════════════════════════════════
+function mostrarListaCidadePopup() {
+    cidadeIndexPopup = -1;
+    var lista = document.getElementById('parc_lista_cidade');
+    if (!CIDADES_POPUP.length) {
+        lista.innerHTML = '<div class="lookup-popup-loading">Carregando cidades...</div>';
+        lista.classList.add('show');
+        return;
+    }
+    renderizarListaCidadePopup(CIDADES_POPUP.slice(0, 50));
+}
+
+function buscarCidadePopup(termo) {
+    cidadeIndexPopup = -1;
+    if (!termo) { mostrarListaCidadePopup(); return; }
+    var t = termo.toLowerCase();
+    var filtrados = CIDADES_POPUP.filter(function(c) {
+        return String(c.CODCID).indexOf(termo) >= 0 || 
+               c.NOMECID.toLowerCase().indexOf(t) >= 0;
+    });
+    renderizarListaCidadePopup(filtrados);
+}
+
+function renderizarListaCidadePopup(filtrados) {
+    var lista = document.getElementById('parc_lista_cidade');
+    if (!filtrados.length) {
+        lista.innerHTML = '<div class="lookup-popup-empty">Nenhuma cidade encontrada</div>';
+    } else {
+        var html = '';
+        var max = Math.min(filtrados.length, 50);
+        for (var i = 0; i < max; i++) {
+            var c = filtrados[i];
+            var nomeEsc = (c.NOMECID || '').replace(/'/g, "\\'");
+            html += '<div class="lookup-popup-item" data-index="' + i + '" ' +
+                'onclick="selecionarCidadePopup(' + c.CODCID + ',\'' + nomeEsc + '\',\'' + (c.UF || '') + '\')">' +
+                '<span class="lookup-popup-item-cod">' + c.CODCID + '</span>' +
+                '<span class="lookup-popup-item-desc">' + c.NOMECID + ' - ' + (c.UF || '') + '</span></div>';
+        }
+        lista.innerHTML = html;
+    }
+    lista.classList.add('show');
+}
+
+function navegarListaCidadePopup(e) {
+    var lista = document.getElementById('parc_lista_cidade');
+    var items = lista.querySelectorAll('.lookup-popup-item[data-index]');
+    if (!items.length) return;
+
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        cidadeIndexPopup = Math.min(cidadeIndexPopup + 1, items.length - 1);
+        atualizarItemAtivoLookup(items, cidadeIndexPopup);
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        cidadeIndexPopup = Math.max(cidadeIndexPopup - 1, 0);
+        atualizarItemAtivoLookup(items, cidadeIndexPopup);
+    } else if (e.key === 'Enter' && cidadeIndexPopup >= 0) {
+        e.preventDefault();
+        items[cidadeIndexPopup].click();
+    } else if (e.key === 'Escape') {
+        lista.classList.remove('show');
+    }
+}
+
+function selecionarCidadePopup(cod, nome, uf) {
+    document.getElementById('parc_codcid').value = cod;
+    document.getElementById('parc_cidade_input').value = cod + ' - ' + nome + ' (' + uf + ')';
+    document.getElementById('parc_lista_cidade').classList.remove('show');
+    // Foca no próximo campo
+    document.getElementById('parc_logradouro_input').focus();
+}
+
+// ══════════════════════════════════════════════════════════════
+// LOOKUP LOGRADOURO
+// ══════════════════════════════════════════════════════════════
+function mostrarListaLogradouroPopup() {
+    logradouroIndexPopup = -1;
+    var lista = document.getElementById('parc_lista_logradouro');
+    if (!LOGRADOUROS_POPUP.length) {
+        lista.innerHTML = '<div class="lookup-popup-loading">Carregando logradouros...</div>';
+        lista.classList.add('show');
+        return;
+    }
+    renderizarListaLogradouroPopup(LOGRADOUROS_POPUP.slice(0, 50));
+}
+
+function buscarLogradouroPopup(termo) {
+    logradouroIndexPopup = -1;
+    if (!termo) { mostrarListaLogradouroPopup(); return; }
+    var t = termo.toLowerCase();
+    var filtrados = LOGRADOUROS_POPUP.filter(function(l) {
+        return String(l.CODEND).indexOf(termo) >= 0 || 
+               l.NOMEEND.toLowerCase().indexOf(t) >= 0;
+    });
+    renderizarListaLogradouroPopup(filtrados);
+}
+
+function renderizarListaLogradouroPopup(filtrados) {
+    var lista = document.getElementById('parc_lista_logradouro');
+    if (!filtrados.length) {
+        lista.innerHTML = '<div class="lookup-popup-empty">Nenhum logradouro encontrado</div>';
+    } else {
+        var html = '';
+        var max = Math.min(filtrados.length, 50);
+        for (var i = 0; i < max; i++) {
+            var l = filtrados[i];
+            var nomeEsc = (l.NOMEEND || '').replace(/'/g, "\\'");
+            html += '<div class="lookup-popup-item" data-index="' + i + '" ' +
+                'onclick="selecionarLogradouroPopup(' + l.CODEND + ',\'' + nomeEsc + '\')">' +
+                '<span class="lookup-popup-item-cod">' + l.CODEND + '</span>' +
+                '<span class="lookup-popup-item-desc">' + (l.TIPO || '') + ' ' + l.NOMEEND + '</span></div>';
+        }
+        lista.innerHTML = html;
+    }
+    lista.classList.add('show');
+}
+
+function navegarListaLogradouroPopup(e) {
+    var lista = document.getElementById('parc_lista_logradouro');
+    var items = lista.querySelectorAll('.lookup-popup-item[data-index]');
+    if (!items.length) return;
+
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        logradouroIndexPopup = Math.min(logradouroIndexPopup + 1, items.length - 1);
+        atualizarItemAtivoLookup(items, logradouroIndexPopup);
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        logradouroIndexPopup = Math.max(logradouroIndexPopup - 1, 0);
+        atualizarItemAtivoLookup(items, logradouroIndexPopup);
+    } else if (e.key === 'Enter' && logradouroIndexPopup >= 0) {
+        e.preventDefault();
+        items[logradouroIndexPopup].click();
+    } else if (e.key === 'Escape') {
+        lista.classList.remove('show');
+    }
+}
+
+function selecionarLogradouroPopup(cod, nome) {
+    document.getElementById('parc_codend').value = cod;
+    document.getElementById('parc_logradouro_input').value = cod + ' - ' + nome;
+    document.getElementById('parc_lista_logradouro').classList.remove('show');
+    // Foca no próximo campo
+    document.getElementById('parc_numero').focus();
+}
+
+// ══════════════════════════════════════════════════════════════
+// FUNÇÃO AUXILIAR LOOKUP
+// ══════════════════════════════════════════════════════════════
+function atualizarItemAtivoLookup(items, idx) {
+    for (var i = 0; i < items.length; i++) {
+        items[i].classList.remove('active');
+    }
+    if (idx >= 0 && items[idx]) {
+        items[idx].classList.add('active');
+        items[idx].scrollIntoView({ block: 'nearest' });
+    }
+}
+
+// ══════════════════════════════════════════════════════════════
+// MÁSCARAS DE INPUT
+// ══════════════════════════════════════════════════════════════
+function mascaraCPF(input) {
+    var v = input.value.replace(/\D/g, '').substring(0, 11);
+    if (v.length > 9) {
+        v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+    } else if (v.length > 6) {
+        v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+    } else if (v.length > 3) {
+        v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+    }
+    input.value = v;
+}
+
+function mascaraTelefone(input) {
+    var v = input.value.replace(/\D/g, '').substring(0, 11);
+    if (v.length > 10) {
+        v = v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    } else if (v.length > 6) {
+        v = v.replace(/(\d{2})(\d{4,5})(\d{0,4})/, '($1) $2-$3');
+    } else if (v.length > 2) {
+        v = v.replace(/(\d{2})(\d{0,5})/, '($1) $2');
+    }
+    input.value = v;
+}
+
+function mascaraCEP(input) {
+    var v = input.value.replace(/\D/g, '').substring(0, 8);
+    if (v.length > 5) {
+        v = v.replace(/(\d{5})(\d{1,3})/, '$1-$2');
+    }
+    input.value = v;
+}
+
+// ══════════════════════════════════════════════════════════════
+// SALVAR PARCEIRO
+// ══════════════════════════════════════════════════════════════
+function salvarParceiro() {
+    var nome = document.getElementById('parc_nome').value.trim();
+    var cpf = document.getElementById('parc_cpf').value.replace(/\D/g, '');
+    var telefone = document.getElementById('parc_telefone').value.replace(/\D/g, '');
+    var cep = document.getElementById('parc_cep').value.replace(/\D/g, '');
+    var codcid = document.getElementById('parc_codcid').value;
+    var codend = document.getElementById('parc_codend').value;
+    var numero = document.getElementById('parc_numero').value.trim();
+
+    // Validação
+    var erros = [];
+    if (!nome) erros.push('Nome é obrigatório');
+    if (!telefone) erros.push('Telefone é obrigatório');
+    if (!cep) erros.push('CEP é obrigatório');
+    if (!codcid) erros.push('Cidade é obrigatória');
+    if (!codend) erros.push('Logradouro é obrigatório');
+    if (!numero) erros.push('Número é obrigatório');
+
+    if (erros.length) {
+        alert('Campos obrigatórios:\n\n' + erros.join('\n'));
+        return;
+    }
+
+    // Montar parâmetros para rotina Java
+    var params = {
+        NOME: nome,
+        TELEFONE: telefone,
+        CEP: cep,
+        CODCID: parseInt(codcid),
+        CODEND: parseInt(codend),
+        NUMERO: numero
+    };
+
+    // CPF opcional
+    if (cpf && cpf.length === 11) {
+        params.CPF = cpf;
+    }
+
+    // Feedback visual
+    var btnSalvar = document.querySelector('#popupNovoParceiro .btn-popup-salvar');
+    var textoOriginal = btnSalvar.textContent;
+    btnSalvar.textContent = 'Salvando...';
+    btnSalvar.disabled = true;
+
+    // Chamar rotina Java
+    JX.executarAcao(ID_ROTINA_PARCEIRO, params)
+        .then(function(resultado) {
+            console.log('[Parceiro] Retorno rotina:', resultado);
+
+            var codparc = null;
+            if (resultado && resultado.CODPARC) {
+                codparc = resultado.CODPARC;
+            } else if (resultado && resultado.pk && resultado.pk.CODPARC) {
+                codparc = resultado.pk.CODPARC;
+            } else if (resultado && resultado.mensagemRetorno) {
+                var match = resultado.mensagemRetorno.match(/CODPARC[:\s]*(\d+)/i);
+                if (match) codparc = match[1];
+            }
+
+            if (!codparc) {
+                return JX.consultar("SELECT MAX(CODPARC) AS CODPARC FROM TGFPAR WHERE NOMEPARC = '" + nome.replace(/'/g, "''") + "'")
+                    .then(function(r) {
+                        return (r && r[0]) ? r[0].CODPARC : 'N/A';
+                    });
+            }
+            return codparc;
+        })
+        .then(function(codparc) {
+            ultimoParceiroInserido = {
+                CODPARC: codparc,
+                NOME: nome,
+                TELEFONE: telefone
+            };
+
+            btnSalvar.textContent = textoOriginal;
+            btnSalvar.disabled = false;
+
+            fecharPopupNovoParceiro();
+            mostrarPopupSucessoParceiro();
+        })
+        .catch(function(erro) {
+            console.error('[Parceiro] Erro ao cadastrar:', erro);
+            btnSalvar.textContent = textoOriginal;
+            btnSalvar.disabled = false;
+            alert('Erro ao cadastrar parceiro:\n\n' + (erro.message || erro));
+        });
+}
+
+// ══════════════════════════════════════════════════════════════
+// POPUP SUCESSO PARCEIRO
+// ══════════════════════════════════════════════════════════════
+function mostrarPopupSucessoParceiro() {
+    var texto = 'CODPARC:   ' + ultimoParceiroInserido.CODPARC + '\n' +
+                'NOME:      ' + ultimoParceiroInserido.NOME + '\n' +
+                'TELEFONE:  ' + ultimoParceiroInserido.TELEFONE;
+    document.getElementById('parc_sucesso_code').textContent = texto;
+    document.getElementById('popupSucessoParceiro').classList.add('show');
+}
+
+function fecharPopupSucessoParceiro() {
+    document.getElementById('popupSucessoParceiro').classList.remove('show');
+}
+
+function copiarDadosParceiro() {
+    var texto = 'CODPARC: ' + ultimoParceiroInserido.CODPARC + ' | NOME: ' + ultimoParceiroInserido.NOME + ' | TEL: ' + ultimoParceiroInserido.TELEFONE;
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texto).then(function() {
+            mostrarBotaoCopiado('popupSucessoParceiro');
+        });
+    } else {
+        var ta = document.createElement('textarea');
+        ta.value = texto;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        mostrarBotaoCopiado('popupSucessoParceiro');
+    }
+}
+
+function mostrarBotaoCopiado(popupId) {
+    var btn = document.querySelector('#' + popupId + ' .btn-popup-copiar');
+    if (!btn) return;
+    btn.textContent = 'Copiado!';
+    btn.classList.add('copiado');
+    setTimeout(function() {
+        btn.textContent = 'Copiar';
+        btn.classList.remove('copiado');
+    }, 2000);
+}
+
+
+/* ==========================================================
+   PRODUTO.JS - Cadastro de Novo Produto
+   Menu Geral APESP - Arquitetura Modular
+   Usa JX.salvar() direto na entidade (sem rotina Java)
+   ========================================================== */
+
+var MARCAS_POPUP = [];
+var GRUPOS_POPUP = [];
+var marcaIndexPopup = -1;
+var grupoIndexPopup = -1;
+var ultimoProdutoInserido = {};
+
+// ══════════════════════════════════════════════════════════════
+// CARREGAR DADOS PARA LOOKUPS
+// ══════════════════════════════════════════════════════════════
+function carregarDadosProduto() {
+    JX.consultar("SELECT CODIGO, DESCRICAO FROM TGFMAR ORDER BY DESCRICAO")
+        .then(function(r) { 
+            MARCAS_POPUP = r || []; 
+            console.log('[Produto] Marcas carregadas:', MARCAS_POPUP.length);
+        })
+        .catch(function(e) { console.error('[Produto] Erro marcas:', e); });
+
+    JX.consultar("SELECT CODGRUPOPROD, DESCRGRUPOPROD FROM TGFGRU WHERE ATIVO = 'S' ORDER BY DESCRGRUPOPROD")
+        .then(function(r) { 
+            GRUPOS_POPUP = r || []; 
+            console.log('[Produto] Grupos carregados:', GRUPOS_POPUP.length);
+        })
+        .catch(function(e) { console.error('[Produto] Erro grupos:', e); });
+}
+
+// ══════════════════════════════════════════════════════════════
+// ABRIR / FECHAR POPUP
+// ══════════════════════════════════════════════════════════════
+function abrirPopupNovoProduto() {
+    document.getElementById('popupNovoProduto').classList.add('show');
+    setTimeout(function() { 
+        document.getElementById('prod_descrprod').focus(); 
+    }, 100);
+}
+
+function fecharPopupNovoProduto() {
+    document.getElementById('popupNovoProduto').classList.remove('show');
+    limparCamposProduto();
+}
+
+function limparCamposProduto() {
+    var campos = ['prod_descrprod','prod_codmarca','prod_nomemarca','prod_marca_input','prod_codgrupoprod','prod_grupo_input','prod_compldesc','prod_refforn'];
+    for (var i = 0; i < campos.length; i++) {
+        var el = document.getElementById(campos[i]);
+        if (el) el.value = '';
+    }
+    var listaMarca = document.getElementById('prod_lista_marca');
+    var listaGrupo = document.getElementById('prod_lista_grupo');
+    if (listaMarca) listaMarca.classList.remove('show');
+    if (listaGrupo) listaGrupo.classList.remove('show');
+    marcaIndexPopup = -1;
+    grupoIndexPopup = -1;
+}
+
+// ══════════════════════════════════════════════════════════════
+// LOOKUP MARCA
+// ══════════════════════════════════════════════════════════════
+function mostrarListaMarcaPopup() {
+    marcaIndexPopup = -1;
+    var lista = document.getElementById('prod_lista_marca');
+    if (!MARCAS_POPUP.length) {
+        lista.innerHTML = '<div class="lookup-popup-loading">Carregando marcas...</div>';
+        lista.classList.add('show');
+        return;
+    }
+    renderizarListaMarcaPopup(MARCAS_POPUP.slice(0, 50));
+}
+
+function buscarMarcaPopup(termo) {
+    marcaIndexPopup = -1;
+    if (!termo) { mostrarListaMarcaPopup(); return; }
+    var t = termo.toLowerCase();
+    var filtrados = MARCAS_POPUP.filter(function(m) {
+        return String(m.CODIGO).indexOf(termo) >= 0 || 
+               m.DESCRICAO.toLowerCase().indexOf(t) >= 0;
+    });
+    renderizarListaMarcaPopup(filtrados);
+}
+
+function renderizarListaMarcaPopup(filtrados) {
+    var lista = document.getElementById('prod_lista_marca');
+    if (!filtrados.length) {
+        lista.innerHTML = '<div class="lookup-popup-empty">Nenhuma marca encontrada</div>';
+    } else {
+        var html = '';
+        var max = Math.min(filtrados.length, 50);
+        for (var i = 0; i < max; i++) {
+            var m = filtrados[i];
+            var descEsc = (m.DESCRICAO || '').replace(/'/g, "\\'");
+            html += '<div class="lookup-popup-item" data-index="' + i + '" ' +
+                'onclick="selecionarMarcaPopup(' + m.CODIGO + ',\'' + descEsc + '\')">' +
+                '<span class="lookup-popup-item-cod">' + m.CODIGO + '</span>' +
+                '<span class="lookup-popup-item-desc">' + m.DESCRICAO + '</span></div>';
+        }
+        lista.innerHTML = html;
+    }
+    lista.classList.add('show');
+}
+
+function navegarListaMarcaPopup(e) {
+    var lista = document.getElementById('prod_lista_marca');
+    var items = lista.querySelectorAll('.lookup-popup-item[data-index]');
+    if (!items.length) return;
+
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        marcaIndexPopup = Math.min(marcaIndexPopup + 1, items.length - 1);
+        atualizarItemAtivoLookupProd(items, marcaIndexPopup);
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        marcaIndexPopup = Math.max(marcaIndexPopup - 1, 0);
+        atualizarItemAtivoLookupProd(items, marcaIndexPopup);
+    } else if (e.key === 'Enter' && marcaIndexPopup >= 0) {
+        e.preventDefault();
+        items[marcaIndexPopup].click();
+    } else if (e.key === 'Escape') {
+        lista.classList.remove('show');
+    }
+}
+
+function selecionarMarcaPopup(cod, desc) {
+    document.getElementById('prod_codmarca').value = cod;
+    document.getElementById('prod_nomemarca').value = desc;
+    document.getElementById('prod_marca_input').value = cod + ' - ' + desc;
+    document.getElementById('prod_lista_marca').classList.remove('show');
+    document.getElementById('prod_grupo_input').focus();
+}
+
+// ══════════════════════════════════════════════════════════════
+// LOOKUP GRUPO
+// ══════════════════════════════════════════════════════════════
+function mostrarListaGrupoPopup() {
+    grupoIndexPopup = -1;
+    var lista = document.getElementById('prod_lista_grupo');
+    if (!GRUPOS_POPUP.length) {
+        lista.innerHTML = '<div class="lookup-popup-loading">Carregando grupos...</div>';
+        lista.classList.add('show');
+        return;
+    }
+    renderizarListaGrupoPopup(GRUPOS_POPUP.slice(0, 50));
+}
+
+function buscarGrupoPopup(termo) {
+    grupoIndexPopup = -1;
+    if (!termo) { mostrarListaGrupoPopup(); return; }
+    var t = termo.toLowerCase();
+    var filtrados = GRUPOS_POPUP.filter(function(g) {
+        return String(g.CODGRUPOPROD).indexOf(termo) >= 0 || 
+               g.DESCRGRUPOPROD.toLowerCase().indexOf(t) >= 0;
+    });
+    renderizarListaGrupoPopup(filtrados);
+}
+
+function renderizarListaGrupoPopup(filtrados) {
+    var lista = document.getElementById('prod_lista_grupo');
+    if (!filtrados.length) {
+        lista.innerHTML = '<div class="lookup-popup-empty">Nenhum grupo encontrado</div>';
+    } else {
+        var html = '';
+        var max = Math.min(filtrados.length, 50);
+        for (var i = 0; i < max; i++) {
+            var g = filtrados[i];
+            var descEsc = (g.DESCRGRUPOPROD || '').replace(/'/g, "\\'");
+            html += '<div class="lookup-popup-item" data-index="' + i + '" ' +
+                'onclick="selecionarGrupoPopup(' + g.CODGRUPOPROD + ',\'' + descEsc + '\')">' +
+                '<span class="lookup-popup-item-cod">' + g.CODGRUPOPROD + '</span>' +
+                '<span class="lookup-popup-item-desc">' + g.DESCRGRUPOPROD + '</span></div>';
+        }
+        lista.innerHTML = html;
+    }
+    lista.classList.add('show');
+}
+
+function navegarListaGrupoPopup(e) {
+    var lista = document.getElementById('prod_lista_grupo');
+    var items = lista.querySelectorAll('.lookup-popup-item[data-index]');
+    if (!items.length) return;
+
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        grupoIndexPopup = Math.min(grupoIndexPopup + 1, items.length - 1);
+        atualizarItemAtivoLookupProd(items, grupoIndexPopup);
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        grupoIndexPopup = Math.max(grupoIndexPopup - 1, 0);
+        atualizarItemAtivoLookupProd(items, grupoIndexPopup);
+    } else if (e.key === 'Enter' && grupoIndexPopup >= 0) {
+        e.preventDefault();
+        items[grupoIndexPopup].click();
+    } else if (e.key === 'Escape') {
+        lista.classList.remove('show');
+    }
+}
+
+function selecionarGrupoPopup(cod, desc) {
+    document.getElementById('prod_codgrupoprod').value = cod;
+    document.getElementById('prod_grupo_input').value = cod + ' - ' + desc;
+    document.getElementById('prod_lista_grupo').classList.remove('show');
+    document.getElementById('prod_compldesc').focus();
+}
+
+// ══════════════════════════════════════════════════════════════
+// FUNÇÃO AUXILIAR LOOKUP
+// ══════════════════════════════════════════════════════════════
+function atualizarItemAtivoLookupProd(items, idx) {
+    for (var i = 0; i < items.length; i++) {
+        items[i].classList.remove('active');
+    }
+    if (idx >= 0 && items[idx]) {
+        items[idx].classList.add('active');
+        items[idx].scrollIntoView({ block: 'nearest' });
+    }
+}
+
+// ══════════════════════════════════════════════════════════════
+// SALVAR PRODUTO (JX.salvar direto na entidade)
+// ══════════════════════════════════════════════════════════════
+function salvarProduto() {
+    var descrprod = document.getElementById('prod_descrprod').value.trim();
+    var nomemarca = document.getElementById('prod_nomemarca').value.trim();
+    var codgrupoprod = document.getElementById('prod_codgrupoprod').value;
+    var compldesc = document.getElementById('prod_compldesc').value.trim();
+    var refforn = document.getElementById('prod_refforn').value.trim();
+
+    // Validação
+    var erros = [];
+    if (!descrprod) erros.push('Nome do Produto é obrigatório');
+    if (!nomemarca) erros.push('Marca é obrigatória');
+    if (!codgrupoprod) erros.push('Grupo de Produtos é obrigatório');
+
+    if (erros.length) {
+        alert('Campos obrigatórios:\n\n' + erros.join('\n'));
+        return;
+    }
+
+    // Data atual formatada DD/MM/YYYY HH:MM:SS
+    var agora = new Date();
+    var dtalter = ('0' + agora.getDate()).slice(-2) + '/' +
+                  ('0' + (agora.getMonth() + 1)).slice(-2) + '/' +
+                  agora.getFullYear() + ' ' +
+                  ('0' + agora.getHours()).slice(-2) + ':' +
+                  ('0' + agora.getMinutes()).slice(-2) + ':' +
+                  ('0' + agora.getSeconds()).slice(-2);
+
+    // Montar objeto de dados para JX.salvar
+    var dados = {
+        DESCRPROD: descrprod,
+        MARCA: nomemarca,
+        CODGRUPOPROD: parseInt(codgrupoprod),
+        // Valores fixos (confirmados pelo usuário)
+        CODVOL: 'UN',
+        CODVOLCOMPRA: 'UN',
+        CSTIPIENT: 49,
+        CSTIPISAI: 99,
+        DTALTER: dtalter,
+        GRUPOICMS: 60,
+        USALOCAL: 'S',
+        USOPROD: 'R',
+        TIPSUBST: 'A',
+        DESCMAX: 99,
+        DECQTD: 2,
+        CODIPI: 5,
+        CLASSUBTRIB: 14,
+        CODFORMPREC: 3,
+        NCM: '84879000',
+        CODLOCALPADRAO: 101,
+        CALCDIFAL: 'S'
+    };
+
+    // Campos opcionais
+    if (compldesc) dados.COMPLDESC = compldesc;
+    if (refforn) dados.REFFORN = refforn;
+
+    // Feedback visual
+    var btnSalvar = document.querySelector('#popupNovoProduto .btn-popup-salvar');
+    var textoOriginal = btnSalvar.textContent;
+    btnSalvar.textContent = 'Salvando...';
+    btnSalvar.disabled = true;
+
+    // Chamar JX.salvar na entidade Produto
+    JX.salvar(dados, 'Produto', [{}])
+        .then(function(resultado) {
+            console.log('[Produto] Retorno JX.salvar:', resultado);
+
+            var codprod = null;
+            
+            // Tentar extrair CODPROD do retorno
+            if (resultado && resultado[0] && resultado[0].responseBody && 
+                resultado[0].responseBody.entities && resultado[0].responseBody.entities.entity) {
+                var entity = resultado[0].responseBody.entities.entity;
+                codprod = entity.CODPROD && entity.CODPROD.$;
+            }
+            if (!codprod && resultado && resultado.pk) {
+                codprod = resultado.pk.CODPROD;
+            }
+            if (!codprod && resultado && resultado.CODPROD) {
+                codprod = resultado.CODPROD;
+            }
+            if (!codprod && resultado && resultado[0] && resultado[0].CODPROD) {
+                codprod = resultado[0].CODPROD;
+            }
+
+            // Fallback: buscar no banco
+            if (!codprod) {
+                return JX.consultar("SELECT MAX(CODPROD) AS CODPROD FROM TGFPRO WHERE DESCRPROD = '" + descrprod.replace(/'/g, "''") + "'")
+                    .then(function(r) {
+                        return (r && r[0]) ? r[0].CODPROD : 'N/A';
+                    });
+            }
+            return codprod;
+        })
+        .then(function(codprod) {
+            ultimoProdutoInserido = {
+                CODPROD: codprod,
+                NOME: descrprod,
+                REFFORN: refforn || '-'
+            };
+
+            btnSalvar.textContent = textoOriginal;
+            btnSalvar.disabled = false;
+
+            fecharPopupNovoProduto();
+            mostrarPopupSucessoProduto();
+        })
+        .catch(function(erro) {
+            console.error('[Produto] Erro ao cadastrar:', erro);
+            btnSalvar.textContent = textoOriginal;
+            btnSalvar.disabled = false;
+            alert('Erro ao cadastrar produto:\n\n' + (erro.message || erro));
+        });
+}
+
+// ══════════════════════════════════════════════════════════════
+// POPUP SUCESSO PRODUTO
+// ══════════════════════════════════════════════════════════════
+function mostrarPopupSucessoProduto() {
+    var texto = 'CODPROD:  ' + ultimoProdutoInserido.CODPROD + '\n' +
+                'NOME:     ' + ultimoProdutoInserido.NOME + '\n' +
+                'REFFORN:  ' + ultimoProdutoInserido.REFFORN;
+    document.getElementById('prod_sucesso_code').textContent = texto;
+    document.getElementById('popupSucessoProduto').classList.add('show');
+}
+
+function fecharPopupSucessoProduto() {
+    document.getElementById('popupSucessoProduto').classList.remove('show');
+}
+
+function copiarDadosProduto() {
+    var texto = 'CODPROD: ' + ultimoProdutoInserido.CODPROD + ' | NOME: ' + ultimoProdutoInserido.NOME + ' | REFFORN: ' + ultimoProdutoInserido.REFFORN;
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texto).then(function() {
+            mostrarBotaoCopiadoProd('popupSucessoProduto');
+        });
+    } else {
+        var ta = document.createElement('textarea');
+        ta.value = texto;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        mostrarBotaoCopiadoProd('popupSucessoProduto');
+    }
+}
+
+function mostrarBotaoCopiadoProd(popupId) {
+    var btn = document.querySelector('#' + popupId + ' .btn-popup-copiar');
+    if (!btn) return;
+    btn.textContent = 'Copiado!';
+    btn.classList.add('copiado');
+    setTimeout(function() {
+        btn.textContent = 'Copiar';
+        btn.classList.remove('copiado');
+    }, 2000);
+}
 
     </script>
 </body>
