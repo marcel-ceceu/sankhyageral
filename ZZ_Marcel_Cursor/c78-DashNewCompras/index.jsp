@@ -16,6 +16,7 @@
       <!-- ==================== TOOLBAR ==================== -->
       <div class="toolbar">
         <div class="toolbar-title">
+          <span class="r-badge">R</span>
           <span>📦</span>
           <span>Reposição - Decisão de Compras</span>
         </div>
@@ -23,10 +24,6 @@
         <div class="toolbar-search">
           <input type="text" id="globalSearch" placeholder="Pesquisar em todas as colunas...">
         </div>
-        <label class="cotacao-rapida-container" id="cotacaoRapidaContainer">
-          <input type="checkbox" id="chkCotacaoRapida">
-          <span class="cotacao-rapida-label">⭐ Filtrar para Cotação Rápida</span>
-        </label>
         <div class="dropdown-cols">
           <button class="btn" id="btnToggleCols">⚙️ Colunas ▼</button>
           <div class="dropdown-menu" id="menuCols"></div>
@@ -38,12 +35,15 @@
 
       <!-- ==================== TABS ==================== -->
       <div class="tabs">
-        <button class="tab-btn active" data-tab="table">Tabela</button>
+        <button class="tab-btn active" data-tab="cotacao">#1. Cotação Rápida</button>
+        <button class="tab-btn" data-tab="todos">#2. Todos os Produtos</button>
         <button class="tab-btn" data-tab="kanban">Kanban</button>
       </div>
 
       <!-- ==================== ABA 1: TABELA ==================== -->
       <div class="tab-section tab-section-table active" id="tabTable">
+        <!-- ==================== ACTIVE FILTERS BAR ==================== -->
+        <div class="active-filters" id="activeFiltersBar"></div>
         <!-- ==================== GRID ==================== -->
         <div class="grid-wrapper">
           <div class="grid-scroll" id="gridScroll">
@@ -163,7 +163,7 @@
   </div>
 
   <!-- ==================== POPUP DE FILTRO ==================== -->
-  <div class="popup" id="popup"></div>
+  <div class="popup filter-popover" id="popup"></div>
 
   <!-- ==================== TOOLTIP SIMILARES ==================== -->
   <div class="tooltip-similar" id="tooltipSimilar"></div>

@@ -3,7 +3,7 @@ atualizado 20/01/2026
    VARIÁVEIS CSS
    ========================================================== */
 :root {
-  --ui-zoom: 1;
+  --ui-zoom: 1.2;
 
   --bg: #ffffff;
   --bg-alt: #f8f9fa;
@@ -111,6 +111,19 @@ body {
   gap: 8px;
 }
 
+.r-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 12px;
+  color: #fff;
+  background: var(--pri);
+}
+
 .toolbar-spacer { flex: 1; }
 
 .toolbar-search {
@@ -204,13 +217,22 @@ body {
 
 .row-header {
   height: var(--head-height);
-  background: var(--bg-alt);
+  background: linear-gradient(180deg, #1a73e8 0%, #1557b0 100%);
   position: sticky;
   top: 0;
   z-index: 10;
-  font-weight: 600;
-  font-size: 12px;
-  color: var(--tx-muted);
+  font-weight: 700;
+  font-size: 13px;
+  color: #ffffff;
+  border-bottom: 2px solid #0f4aa8;
+}
+
+.row-header .cell.drag-over {
+  background: rgba(255,255,255,0.18);
+}
+
+.row-header .cell.dragging-col {
+  opacity: 0.6;
 }
 
 .row-filter {
@@ -309,7 +331,8 @@ body {
 }
 
 .header-label:hover {
-  color: var(--pri);
+  color: #fff;
+  background: rgba(255,255,255,0.18);
 }
 
 .header-label span {
@@ -320,46 +343,48 @@ body {
 
 .sort-icon {
   font-size: 10px;
-  opacity: 0.4;
+  opacity: 0.7;
   transition: opacity 0.2s;
+  color: rgba(255,255,255,0.9);
 }
 
 .sort-icon.active {
   opacity: 1;
-  color: var(--pri);
+  color: #fff;
 }
 
 /* ==========================================================
    BOTÃO MENU (agora usado na LINHA DE FILTRO)  [Ajuste 1]
    ========================================================== */
-.menu-btn {
-  width: 28px;
-  height: 28px;
-  border: 1px solid transparent;
-  border-radius: 6px;
+/* ===== FILTER BUTTON (Excel Style) ===== */
+.filter-btn {
+  width: 18px;
+  height: 18px;
+  border: none;
   background: transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--tx-muted);
-  transition: all 0.2s;
+  border-radius: 2px;
+  color: rgba(255,255,255,0.85);
+  font-size: 10px;
   flex-shrink: 0;
 }
 
-.menu-btn:hover {
-  background: var(--bg-alt);
-  border-color: var(--bd);
+.filter-btn:hover {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
 }
 
-.menu-btn svg {
-  width: 16px;
-  height: 16px;
+.filter-btn.has-filter {
+  color: #fff;
+  background: rgba(255,255,255,0.28);
 }
 
-.menu-btn.has-filter {
-  color: var(--pri);
-  background: var(--pri-light);
+.filter-btn svg {
+  width: 12px;
+  height: 12px;
 }
 
 /* ==========================================================
@@ -445,18 +470,149 @@ body {
 /* ==========================================================
    POPUP DE FILTRO (MENU)
    ========================================================== */
+/* ===== FILTER POPOVER (Excel Classic) ===== */
 .popup {
   position: fixed;
   z-index: 1000;
-  width: 340px;
+  min-width: 220px;
+  max-width: 300px;
   background: var(--bg);
-  border: 1px solid var(--bd);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--bd2);
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
   display: none;
 }
 
 .popup.show { display: block; }
+
+.filter-popover-header {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--bd);
+  background: var(--bg-alt);
+  font-weight: 600;
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.filter-popover-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--tx-muted);
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+.filter-popover-close:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.filter-sort-section {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--bd);
+  display: flex;
+  gap: 6px;
+}
+
+.sort-btn {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid var(--bd);
+  border-radius: 4px;
+  background: var(--bg);
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.sort-btn:hover {
+  background: var(--bg-alt);
+  border-color: var(--bd2);
+}
+
+.sort-btn.active {
+  background: var(--pri-light);
+  border-color: var(--pri);
+  color: var(--pri-dark);
+}
+
+.filter-search {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--bd);
+}
+
+.filter-search input {
+  width: 100%;
+  height: 28px;
+  border: 1px solid var(--bd);
+  border-radius: 4px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+.filter-search input:focus {
+  outline: none;
+  border-color: var(--pri);
+}
+
+.filter-actions {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--bd);
+  display: flex;
+  gap: 8px;
+  background: #fafafa;
+}
+
+.filter-action-btn {
+  background: none;
+  border: none;
+  color: var(--pri);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+
+.filter-action-btn:hover {
+  background: var(--pri-light);
+  text-decoration: underline;
+}
+
+.filter-values {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.filter-value-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.filter-value-item:hover {
+  background: var(--bg-alt);
+}
+
+.filter-footer {
+  display: flex;
+  gap: 8px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--bd);
+  background: #fafafa;
+}
+
+.filter-footer .btn { flex: 1; height: 28px; }
 
 .popup-header {
   display: flex;
@@ -495,6 +651,20 @@ body {
   border-bottom: 1px solid var(--bd);
 }
 .popup-section:last-of-type { border-bottom: none; }
+
+.popup-actions,
+.popup-sort {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.popup-actions .btn,
+.popup-sort .btn {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 11px;
+}
 
 .popup-label {
   font-size: 10px;
@@ -565,6 +735,11 @@ body {
   white-space: nowrap;
 }
 
+.value-count {
+  font-size: 11px;
+  color: var(--tx-muted);
+}
+
 /* Botões do popup */
 .popup-footer {
   display: flex;
@@ -575,6 +750,69 @@ body {
 }
 
 .popup-footer .btn { flex: 1; }
+
+/* ==========================================================
+   ACTIVE FILTERS BAR
+   ========================================================== */
+.active-filters {
+  display: none;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--bd);
+  background: var(--bg-alt);
+}
+
+.active-filters.show { display: flex; }
+
+.filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--pri-light);
+  color: var(--pri-dark);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.filter-tag .filter-tag-remove {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(26, 115, 232, 0.15);
+  color: var(--pri-dark);
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.filter-tag .filter-tag-remove:hover {
+  background: rgba(26, 115, 232, 0.3);
+}
+
+.filter-clear-all {
+  margin-left: auto;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--bd);
+  border-radius: 999px;
+  background: var(--bg);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tx-muted);
+  cursor: pointer;
+}
+
+.filter-clear-all:hover {
+  color: var(--tx);
+  background: var(--bg-alt);
+  border-color: var(--bd2);
+}
 
 /* ==========================================================
    RODAPÉ (PAGINAÇÃO & INFO)
@@ -671,6 +909,35 @@ body {
 .text-warning { color: var(--warning); }
 .text-danger { color: var(--danger); }
 .font-mono { font-family: 'Consolas', 'Monaco', monospace; }
+
+/* Destaques de colunas */
+.cell-custo-ultimo {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.cell-fornecedor {
+  font-weight: 700;
+}
+
+/* Destaque visual: LIN (linha) vs SIM (similar) */
+.row-data .cell-linha {
+  background: #fff7ed;
+  border-left: 3px solid #f59e0b;
+}
+
+.row-data .cell-similar {
+  background: #f5faff;
+  border-left: 3px solid #60a5fa;
+}
+
+.row-header .cell-linha {
+  box-shadow: inset 0 -3px 0 #f59e0b;
+}
+
+.row-header .cell-similar {
+  box-shadow: inset 0 -3px 0 #60a5fa;
+}
 
 /* ===== TOOLTIP SIMILARES (compacto) ===== */
 .lupa-similar { cursor: help; margin-left: 6px; font-size: 14px; opacity: 0.7; transition: opacity 0.2s; }
@@ -1011,27 +1278,31 @@ body {
    ========================================================== */
 .tabs {
   display: flex;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: 6px;
+  padding: 6px 10px 0;
   border-bottom: 1px solid var(--bd);
   background: var(--bg-alt);
 }
 
 .tab-btn {
   border: 1px solid var(--bd);
-  background: var(--bg);
+  border-bottom: none;
+  background: #e5e7eb;
   color: var(--tx);
   padding: 6px 12px;
-  border-radius: 8px;
+  border-radius: 8px 8px 0 0;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  position: relative;
+  top: 1px;
 }
 
 .tab-btn.active {
-  background: var(--pri);
-  border-color: var(--pri);
-  color: #fff;
+  background: #fff;
+  color: var(--tx);
+  border-color: var(--bd);
+  box-shadow: 0 -1px 0 #fff;
 }
 
 .tab-section {
